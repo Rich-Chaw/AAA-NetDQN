@@ -60,21 +60,18 @@ cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 class GraphDQN:
 
     def __init__(self,
-        g_type = 'barabasi_albert',
+        g_type = 'ego',
         target_graph = "Digg",
         num_min = 30,
         num_max = 120,
-        model_file = None
+        ckpt_file = None
     ):
         # init some parameters
         self.embedding_size = EMBEDDING_SIZE
         self.learning_rate = LEARNING_RATE
         self.g_type = g_type #barabasi_albert,erdos_renyi, powerlaw, small-world, ego
         self.target_graph = target_graph
-        self.train_dir = f"../../dataset/synthetic/GSDM"
-        self.valid_dir = f"../../dataset/synthetic/GSDM"
-        self.dataset_id = 0    # train ego graph id,begin with 0
-        self.model_file = model_file
+        self.ckpt_file = ckpt_file
         self.num_min = num_min
         self.num_max = num_max
         self.TrainSet = graph.py_GSet()
@@ -82,6 +79,20 @@ class GraphDQN:
         self.inputs = dict()
         self.reg_hidden = REG_HIDDEN
         self.utils = utils.py_Utils()
+
+        ############----------------------------- paths ------------------- ###################################
+        self.train_dir = f"../../dataset/synthetic/GSDM"
+        self.valid_dir = f"../../dataset/synthetic/GSDM"
+        # train ego graph id,begin with 0
+        self.dataset_id = 24    
+        # save_model_dir: directory to save the models
+        self.save_model_dir = f"models/{self.g_type}"
+        if not os.path.exists(self.save_model_dir):
+            os.makedirs(self.save_model_dir)
+        # VCFile: file to store the validation results
+        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.num_min}_{self.num_max}.csv")
+
+
 
         ############----------------------------- variants of DQN(start) ------------------- ###################################
         self.IsHuberloss = False
@@ -133,7 +144,7 @@ class GraphDQN:
 
         # init Q network
         self.loss,self.trainStep,self.q_pred, self.q_on_all,self.Q_param_list = self.BuildNet() #[loss,trainStep,q_pred, q_on_all, ...]
-        #init Target Q Network
+        # init Target Q Network
         self.lossT,self.trainStepT,self.q_predT, self.q_on_allT,self.Q_param_listT = self.BuildNet()
         #takesnapsnot
         self.copyTargetQNetworkOperation = [a.assign(b) for a,b in zip(self.Q_param_listT,self.Q_param_list)]
@@ -156,6 +167,8 @@ class GraphDQN:
 
 #################################################New code for graphDQN#####################################
     def BuildNet(self):
+        ############----------------------------- initialize weight ------------------- ###################################
+        ### Weight of GraphSAGE or Structure2Vec
         # [2, embed_dim]
         w_n2l = tf.Variable(tf1.truncated_normal([2, self.embedding_size], stddev=initialization_stddev), tf.float32)
         # [embed_dim, embed_dim]
@@ -166,79 +179,75 @@ class GraphDQN:
             # [2*embed_dim, embed_dim]
             p_node_conv3 = tf.Variable(tf1.truncated_normal([2*self.embedding_size, self.embedding_size], stddev=initialization_stddev), tf.float32)
 
-        #[reg_hidden+aux_dim, 1]
+        ### Weight of MLP
         if self.reg_hidden > 0:
-            #[2*embed_dim, reg_hidden]
+            #[embed_dim, reg_hidden]
             h1_weight = tf.Variable(tf1.truncated_normal([self.embedding_size, self.reg_hidden], stddev=initialization_stddev), tf.float32)
-            #[reg_hidden+aux_dim, 1]
-            h2_weight = tf.Variable(tf1.truncated_normal([self.reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
             #[reg_hidden + aux_dim, 1]
-            last_w = h2_weight
+            last_w = tf.Variable(tf1.truncated_normal([self.reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
         else:
-            #[2*embed_dim, reg_hidden]
-            h1_weight = tf.Variable(tf1.truncated_normal([2 * self.embedding_size, self.reg_hidden], stddev=initialization_stddev), tf.float32)
-            # [embed_dim, reg_hidden]
-            # h1_weight = tf.Variable(tf.truncated_normal([self.embedding_size, self.reg_hidden], stddev=initialization_stddev), tf.float32)
-            #[2*embed_dim, reg_hidden]
-            last_w = h1_weight
-
+            #[embed_dim, 2*embed_dim]
+            h1_weight = tf.Variable(tf1.truncated_normal([self.embedding_size,2 * self.embedding_size], stddev=initialization_stddev), tf.float32)
+            #[2*embed_dim + aux_dim, 1]
+            last_w = tf.Variable(tf1.truncated_normal([2 * self.embedding_size + aux_dim, 1], stddev=initialization_stddev), tf.float32)
+        
+        ### Weight for combining state and action embeddings 
         ## [embed_dim, 1]
         cross_product = tf.Variable(tf1.truncated_normal([self.embedding_size, 1], stddev=initialization_stddev), tf.float32)
 
-        nodes_size = tf.shape(self.n2nsum_param)[0]
-        y_nodes_size = tf.shape(self.subgsum_param)[0]
-       
-        #[node_cnt, 2] * [2, embed_dim] = [node_cnt, embed_dim]
-        input_message = tf.matmul(tf.cast(tf.ones((nodes_size,2)),tf.float32), w_n2l)
-        #[node_cnt, embed_dim]  # no sparse
-        input_potential_layer = tf.nn.relu(input_message)
+        ############----------------------------- initialize node & virtual_node ------------------- ###################################
 
-        # no sparse
+        nodes_size = tf.shape(self.n2nsum_param)[0]     # = node_cnt
+        y_nodes_size = tf.shape(self.subgsum_param)[0]  # = batch_size
+        
+        # node:[node_cnt,2] i.e. every node is assigned with tensor([1,1])
+        node_input = tf.cast(tf.ones((nodes_size,2)),tf.float32)
+        # virtual node: [batch_size,2] i.e. every graph in one batch has a virtual node, assigned with tensor([1,1])
+        y_node_input = tf.cast(tf.ones((y_nodes_size,2)),tf.float32)
+
+        ### Initial Embedding
+        # [node_cnt, embed_dim]
+        input_message = tf.matmul(node_input, w_n2l)
         # [batch_size, embed_dim]
-        y_input_message = tf.matmul(tf.cast(tf.ones((y_nodes_size,2)),tf.float32), w_n2l)
-        #[batch_size, embed_dim]  # no sparse
-        y_input_potential_layer = tf.nn.relu(y_input_message)
+        y_input_message = tf.matmul(y_node_input, w_n2l)
 
         cdef int lv = 0
-        #[node_cnt, embed_dim], no sparse
-        cur_message_layer = input_potential_layer
-        cur_message_layer = tf.nn.l2_normalize(cur_message_layer, axis=1)
+        # X: [node_cnt, embed_dim]
+        cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(input_message), axis=1)
+        # Y: [batch_size, embed_dim], no sparse
+        y_cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(y_input_message), axis=1)
 
-        #[batch_size, embed_dim], no sparse
-        y_cur_message_layer = y_input_potential_layer
-        # [batch_size, embed_dim]
-        y_cur_message_layer = tf.nn.l2_normalize(y_cur_message_layer, axis=1)
-
-        # embed Graph
+        ############----------------------------- embed the graph: Message Passing ------------------- ###################################
+        # max_bp_iter: number of message passing iterations
         while lv < max_bp_iter:
             lv = lv + 1
             # Aggregate neighber message
-            #[node_cnt, node_cnt] * [node_cnt, embed_dim] = [node_cnt, embed_dim], dense
+            # [node_cnt, embed_dim] = [node_cnt, node_cnt] * [node_cnt, embed_dim]
             n2npool = tf1.sparse_tensor_dense_matmul(tf.cast(self.n2nsum_param,tf.float32), cur_message_layer)
-            #[node_cnt, embed_dim] * [embed_dim, embed_dim] = [node_cnt, embed_dim], dense
+            # [node_cnt, embed_dim] = [node_cnt, embed_dim] * [embed_dim, embed_dim] 
             node_linear = tf.matmul(n2npool, p_node_conv)
 
-            # [batch_size, node_cnt] * [node_cnt, embed_dim] = [batch_size, embed_dim]
+            # [batch_size, embed_dim] = [batch_size, node_cnt] * [node_cnt, embed_dim]
             y_n2npool = tf1.sparse_tensor_dense_matmul(tf.cast(self.subgsum_param,tf.float32), cur_message_layer)
-            #[batch_size, embed_dim] * [embed_dim, embed_dim] = [batch_size, embed_dim], dense
+            # [batch_size, embed_dim] = [batch_size, embed_dim] * [embed_dim, embed_dim]
             y_node_linear = tf.matmul(y_n2npool, p_node_conv)
 
             if embeddingMethod == 0: # 'structure2vec'
-                #[node_cnt, embed_dim] + [node_cnt, embed_dim] = [node_cnt, embed_dim], return tensed matrix
+                # [node_cnt, embed_dim] = [node_cnt, embed_dim] + [node_cnt, embed_dim], return tensed matrix
                 merged_linear = tf.add(node_linear,input_message)
                 #[node_cnt, embed_dim]
                 cur_message_layer = tf.nn.relu(merged_linear)
 
-                #[batch_size, embed_dim] + [batch_size, embed_dim] = [batch_size, embed_dim], return tensed matrix
+                #[batch_size, embed_dim] = [batch_size, embed_dim] + [batch_size, embed_dim], return tensed matrix
                 y_merged_linear = tf.add(y_node_linear, y_input_message)
                 #[batch_size, embed_dim]
                 y_cur_message_layer = tf.nn.relu(y_merged_linear)
             else:   # 'graphsage'
-                #[node_cnt, embed_dim] * [embed_dim, embed_dim] = [node_cnt, embed_dim], dense
+                #[node_cnt, embed_dim]= [node_cnt, embed_dim] * [embed_dim, embed_dim], dense
                 cur_message_layer_linear = tf.matmul(tf.cast(cur_message_layer, tf.float32), p_node_conv2)
-                #[[node_cnt, embed_dim] [node_cnt, embed_dim]] = [node_cnt, 2*embed_dim], return tensed matrix
+                #[node_cnt, 2*embed_dim] = [[node_cnt, embed_dim] [node_cnt, embed_dim]], return tensed matrix
                 merged_linear = tf.concat([node_linear, cur_message_layer_linear], 1)
-                #[node_cnt, 2*embed_dim]*[2*embed_dim, embed_dim] = [node_cnt, embed_dim]
+                #[node_cnt, embed_dim] = [node_cnt, 2*embed_dim]*[2*embed_dim, embed_dim]
                 cur_message_layer = tf.nn.relu(tf.matmul(merged_linear, p_node_conv3))
 
                 #[batch_size, embed_dim] * [embed_dim, embed_dim] = [batch_size, embed_dim], dense
@@ -251,34 +260,37 @@ class GraphDQN:
             # normalize by line
             cur_message_layer = tf.nn.l2_normalize(cur_message_layer, axis=1)
             y_cur_message_layer = tf.nn.l2_normalize(y_cur_message_layer, axis=1)
-
-        #[batch_size, embed_dim]
-        y_potential = y_cur_message_layer
-        #[batch_size, node_cnt] * [node_cnt, embed_dim] = [batch_size, embed_dim]
+        
+        ############----------------------------- get (s,a) embedding with cross product ------------------- ###################################
+        # [batch_size, embed_dim] = [batch_size, node_cnt] * [node_cnt, embed_dim]
         action_embed = tf1.sparse_tensor_dense_matmul(tf.cast(self.action_select, tf.float32), cur_message_layer)
         #[batch_size, embed_dim, embed_dim]
         temp = tf.matmul(tf.expand_dims(action_embed, axis=2),tf.expand_dims(y_cur_message_layer, axis=1))
         #[batch_size, embed_dim]
         Shape = tf.shape(action_embed)
+        # [batch_size, embed_dim, 1]
+        batch_cross_product = tf.reshape(tf.tile(cross_product,[Shape[0],1]),[Shape[0],Shape[1],1])
         #[batch_size, embed_dim], first transform
-        embed_s_a = tf.reshape(tf.matmul(temp, tf.reshape(tf.tile(cross_product,[Shape[0],1]),[Shape[0],Shape[1],1])),Shape)
+        embed_s_a = tf.reshape(tf.matmul(temp,batch_cross_product),Shape)
 
+        ############----------------------------- calculate Q(s,a) with MLP ------------------- ###################################
         #[batch_size, embed_dim]
         last_output = embed_s_a
 
-        if self.reg_hidden > 0:
-            #[batch_size, embed_dim] * [embed_dim, reg_hidden] = [batch_size, reg_hidden], dense
-            hidden = tf.matmul(embed_s_a, h1_weight)
-            #[batch_size, reg_hidden]
-            last_output = tf.nn.relu(hidden)
+        # if reg_hidden == 0: [batch_size, 2*embed_dim] = [batch_size, embed_dim] * [embed_dim, 2*embed_dim], dense
+        # if reg_hidden > 0: [batch_size, reg_hidden] = [batch_size, embed_dim] * [embed_dim, reg_hidden], dense
+        hidden = tf.matmul(embed_s_a, h1_weight)
+        # [batch_size, reg_hidden]
+        last_output = tf.nn.relu(hidden) 
 
-        # if reg_hidden == 0: ,[[batch_size, 2*embed_dim], [batch_size, aux_dim]] = [batch_size, 2*embed_dim+aux_dim]
-        # if reg_hidden > 0:  ,[[batch_size, reg_hidden], [batch_size, aux_dim]] = [batch_size, reg_hidden+aux_dim]
+        # if reg_hidden == 0: [batch_size, 2*embed_dim+aux_dim] 
+        # if reg_hidden > 0:  [batch_size, reg_hidden+aux_dim]
         last_output = tf.concat([last_output, self.aux_input], 1)
-        #if reg_hidden == 0: ,[batch_size, 2*embed_dim+aux_dim] * [2*embed_dim+aux_dim, 1] = [batch_size, 1]
-        #if reg_hidden > 0: ,[batch_size, reg_hidden+aux_dim] * [reg_hidden+aux_dim, 1] = [batch_size, 1]
+        #if reg_hidden == 0: ,[batch_size, 1] = [batch_size, 2*embed_dim+aux_dim] * [2*embed_dim+aux_dim, 1]
+        #if reg_hidden > 0: ,[batch_size, 1] = [batch_size, reg_hidden+aux_dim] * [reg_hidden+aux_dim, 1]
         q_pred = tf.matmul(last_output, last_w)
-
+        
+        ############----------------------------- calculate reconstruction loss ------------------- ###################################
         ## first order reconstruction loss
         loss_recons = 2 * tf1.trace(tf.matmul(tf.transpose(cur_message_layer), tf1.sparse_tensor_dense_matmul(tf.cast(self.laplacian_param,tf.float32), cur_message_layer)))
         edge_num = tf1.sparse_reduce_sum(tf.cast(self.n2nsum_param, tf.float32))
@@ -299,6 +311,7 @@ class GraphDQN:
         loss = loss_rl + Alpha * loss_recons
         trainStep = tf1.train.AdamOptimizer(self.learning_rate).minimize(loss)
 
+        ############----------------------------- calculate Q(s,a) on all nodes of all graphs------------------- ###################################
         #[node_cnt, batch_size] * [batch_size, embed_dim] = [node_cnt, embed_dim]
         rep_y = tf1.sparse_tensor_dense_matmul(tf.cast(self.rep_global, tf.float32), y_cur_message_layer)
 
@@ -306,13 +319,13 @@ class GraphDQN:
         temp1 = tf.matmul(tf.expand_dims(cur_message_layer, axis=2),tf.expand_dims(rep_y, axis=1))
         # [node_cnt embed_dim]
         Shape1 = tf.shape(cur_message_layer)
-        # [batch_size, embed_dim], first transform
+        # [node_cnt, embed_dim], first transform
         embed_s_a_all = tf.reshape(tf.matmul(temp1, tf.reshape(tf.tile(cross_product,[Shape1[0],1]),[Shape1[0],Shape1[1],1])),Shape1)
 
-        #[node_cnt, 2 * embed_dim]
+        #[node_cnt, embed_dim]
         last_output = embed_s_a_all
         if self.reg_hidden > 0:
-            #[node_cnt, 2 * embed_dim] * [2 * embed_dim, reg_hidden] = [node_cnt, reg_hidden]
+            #[node_cnt, embed_dim] * [embed_dim, reg_hidden] = [node_cnt, reg_hidden]
             hidden = tf.matmul(embed_s_a_all, h1_weight)
             #Relu, [node_cnt, reg_hidden]
             last_output = tf.nn.relu(hidden)
@@ -389,7 +402,7 @@ class GraphDQN:
         print('\ngenerating validation graphs...')
         sys.stdout.flush()
         cdef double result_degree = 0.0
-        cdef double result_betweeness = 0.0
+        cdef double result_betweenness = 0.0
         if self.g_type in ['erdos_renyi','powerlaw','small-world','barabasi_albert']:
             for i in tqdm(range(n_valid)):
                 g = self.gen_graph(self.num_min, self.num_max)
@@ -398,7 +411,7 @@ class GraphDQN:
                 val_degree, sol = self.HXA(g_degree, 'HDA')
                 result_degree += val_degree
                 val_betweenness, sol = self.HXA(g_betweenness, 'HBA')
-                result_betweeness += val_betweenness
+                result_betweenness += val_betweenness
                 self.InsertGraph(g, is_test=True)
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f'{self.valid_dir}/{self.target_graph}_ego_valid.pkl', 'rb'))
@@ -411,11 +424,11 @@ class GraphDQN:
                 val_degree, sol = self.HXA(g_degree, 'HDA')
                 result_degree += val_degree
                 val_betweenness, sol = self.HXA(g_betweenness, 'HBA')
-                result_betweeness += val_betweenness
+                result_betweenness += val_betweenness
                 self.InsertGraph(g, is_test=True)
 
         print ('Validation of HDA: %.6f'%(result_degree / n_valid))
-        print ('Validation of HBA: %.6f'%(result_betweeness / n_valid))
+        print ('Validation of HBA: %.6f'%(result_betweenness / n_valid))
 
 
     def Run_simulator(self, int n_traj, double eps, TrainSet, int n_step):
@@ -632,40 +645,49 @@ class GraphDQN:
         cdef int loss = 0
         cdef double frac, start, end
         
-        # cfd = os.path.dirname(__file__).split("\\")[0]
-        save_dir = 'models/%s'%(self.g_type)
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-        VCFile = '%s/ModelVC_%d_%d.csv'%(save_dir, self.num_min, self.num_max)
-        f_out = open(VCFile, 'w')
+        start_iter = 0
+        last_ckpt, last_iter = self.resume_checkpoint_and_iter()
+        if last_ckpt != None:
+            print(f"Resuming from checkpoint: {last_ckpt} at iter {last_iter}")
+            self.LoadModel(os.path.join(self.save_model_dir, last_ckpt))
+            start_iter = last_iter + 1
+            _,runtime = self.resume_nlines_and_runtime()
+            # Open CSV in append mode
+            f_out = open(self.VCFile, 'a')
+        else:
+            print("No checkpoint found, starting from scratch.")
+            # Start from scratch, overwrite CSV
+            start_iter = 0
+            runtime = 0
+            f_out = open(self.VCFile, 'w')
+
+
         t_train_start = time.time()
-        for iter in range(MAX_ITERATION):
-            start = time.perf_counter()
+        for iter in range(start_iter, MAX_ITERATION):
             ###########-----------------------normal training data setup(start) -----------------##############################
             if iter and iter % 5000 == 0:
                 self.gen_new_graphs(self.num_min, self.num_max)
             eps = eps_end + max(0., (eps_start - eps_end) * (eps_step - iter) / eps_step)
 
+            if iter == start_iter:
+                N_start = time.perf_counter()
             if iter % 10 == 0:
                 self.PlayGame(10, eps)
             if iter % 300 == 0:
-                if(iter == 0):
-                    N_start = start
-                else:
-                    N_start = N_end
                 frac = 0.0 
                 test_start = time.time()
                 for idx in range(n_valid):
                     frac += self.Test(idx)
                 test_end = time.time()
-                f_out.write('%.8f, %.4f\n'%(frac/n_valid, test_end-t_train_start))   #write vc into the file
+                f_out.write('%d, %.8f, %.4f\n'%(iter,frac/n_valid, test_end-t_train_start+runtime))   #write vc into the file
                 f_out.flush()
                 print('iter %d, eps %.4f, average size of vc:%.6f'%(iter, eps, frac/n_valid))
                 print ('testing 200 graphs time: %.2fs'%(test_end-test_start))
                 N_end = time.perf_counter()
                 print ('300 iterations total time: %.2fs\n'%(N_end-N_start))
+                N_start = N_end
                 sys.stdout.flush()
-                model_path = '%s/nrange_%d_%d_iter_%d.ckpt' % (save_dir,self.num_min, self.num_max, iter)
+                model_path = '%s/nrange_%d_%d_iter_%d.ckpt' % (self.save_model_dir,self.num_min, self.num_max, iter)
                 self.SaveModel(model_path)
             if iter % UPDATE_TIME == 0:
                 self.TakeSnapShot()
@@ -677,11 +699,9 @@ class GraphDQN:
         # find ckpt file in the model dir
         # return ckpt file name, not include dir
         # get current file dir,different from 'cwd'
-        VCFile = 'models/%s/ModelVC_%d_%d.csv'%(self.g_type, self.num_min, self.num_max)
-        print(VCFile)
         vc_list = []
-        for line in open(VCFile):
-            line=line.split(",")[0]
+        for line in open(self.VCFile):
+            line=line.split(",")[1]
             vc_list.append(float(line))
         start_loc = 33
         min_vc = start_loc + np.argmin(vc_list[start_loc:])
@@ -692,13 +712,13 @@ class GraphDQN:
 
 
     def Evaluate(self, data_test):
-        if self.model_file == None:  #if user do not specify the model_file
-            self.model_file = 'models/%s/%s' % (self.g_type, self.findModel())
+        if self.ckpt_file == None:  #if user do not specify the ckpt_file
+            self.ckpt_file = 'models/%s/%s' % (self.g_type, self.findModel())
         else:
-            self.model_file = 'models/%s/%s' % (self.g_type, self.model_file)
-        print ('The best model is :%s'%(self.model_file))
+            self.ckpt_file = 'models/%s/%s' % (self.g_type, self.ckpt_file)
+        print ('The best model is :%s'%(self.ckpt_file))
         sys.stdout.flush()
-        self.LoadModel(self.model_file)
+        self.LoadModel(self.ckpt_file)
         cdef int n_test = 100
         cdef int i
         result_list_score = []
@@ -722,14 +742,14 @@ class GraphDQN:
 
 
     def EvaluateRealData(self, test_graph, result_file, stepRatio=0.0025):  #测试真实数据
-        # save sol in save_dir
-        if self.model_file == None:  #if user do not specify the model_file
-            self.model_file = 'models/%s/%s' % (self.g_type, self.findModel())
+        # save sol in result_file
+        if self.ckpt_file == None:  #if user do not specify the ckpt_file
+            self.ckpt_file = os.path.join(self.save_model_dir,self.findModel())
         else:
-            self.model_file = 'models/%s/%s' % (self.g_type, self.model_file)
-        print ('The best model is :%s'%(self.model_file))
+            self.ckpt_file = os.path.join(self.save_model_dir,self.ckpt_file)
+        print ('The best model is :%s'%(self.ckpt_file))
         sys.stdout.flush()
-        self.LoadModel(self.model_file)
+        self.LoadModel(self.ckpt_file)
         cdef double solution_time = 0.0
         g = test_graph
         
@@ -851,7 +871,7 @@ class GraphDQN:
     def EvaluateRealData_random(self, data_test, save_dir, randomRatio,stepRatio=0.0025):
         # random remove 1%/5%/10%(randomRatio) nodes before test model
         sys.stdout.flush()
-        self.LoadModel(self.model_file)
+        self.LoadModel(self.ckpt_file)
         cdef double solution_time = 0.0
         test_name = data_test.split('/')[-1]
         save_dir_local = save_dir+'/StepRatio_%.4f'%stepRatio
@@ -1011,3 +1031,35 @@ class GraphDQN:
         solutions = [int(i) for i in solution]
         Robustness = self.utils.getRobustness(self.GenNetwork(g), solutions)
         return Robustness, sol
+
+    def resume_checkpoint_and_iter(self):
+        # Path to the checkpoint file
+        checkpoint_path = os.path.join(self.save_model_dir, "checkpoint")
+        if not os.path.exists(checkpoint_path):
+            return None, 0
+        with open(checkpoint_path, "r") as f:
+            for line in f:
+                if line.startswith("model_checkpoint_path:"):
+                    ckpt = line.split(":")[1].strip().strip('"')
+                    ckpt_name = os.path.basename(ckpt)
+                    # Extract iteration number from filename, e.g., nrange_30_120_iter_116700.ckpt
+                    import re
+                    m = re.search(r"iter_(\d+)\.ckpt", ckpt_name)
+                    if m:
+                        last_iter = int(m.group(1))
+                    else:
+                        last_iter = 0
+                    return ckpt, last_iter
+        return None, 0
+
+    def resume_nlines_and_runtime(self):
+        if not os.path.exists(self.VCFile):
+            return 0
+        with open(self.VCFile, "r") as f:
+            lines = f.readlines()
+            if not lines:
+                return 0
+            last_line = lines[-1].strip()
+            # The first value is the validation result, the second is the time, but we care about the line number
+            runtime = float(last_line.split(",")[-1])
+            return len(lines),runtime

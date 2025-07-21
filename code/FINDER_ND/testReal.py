@@ -135,7 +135,7 @@ dqn = GraphDQN(
     target_graph = "Digg",
     num_min = 30,
     num_max = 50,
-    model_file = 'nrange_30_50_iter_78000.ckpt'
+    ckpt_file = 'nrange_30_50_iter_78000.ckpt'
 )            # global ,why？？？？
 
 
