@@ -107,6 +107,9 @@ cdef class py_PrepareBatchGraph:
     def aux_feat(self):
         return deref(self.inner_PrepareBatchGraph).aux_feat
     @property
+    def batch_graph_ids(self):
+        return deref(self.inner_PrepareBatchGraph).batch_graph_ids
+    @property
     def aggregatorID(self):
         return deref(self.inner_PrepareBatchGraph).aggregatorID
     @property

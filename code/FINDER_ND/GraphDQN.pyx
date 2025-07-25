@@ -62,12 +62,14 @@ class GraphDQN:
 
     def __init__(self,
         g_type = 'ego',
+        gnn_model = 'graphSage',
         target_graph = "Digg",
         num_min = 30,
         num_max = 120,
         ckpt_file = None
     ):
         # init some parameters
+        self.embeddingMethod = gnn_model
         self.embedding_size = EMBEDDING_SIZE
         self.learning_rate = LEARNING_RATE
         self.g_type = g_type #barabasi_albert,erdos_renyi, powerlaw, small-world, ego
@@ -91,7 +93,7 @@ class GraphDQN:
         if not os.path.exists(self.save_model_dir):
             os.makedirs(self.save_model_dir)
         # VCFile: file to store the validation results
-        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.num_min}_{self.num_max}.csv")
+        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}_{self.num_min}_{self.num_max}.csv")
 
 
 
@@ -137,6 +139,8 @@ class GraphDQN:
         self.target = tf1.placeholder(tf.float32, [BATCH_SIZE,1], name="target")
         # [batch_size, aux_dim]
         self.aux_input = tf1.placeholder(tf.float32, name="aux_input")
+        # [N]
+        self.batch_graph_ids = tf1.placeholder(tf.int32, name="batch_graph_ids")
 
         #[batch_size, 1]
         if self.IsPrioritizedSampling:
@@ -168,12 +172,25 @@ class GraphDQN:
 
 #################################################New code for graphDQN#####################################
     def BuildNet(self):
+
+        # N: number of nodes (of all graphs in a batch)
+        nodes_size = tf.shape(self.n2nsum_param)[0]
+        # B: batch_size (number of graphs in a batch)
+        y_nodes_size = tf.shape(self.subgsum_param)[0]
+
+        feature_size = 2 # 2 features for node and graph
+
+        # X: [N,feature_size] node feature, initialized with 1
+        node_input = tf.cast(tf.ones((nodes_size,feature_size)),tf.float32)
+        # Y: [B,feature_size] graph feature, initialized with 1
+        y_node_input = tf.cast(tf.ones((y_nodes_size,feature_size)),tf.float32)
+
         encoder = GraphEncoder(
+            embeddingMethod=self.embeddingMethod,
+            feature_size = feature_size,
             embedding_size=self.embedding_size,
             initialization_stddev=initialization_stddev,
-            max_bp_iter=max_bp_iter,
-            embeddingMethod=embeddingMethod,
-            aggregatorID=aggregatorID
+            gnn_layers=max_bp_iter
         )
         decoder = MLPDecoder(
             embedding_size=self.embedding_size,
@@ -181,9 +198,14 @@ class GraphDQN:
             aux_dim=aux_dim,
             initialization_stddev=initialization_stddev
         )
+
         # Encoder: get node and graph embeddings
         cur_message_layer, y_cur_message_layer= encoder.encode(
-            self.n2nsum_param, self.subgsum_param
+            node_input,
+            y_node_input,
+            self.n2nsum_param, 
+            self.subgsum_param,
+            self.batch_graph_ids
         )
         # Decoder: get Q(s,a) [B, 1]
         q_pred = decoder.decode_q(
@@ -354,6 +376,7 @@ class GraphDQN:
         self.inputs['laplacian_param'] = prepareBatchGraph.laplacian_param
         self.inputs['subgsum_param'] = prepareBatchGraph.subgsum_param
         self.inputs['aux_input'] = prepareBatchGraph.aux_feat
+        self.inputs['batch_graph_ids'] = prepareBatchGraph.batch_graph_ids
 
 
     def SetupPredAll(self, idxes, g_list, covered):
@@ -364,6 +387,7 @@ class GraphDQN:
         # self.inputs['laplacian_param'] = prepareBatchGraph.laplacian_param
         self.inputs['subgsum_param'] = prepareBatchGraph.subgsum_param
         self.inputs['aux_input'] = prepareBatchGraph.aux_feat
+        self.inputs['batch_graph_ids'] = prepareBatchGraph.batch_graph_ids
         return prepareBatchGraph.idx_map_list
 
     def Predict(self,g_list,covered,isSnapSnot):
@@ -384,6 +408,7 @@ class GraphDQN:
             my_dict[self.n2nsum_param] = self.inputs['n2nsum_param']
             my_dict[self.subgsum_param] = self.inputs['subgsum_param']
             my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
 
             if isSnapSnot:
                 result = self.session.run([self.q_on_allT], feed_dict = my_dict)
@@ -419,6 +444,20 @@ class GraphDQN:
        self.session.run(self.UpdateTargetQNetwork)
 
     def Fit(self):
+        '''
+        the sample contains:
+        g_list: [BATCH_SIZE] (each element is a graph object)
+        list_st: [BATCH_SIZE] (each element is a list of covered node indices, variable length)
+        list_at: [BATCH_SIZE] (each element is an int, the action taken)
+        list_rt: [BATCH_SIZE] (each element is a float, the reward)
+        list_s_primes: [BATCH_SIZE] (each element is a list, the next state)
+        list_term: [BATCH_SIZE] (each element is a bool, whether the episode ended)
+        
+        If using prioritized replay, you may also have:
+            b_idx: batch indices in the replay buffer
+            ISWeights: importance sampling weights, shape [BATCH_SIZE]
+        
+        '''
         sample = self.nStepReplayMem.Sampling(BATCH_SIZE)
         ness = False
         cdef int i
@@ -433,7 +472,8 @@ class GraphDQN:
                 list_pred = [a[self.argMax(b)] for a, b in zip(double_list_predT, double_list_pred)]
             else:
                 list_pred = self.PredictWithSnapshot(sample.g_list, sample.list_s_primes)
-
+        
+        # [BATCH_SIZE, 1], TD target for each sample
         list_target = np.zeros([BATCH_SIZE, 1])
 
         for i in range(BATCH_SIZE):
@@ -445,16 +485,32 @@ class GraphDQN:
                     q_rhs=GAMMA * self.Max(list_pred[i])
             q_rhs += sample.list_rt[i] # TD target =  R_t + Q_pred
             list_target[i] = q_rhs
+        
         if self.IsPrioritizedSampling:
-            return self.fit_with_prioritized(sample.b_idx,sample.ISWeights,sample.g_list, sample.list_st, sample.list_at,list_target)
+            return self.fit_with_prioritized(
+                tree_idx = sample.b_idx,
+                ISWeights = sample.ISWeights,
+                g_list=sample.g_list, 
+                covered=sample.list_st, 
+                actions=sample.list_at,
+                list_target=list_target
+                )
         else:
-            return self.fit(sample.g_list, sample.list_st, sample.list_at,list_target)
+            return self.fit(
+                g_list = sample.g_list, 
+                covered = sample.list_st, 
+                actions = sample.list_at,
+                list_target = list_target
+                )
 
     def fit_with_prioritized(self,tree_idx,ISWeights,g_list,covered,actions,list_target):
         cdef double loss = 0.0
         cdef int n_graphs = len(g_list)
         cdef int i, j, bsize
         for i in range(0,n_graphs,BATCH_SIZE):
+            # batch_idxes is an array of indices for the current mini-batch, 
+            # e.g., [0, 1, 2, ..., bsize-1] for each sub-batch within the full batch
+            # For batch_size 64, the first batch_idxes would be [0, 1, ..., 63]
             bsize = BATCH_SIZE
             if (i + BATCH_SIZE) > n_graphs:
                 bsize = n_graphs - i
@@ -473,6 +529,7 @@ class GraphDQN:
             my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
             my_dict[self.ISWeights] = np.mat(ISWeights).T
             my_dict[self.target] = self.inputs['target']
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
 
             result = self.session.run([self.trainStep,self.TD_errors,self.loss],feed_dict=my_dict)
             self.nStepReplayMem.batch_update(tree_idx, result[1])
@@ -502,6 +559,7 @@ class GraphDQN:
             my_dict[self.subgsum_param] = self.inputs['subgsum_param']
             my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
             my_dict[self.target] = self.inputs['target']
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
 
             result = self.session.run([self.loss,self.trainStep],feed_dict=my_dict)
             # print(result[0],bsize)
@@ -511,7 +569,7 @@ class GraphDQN:
 
     def Train(self):
         self.PrepareValidData()
-        self.gen_new_graphs(self.num_min, self.num_max)
+        self.gen_new_graphs(self.num_min, self.num_max) # gen 1000 graphs for training
 
         cdef int i, iter, idx
         for i in range(10):
@@ -554,6 +612,7 @@ class GraphDQN:
             if iter % 300 == 0:
                 frac = 0.0 
                 test_start = time.time()
+                ########--------- Test --------########
                 for idx in range(n_valid):
                     frac += self.Test(idx)
                 test_end = time.time()
@@ -565,13 +624,33 @@ class GraphDQN:
                 print ('300 iterations total time: %.2fs\n'%(N_end-N_start))
                 N_start = N_end
                 sys.stdout.flush()
-                model_path = '%s/nrange_%d_%d_iter_%d.ckpt' % (self.save_model_dir,self.num_min, self.num_max, iter)
+                ########--------- Save --------########
+                model_path = '%s/%s_nrange_%d_%d_iter_%d.ckpt' % (self.save_model_dir,self.embeddingMethod,self.num_min, self.num_max, iter)
                 self.SaveModel(model_path)
             if iter % UPDATE_TIME == 0:
                 self.TakeSnapShot()
+            ########--------- Fit --------########    
             self.Fit()
         f_out.close()
 
+    def Test(self,int gid):
+        # Test when train
+        g_list = []
+        self.test_env.s0(self.TestSet.Get(gid))
+        g_list.append(self.test_env.graph)
+        cdef double cost = 0.0
+        cdef int i
+        sol = []
+        while (not self.test_env.isTerminal()):
+            # cost += 1
+            list_pred = self.PredictWithCurrentQNet(g_list, [self.test_env.action_list])
+            new_action = self.argMax(list_pred[0])
+            self.test_env.stepWithoutReward(new_action)
+            sol.append(new_action)
+        nodes = list(range(g_list[0].num_nodes))
+        solution = sol + list(set(nodes)^set(sol))
+        Robustness = self.utils.getRobustness(g_list[0], solution)
+        return Robustness
 
     def findModel(self):
         # find ckpt file in the model dir
@@ -585,15 +664,16 @@ class GraphDQN:
         min_vc = start_loc + np.argmin(vc_list[start_loc:])
         best_model_iter = 300 * min_vc
         # best_model = os.path.join(cfd,'models/%s/nrange_%d_%d_iter_%d.ckpt' % (self.g_type, NUM_MIN, NUM_MAX, best_model_iter))
-        best_model = 'nrange_%d_%d_iter_%d.ckpt' % (self.num_min, self.num_max, best_model_iter)
+        best_model = '%s_nrange_%d_%d_iter_%d.ckpt' % (self.embeddingMethod, self.num_min, self.num_max, best_model_iter)
         return best_model
 
 
     def Evaluate(self, data_test):
+        # only used in testSynthetic.py
         if self.ckpt_file == None:  #if user do not specify the ckpt_file
-            self.ckpt_file = 'models/%s/%s' % (self.g_type, self.findModel())
+            self.ckpt_file = os.path.join(self.save_model_dir, self.findModel())
         else:
-            self.ckpt_file = 'models/%s/%s' % (self.g_type, self.ckpt_file)
+            self.ckpt_file = os.path.join(self.save_model_dir, self.ckpt_file)
         print ('The best model is :%s'%(self.ckpt_file))
         sys.stdout.flush()
         self.LoadModel(self.ckpt_file)
@@ -622,12 +702,12 @@ class GraphDQN:
     def EvaluateRealData(self, test_graph, result_file, stepRatio=0.0025):  #测试真实数据
         # save sol in result_file
         if self.ckpt_file == None:  #if user do not specify the ckpt_file
-            self.ckpt_file = os.path.join(self.save_model_dir,self.findModel())
+            self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
         else:
-            self.ckpt_file = os.path.join(self.save_model_dir,self.ckpt_file)
-        print ('The best model is :%s'%(self.ckpt_file))
+            self.ckpt_file_path = os.path.join(self.save_model_dir, self.ckpt_file)
+        print ('The best model is :%s'%(self.ckpt_file_path))
         sys.stdout.flush()
-        self.LoadModel(self.ckpt_file)
+        self.LoadModel(self.ckpt_file_path)
         cdef double solution_time = 0.0
         g = test_graph
         
@@ -799,26 +879,6 @@ class GraphDQN:
         self.ClearTestGraphs()
         return Robustness,MaxCCList,solution, solution_time
 
-    def Test(self,int gid):
-        # Test when train
-        g_list = []
-        self.test_env.s0(self.TestSet.Get(gid))
-        g_list.append(self.test_env.graph)
-        cdef double cost = 0.0
-        cdef int i
-        sol = []
-        while (not self.test_env.isTerminal()):
-            # cost += 1
-            list_pred = self.PredictWithCurrentQNet(g_list, [self.test_env.action_list])
-            new_action = self.argMax(list_pred[0])
-            self.test_env.stepWithoutReward(new_action)
-            sol.append(new_action)
-        nodes = list(range(g_list[0].num_nodes))
-        solution = sol + list(set(nodes)^set(sol))
-        Robustness = self.utils.getRobustness(g_list[0], solution)
-        return Robustness
-
-
     def GetSol(self, int gid, int step=1):
         g_list = []
         self.test_env.s0(self.TestSet.Get(gid))
@@ -912,7 +972,7 @@ class GraphDQN:
 
     def resume_checkpoint_and_iter(self):
         # Path to the checkpoint file
-        checkpoint_path = os.path.join(self.save_model_dir, "checkpoint")
+        checkpoint_path = os.path.join(self.save_model_dir, f"{self.embeddingMethod}_{self.num_min}_{self.num_max}_checkpoint")
         if not os.path.exists(checkpoint_path):
             return None, 0
         with open(checkpoint_path, "r") as f:

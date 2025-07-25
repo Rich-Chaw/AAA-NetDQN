@@ -23,5 +23,6 @@ cdef extern from "./src/lib/PrepareBatchGraph.h":
         vector[vector[int]]  idx_map_list
         vector[pair[int,int]] subgraph_id_span
         vector[vector[double]]  aux_feat
+        vector[int] batch_graph_ids
         vector[int] avail_act_cnt
         int aggregatorID

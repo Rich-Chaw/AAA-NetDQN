@@ -9,7 +9,6 @@ import time
 import networkx as nx
 import pandas as pd
 import pickle as cp
-import graph
 
 def find_data_file(data_name):
     if data_name in ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']:
@@ -125,8 +124,8 @@ def RandomRemoveEvaluate(STEPRATIO,REPEAT,MODEL_FILE_CKPT=None):
 
 
 # datasets = ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']
-# datasets = ['Crime','HI-II-14','Digg']
-datasets = ['corruption']
+datasets = ['Crime','HI-II-14','Digg']
+# datasets = ['corruption']
 
 STEPRATIO = 0.01
 STRTEGYID = 0               # strategyID: 0:no insert; 1:count; 2:rank; 3:multiply
@@ -135,7 +134,7 @@ dqn = GraphDQN(
     target_graph = "Digg",
     num_min = 30,
     num_max = 50,
-    ckpt_file = 'nrange_30_50_iter_78000.ckpt'
+    ckpt_file = None
 )            # global ,why？？？？
 
 

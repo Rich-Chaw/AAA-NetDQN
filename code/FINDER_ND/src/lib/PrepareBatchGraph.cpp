@@ -30,6 +30,7 @@ PrepareBatchGraph::~PrepareBatchGraph()
     idx_map_list.clear();
     aux_feat.clear();
     avail_act_cnt.clear();
+    batch_graph_ids.clear();
     aggregatorID = -1;
 }
 
@@ -149,6 +150,7 @@ void PrepareBatchGraph::SetupGraphInput(std::vector<int> idxes,
     node_cnt = 0;
     int edge_cnt = 0;
 
+    batch_graph_ids.clear();
     for (size_t i = 0; i < (int)idxes.size(); ++i)
     {             
         auto g = g_list[idxes[i]];
@@ -161,6 +163,7 @@ void PrepareBatchGraph::SetupGraphInput(std::vector<int> idxes,
                 continue;
             idx_map[j] = t;
             graph.AddNode(i, node_cnt + t);
+            batch_graph_ids.push_back(i);  // Only add for unmasked node
             if (!actions)
             {
                 rep_global->rowIndex.push_back(node_cnt + t);
@@ -198,6 +201,15 @@ void PrepareBatchGraph::SetupGraphInput(std::vector<int> idxes,
     n2nsum_param = result_list[0];
     laplacian_param = result_list[1];
     subgsum_param = subg_construct(&graph,subgraph_id_span);
+
+    // batch_graph_ids.clear();
+    // int num_graphs = g_list.size();
+    // for (int g_idx = 0; g_idx < num_graphs; ++g_idx) {
+    //     auto g = g_list[g_idx];
+    //     for (int n = 0; n < g->num_nodes; ++n) {
+    //         batch_graph_ids.push_back(g_idx);
+    //     }
+    // }
 
 }
 
