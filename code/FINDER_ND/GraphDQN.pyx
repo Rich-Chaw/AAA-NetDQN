@@ -24,6 +24,7 @@ import mvc_env
 import utils
 import os
 import pickle
+from graph_dqn_modules import GraphEncoder, MLPDecoder
 
 # Hyper Parameters:
 cdef double GAMMA = 1  # decay rate of past observations
@@ -167,137 +168,45 @@ class GraphDQN:
 
 #################################################New code for graphDQN#####################################
     def BuildNet(self):
-        ############----------------------------- initialize weight ------------------- ###################################
-        ### Weight of GraphSAGE or Structure2Vec
-        # [2, embed_dim]
-        w_n2l = tf.Variable(tf1.truncated_normal([2, self.embedding_size], stddev=initialization_stddev), tf.float32)
-        # [embed_dim, embed_dim]
-        p_node_conv = tf.Variable(tf1.truncated_normal([self.embedding_size, self.embedding_size], stddev=initialization_stddev), tf.float32)
-        if embeddingMethod == 1:    #'graphsage'
-            # [embed_dim, embed_dim]
-            p_node_conv2 = tf.Variable(tf1.truncated_normal([self.embedding_size, self.embedding_size], stddev=initialization_stddev), tf.float32)
-            # [2*embed_dim, embed_dim]
-            p_node_conv3 = tf.Variable(tf1.truncated_normal([2*self.embedding_size, self.embedding_size], stddev=initialization_stddev), tf.float32)
+        encoder = GraphEncoder(
+            embedding_size=self.embedding_size,
+            initialization_stddev=initialization_stddev,
+            max_bp_iter=max_bp_iter,
+            embeddingMethod=embeddingMethod,
+            aggregatorID=aggregatorID
+        )
+        decoder = MLPDecoder(
+            embedding_size=self.embedding_size,
+            reg_hidden=self.reg_hidden,
+            aux_dim=aux_dim,
+            initialization_stddev=initialization_stddev
+        )
+        # Encoder: get node and graph embeddings
+        cur_message_layer, y_cur_message_layer= encoder.encode(
+            self.n2nsum_param, self.subgsum_param
+        )
+        # Decoder: get Q(s,a) [B, 1]
+        q_pred = decoder.decode_q(
+            cur_message_layer,
+            self.action_select,
+            y_cur_message_layer, 
+            self.aux_input
+        )
 
-        ### Weight of MLP
-        if self.reg_hidden > 0:
-            #[embed_dim, reg_hidden]
-            h1_weight = tf.Variable(tf1.truncated_normal([self.embedding_size, self.reg_hidden], stddev=initialization_stddev), tf.float32)
-            #[reg_hidden + aux_dim, 1]
-            last_w = tf.Variable(tf1.truncated_normal([self.reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
-        else:
-            #[embed_dim, 2*embed_dim]
-            h1_weight = tf.Variable(tf1.truncated_normal([self.embedding_size,2 * self.embedding_size], stddev=initialization_stddev), tf.float32)
-            #[2*embed_dim + aux_dim, 1]
-            last_w = tf.Variable(tf1.truncated_normal([2 * self.embedding_size + aux_dim, 1], stddev=initialization_stddev), tf.float32)
-        
-        ### Weight for combining state and action embeddings 
-        ## [embed_dim, 1]
-        cross_product = tf.Variable(tf1.truncated_normal([self.embedding_size, 1], stddev=initialization_stddev), tf.float32)
+        # Decoder: get Q(s,a) for all nodes of all graphs [N, 1]
+        q_on_all = decoder.decode_q_all(
+            cur_message_layer,
+            y_cur_message_layer, 
+            self.aux_input,
+            self.rep_global
+        )
 
-        ############----------------------------- initialize node & virtual_node ------------------- ###################################
-
-        nodes_size = tf.shape(self.n2nsum_param)[0]     # = node_cnt
-        y_nodes_size = tf.shape(self.subgsum_param)[0]  # = batch_size
-        
-        # node:[node_cnt,2] i.e. every node is assigned with tensor([1,1])
-        node_input = tf.cast(tf.ones((nodes_size,2)),tf.float32)
-        # virtual node: [batch_size,2] i.e. every graph in one batch has a virtual node, assigned with tensor([1,1])
-        y_node_input = tf.cast(tf.ones((y_nodes_size,2)),tf.float32)
-
-        ### Initial Embedding
-        # [node_cnt, embed_dim]
-        input_message = tf.matmul(node_input, w_n2l)
-        # [batch_size, embed_dim]
-        y_input_message = tf.matmul(y_node_input, w_n2l)
-
-        cdef int lv = 0
-        # X: [node_cnt, embed_dim]
-        cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(input_message), axis=1)
-        # Y: [batch_size, embed_dim], no sparse
-        y_cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(y_input_message), axis=1)
-
-        ############----------------------------- embed the graph: Message Passing ------------------- ###################################
-        # max_bp_iter: number of message passing iterations
-        while lv < max_bp_iter:
-            lv = lv + 1
-            # Aggregate neighber message
-            # [node_cnt, embed_dim] = [node_cnt, node_cnt] * [node_cnt, embed_dim]
-            n2npool = tf1.sparse_tensor_dense_matmul(tf.cast(self.n2nsum_param,tf.float32), cur_message_layer)
-            # [node_cnt, embed_dim] = [node_cnt, embed_dim] * [embed_dim, embed_dim] 
-            node_linear = tf.matmul(n2npool, p_node_conv)
-
-            # [batch_size, embed_dim] = [batch_size, node_cnt] * [node_cnt, embed_dim]
-            y_n2npool = tf1.sparse_tensor_dense_matmul(tf.cast(self.subgsum_param,tf.float32), cur_message_layer)
-            # [batch_size, embed_dim] = [batch_size, embed_dim] * [embed_dim, embed_dim]
-            y_node_linear = tf.matmul(y_n2npool, p_node_conv)
-
-            if embeddingMethod == 0: # 'structure2vec'
-                # [node_cnt, embed_dim] = [node_cnt, embed_dim] + [node_cnt, embed_dim], return tensed matrix
-                merged_linear = tf.add(node_linear,input_message)
-                #[node_cnt, embed_dim]
-                cur_message_layer = tf.nn.relu(merged_linear)
-
-                #[batch_size, embed_dim] = [batch_size, embed_dim] + [batch_size, embed_dim], return tensed matrix
-                y_merged_linear = tf.add(y_node_linear, y_input_message)
-                #[batch_size, embed_dim]
-                y_cur_message_layer = tf.nn.relu(y_merged_linear)
-            else:   # 'graphsage'
-                #[node_cnt, embed_dim]= [node_cnt, embed_dim] * [embed_dim, embed_dim], dense
-                cur_message_layer_linear = tf.matmul(tf.cast(cur_message_layer, tf.float32), p_node_conv2)
-                #[node_cnt, 2*embed_dim] = [[node_cnt, embed_dim] [node_cnt, embed_dim]], return tensed matrix
-                merged_linear = tf.concat([node_linear, cur_message_layer_linear], 1)
-                #[node_cnt, embed_dim] = [node_cnt, 2*embed_dim]*[2*embed_dim, embed_dim]
-                cur_message_layer = tf.nn.relu(tf.matmul(merged_linear, p_node_conv3))
-
-                #[batch_size, embed_dim] * [embed_dim, embed_dim] = [batch_size, embed_dim], dense
-                y_cur_message_layer_linear = tf.matmul(tf.cast(y_cur_message_layer, tf.float32), p_node_conv2)
-                #[[batch_size, embed_dim] [batch_size, embed_dim]] = [batch_size, 2*embed_dim], return tensed matrix
-                y_merged_linear = tf.concat([y_node_linear, y_cur_message_layer_linear], 1)
-                #[batch_size, 2*embed_dim]*[2*embed_dim, embed_dim] = [batch_size, embed_dim]
-                y_cur_message_layer = tf.nn.relu(tf.matmul(y_merged_linear, p_node_conv3))
-
-            # normalize by line
-            cur_message_layer = tf.nn.l2_normalize(cur_message_layer, axis=1)
-            y_cur_message_layer = tf.nn.l2_normalize(y_cur_message_layer, axis=1)
-        
-        ############----------------------------- get (s,a) embedding with cross product ------------------- ###################################
-        # [batch_size, embed_dim] = [batch_size, node_cnt] * [node_cnt, embed_dim]
-        action_embed = tf1.sparse_tensor_dense_matmul(tf.cast(self.action_select, tf.float32), cur_message_layer)
-        #[batch_size, embed_dim, embed_dim]
-        temp = tf.matmul(tf.expand_dims(action_embed, axis=2),tf.expand_dims(y_cur_message_layer, axis=1))
-        #[batch_size, embed_dim]
-        Shape = tf.shape(action_embed)
-        # [batch_size, embed_dim, 1]
-        batch_cross_product = tf.reshape(tf.tile(cross_product,[Shape[0],1]),[Shape[0],Shape[1],1])
-        #[batch_size, embed_dim], first transform
-        embed_s_a = tf.reshape(tf.matmul(temp,batch_cross_product),Shape)
-
-        ############----------------------------- calculate Q(s,a) with MLP ------------------- ###################################
-        #[batch_size, embed_dim]
-        last_output = embed_s_a
-
-        # if reg_hidden == 0: [batch_size, 2*embed_dim] = [batch_size, embed_dim] * [embed_dim, 2*embed_dim], dense
-        # if reg_hidden > 0: [batch_size, reg_hidden] = [batch_size, embed_dim] * [embed_dim, reg_hidden], dense
-        hidden = tf.matmul(embed_s_a, h1_weight)
-        # [batch_size, reg_hidden]
-        last_output = tf.nn.relu(hidden) 
-
-        # if reg_hidden == 0: [batch_size, 2*embed_dim+aux_dim] 
-        # if reg_hidden > 0:  [batch_size, reg_hidden+aux_dim]
-        last_output = tf.concat([last_output, self.aux_input], 1)
-        #if reg_hidden == 0: ,[batch_size, 1] = [batch_size, 2*embed_dim+aux_dim] * [2*embed_dim+aux_dim, 1]
-        #if reg_hidden > 0: ,[batch_size, 1] = [batch_size, reg_hidden+aux_dim] * [reg_hidden+aux_dim, 1]
-        q_pred = tf.matmul(last_output, last_w)
-        
-        ############----------------------------- calculate reconstruction loss ------------------- ###################################
-        ## first order reconstruction loss
-        loss_recons = 2 * tf1.trace(tf.matmul(tf.transpose(cur_message_layer), tf1.sparse_tensor_dense_matmul(tf.cast(self.laplacian_param,tf.float32), cur_message_layer)))
+        # Reconstruction loss
+        loss_recons = 2 * tf1.trace(tf.matmul(tf.transpose(cur_message_layer), tf1.sparse_tensor_dense_matmul(tf.cast(self.laplacian_param, tf.float32), cur_message_layer)))
         edge_num = tf1.sparse_reduce_sum(tf.cast(self.n2nsum_param, tf.float32))
         loss_recons = tf.divide(loss_recons, edge_num)
-
         if self.IsPrioritizedSampling:
-            self.TD_errors = tf.reduce_sum(tf.abs(self.target - q_pred), axis=1)    # for updating Sumtree
+            self.TD_errors = tf.reduce_sum(tf.abs(self.target - q_pred), axis=1)
             if self.IsHuberloss:
                 loss_rl = tf.losses.huber_loss(self.ISWeights * self.target, self.ISWeights * q_pred)
             else:
@@ -307,39 +216,8 @@ class GraphDQN:
                 loss_rl = tf.losses.huber_loss(self.target, q_pred)
             else:
                 loss_rl = tf.losses.mean_squared_error(self.target, q_pred)
-
         loss = loss_rl + Alpha * loss_recons
         trainStep = tf1.train.AdamOptimizer(self.learning_rate).minimize(loss)
-
-        ############----------------------------- calculate Q(s,a) on all nodes of all graphs------------------- ###################################
-        #[node_cnt, batch_size] * [batch_size, embed_dim] = [node_cnt, embed_dim]
-        rep_y = tf1.sparse_tensor_dense_matmul(tf.cast(self.rep_global, tf.float32), y_cur_message_layer)
-
-        # # [node_cnt, embed_dim, embed_dim]
-        temp1 = tf.matmul(tf.expand_dims(cur_message_layer, axis=2),tf.expand_dims(rep_y, axis=1))
-        # [node_cnt embed_dim]
-        Shape1 = tf.shape(cur_message_layer)
-        # [node_cnt, embed_dim], first transform
-        embed_s_a_all = tf.reshape(tf.matmul(temp1, tf.reshape(tf.tile(cross_product,[Shape1[0],1]),[Shape1[0],Shape1[1],1])),Shape1)
-
-        #[node_cnt, embed_dim]
-        last_output = embed_s_a_all
-        if self.reg_hidden > 0:
-            #[node_cnt, embed_dim] * [embed_dim, reg_hidden] = [node_cnt, reg_hidden]
-            hidden = tf.matmul(embed_s_a_all, h1_weight)
-            #Relu, [node_cnt, reg_hidden]
-            last_output = tf.nn.relu(hidden)
-
-        #[node_cnt, batch_size] * [batch_size, aux_dim] = [node_cnt, aux_dim]
-        rep_aux = tf1.sparse_tensor_dense_matmul(tf.cast(self.rep_global, tf.float32), self.aux_input)
-
-        #if reg_hidden == 0: , [[node_cnt, 2 * embed_dim], [node_cnt, aux_dim]] = [node_cnt, 2*embed_dim + aux_dim]
-        #if reg_hidden > 0: , [[node_cnt, reg_hidden], [node_cnt, aux_dim]] = [node_cnt, reg_hidden + aux_dim]
-        last_output = tf.concat([last_output,rep_aux],1)
-
-        #if reg_hidden == 0: , [node_cnt, 2 * embed_dim + aux_dim] * [2 * embed_dim + aux_dim, 1] = [node_cnt，1]
-        #f reg_hidden > 0: , [node_cnt, reg_hidden + aux_dim] * [reg_hidden + aux_dim, 1] = [node_cnt，1]
-        q_on_all = tf.matmul(last_output, last_w)
 
         return loss, trainStep, q_pred, q_on_all, tf1.trainable_variables()
 
