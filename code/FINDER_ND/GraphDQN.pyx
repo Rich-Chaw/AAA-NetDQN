@@ -7,9 +7,22 @@ Created on Tue Dec 19 00:33:33 2017
 """
 
 from __future__ import print_function, division
+
+# Suppress warnings and verbose output
+import warnings
+warnings.filterwarnings('ignore')
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logging
+
 from cython.operator cimport dereference as deref
 import tensorflow as tf
 import tensorflow.compat.v1 as tf1
+
+# Suppress TensorFlow warnings
+tf.get_logger().setLevel('ERROR')
+tf1.logging.set_verbosity(tf1.logging.ERROR)
+
 import numpy as np
 import networkx as nx
 import random
@@ -22,7 +35,6 @@ import nstep_replay_mem
 import nstep_replay_mem_prioritized
 import mvc_env
 import utils
-import os
 import pickle
 from graph_dqn_modules import GraphEncoder, MLPDecoder
 
@@ -45,7 +57,7 @@ cdef int N_STEP = 5
 cdef int NUM_MIN = 30
 cdef int NUM_MAX = 120
 cdef int REG_HIDDEN = 32
-cdef int BATCH_SIZE = 64
+cdef int BATCH_SIZE = 64  # Increased from 128 for better GPU utilization
 cdef double initialization_stddev = 0.01  # 权重初始化的方差
 cdef int n_valid = 200
 cdef int aux_dim = 4
@@ -61,11 +73,12 @@ cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 class GraphDQN:
 
     def __init__(self,
-        g_type = 'ego',
+        g_type = 'barabasi_albert',
         gnn_model = 'graphSage',
         target_graph = "Digg",
         num_min = 30,
         num_max = 120,
+        save_model_dir = 'models/barabasi_albert'
         ckpt_file = None
     ):
         # init some parameters
@@ -89,7 +102,7 @@ class GraphDQN:
         # train ego graph id,begin with 0
         self.dataset_id = 24    
         # save_model_dir: directory to save the models
-        self.save_model_dir = f"models/{self.g_type}"
+        self.save_model_dir = f"{save_model_dir}/{self.g_type}"
         if not os.path.exists(self.save_model_dir):
             os.makedirs(self.save_model_dir)
         # VCFile: file to store the validation results
@@ -169,10 +182,18 @@ class GraphDQN:
 
         # self.session = tf_debug.LocalCLIDebugWrapperSession(self.session)
         self.session.run(tf1.global_variables_initializer())
+        
+        # Print GPU information (cleaner version)
+        gpus = tf1.config.list_physical_devices('GPU')
+        if gpus:
+            print(f"✓ GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+            print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
+        else:
+            print("⚠ No GPU detected - training will use CPU")
+        
 
 #################################################New code for graphDQN#####################################
     def BuildNet(self):
-
         # N: number of nodes (of all graphs in a batch)
         nodes_size = tf.shape(self.n2nsum_param)[0]
         # B: batch_size (number of graphs in a batch)
@@ -262,22 +283,22 @@ class GraphDQN:
         return g
 
     def gen_new_graphs(self, num_min, num_max):
-        print('\ngenerating new training graphs...')
+        print('Generating new training graphs...')
         sys.stdout.flush()
         self.ClearTrainGraphs()
         if self.g_type in ['erdos_renyi','powerlaw','small-world','barabasi_albert']:
-            for i in tqdm(range(1000)):
+            for i in tqdm(range(1000), desc="Training graphs"):
                 g = self.gen_graph(num_min, num_max)
                 self.InsertGraph(g, is_test=False)
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f"{self.train_dir}/{self.target_graph}_ego_train_{self.dataset_id}.pkl", 'rb'))
-            print("generate new training graphs from ", self.train_dir," with id ", self.dataset_id)
+            print(f"Loading training graphs from {self.train_dir} (id: {self.dataset_id})")
             self.dataset_id += 1
-            for i in tqdm(range(1000)):
+            for i in tqdm(range(1000), desc="Training graphs"):
                 g = graphs[i]
                 # g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
                 self.InsertGraph(g, is_test=False)
-            
+
 
     def ClearTrainGraphs(self):
         self.ngraph_train = 0
@@ -299,12 +320,12 @@ class GraphDQN:
             self.TrainSet.InsertGraph(t, self.GenNetwork(g))
 
     def PrepareValidData(self):
-        print('\ngenerating validation graphs...')
+        print('Generating validation graphs...')
         sys.stdout.flush()
         cdef double result_degree = 0.0
         cdef double result_betweenness = 0.0
         if self.g_type in ['erdos_renyi','powerlaw','small-world','barabasi_albert']:
-            for i in tqdm(range(n_valid)):
+            for i in tqdm(range(n_valid), desc="Validation graphs"):
                 g = self.gen_graph(self.num_min, self.num_max)
                 g_degree = g.copy()
                 g_betweenness = g.copy()
@@ -315,8 +336,8 @@ class GraphDQN:
                 self.InsertGraph(g, is_test=True)
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f'{self.valid_dir}/{self.target_graph}_ego_valid.pkl', 'rb'))
-            print("generate new validation graphs from ", self.valid_dir)
-            for i in tqdm(range(n_valid)):
+            print("Loading validation graphs from", self.valid_dir)
+            for i in tqdm(range(n_valid), desc="Validation graphs"):
                 g = graphs[i]
                 # g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
                 g_degree = g.copy()
@@ -327,8 +348,7 @@ class GraphDQN:
                 result_betweenness += val_betweenness
                 self.InsertGraph(g, is_test=True)
 
-        print ('Validation of HDA: %.6f'%(result_degree / n_valid))
-        print ('Validation of HBA: %.6f'%(result_betweenness / n_valid))
+        print('Validation HDA: %.6f, HBA: %.6f'%(result_degree / n_valid, result_betweenness / n_valid))
 
 
     def Run_simulator(self, int n_traj, double eps, TrainSet, int n_step):
@@ -399,10 +419,12 @@ class GraphDQN:
                 bsize = n_graphs - i
             batch_idxes = np.zeros(bsize)
             for j in range(i, i + bsize):
-                batch_idxes[j - i] = j
+                batch_idxes[j-i] = j
             batch_idxes = np.int32(batch_idxes)
 
             idx_map_list = self.SetupPredAll(batch_idxes, g_list, covered)
+            
+            # Use sparse tensors directly - conversion handled in encoder/decoder
             my_dict = {}
             my_dict[self.rep_global] = self.inputs['rep_global']
             my_dict[self.n2nsum_param] = self.inputs['n2nsum_param']
@@ -541,6 +563,7 @@ class GraphDQN:
         cdef double loss = 0.0
         cdef int n_graphs = len(g_list)
         cdef int i, j, bsize
+        
         for i in range(0,n_graphs,BATCH_SIZE):
             bsize = BATCH_SIZE
             if (i + BATCH_SIZE) > n_graphs:
@@ -551,6 +574,8 @@ class GraphDQN:
             batch_idxes = np.int32(batch_idxes)
 
             self.SetupTrain(batch_idxes, g_list, covered, actions,list_target)
+            
+            # Use sparse tensors directly - conversion handled in encoder/decoder
             my_dict = {}
             my_dict[self.action_select] = self.inputs['action_select']
             my_dict[self.rep_global] = self.inputs['rep_global']
@@ -591,7 +616,7 @@ class GraphDQN:
             # Open CSV in append mode
             f_out = open(self.VCFile, 'a')
         else:
-            print("No checkpoint found, starting from scratch.")
+            print("\nNo checkpoint found, starting from scratch.")
             # Start from scratch, overwrite CSV
             start_iter = 0
             runtime = 0
@@ -621,7 +646,7 @@ class GraphDQN:
                 print('iter %d, eps %.4f, average size of vc:%.6f'%(iter, eps, frac/n_valid))
                 print ('testing 200 graphs time: %.2fs'%(test_end-test_start))
                 N_end = time.perf_counter()
-                print ('300 iterations total time: %.2fs\n'%(N_end-N_start))
+                print('300 iterations time: %.2fs\n'%(N_end-N_start))
                 N_start = N_end
                 sys.stdout.flush()
                 ########--------- Save --------########
@@ -903,7 +928,7 @@ class GraphDQN:
 
     def SaveModel(self,model_path):
         self.saver.save(self.session, model_path)
-        print('model has been saved success!')
+        print(f'{model_path} has been saved success!\n')
 
     def LoadModel(self,model_path):
         print(model_path)

@@ -1,0 +1,34 @@
+{
+    "model_config": {
+        "g_type": "barabasi_albert",
+        "gnn_model": "GIN",
+        "target_graph": "Digg",
+        "num_min": 30,
+        "num_max": 50,
+        "iter": 2700
+    },
+    "eval_config": {
+        "datasets": ["Crime", "HI-II-14", "Digg"],
+        "step_ratio": 0.01,
+        "strategy_id": 0,
+        "save_result_dir": "result/temp",
+        "eval_all_iter": true,
+        "max_iter": 1000000
+    },
+    "random_eval_config":{
+        "random_remove_ratios": [0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2],
+        "repeat_times": 100
+    },
+    "train_config": {
+        "batch_size": 256,
+        "learning_rate": 0.0001,
+        "embedding_size": 64,
+        "max_iteration": 1000000,
+        "memory_size": 500000,
+        "update_time": 1000
+    },
+    "data_config": {
+        "dataset_dir": "../../dataset/real",
+        "model_dir": "./models"
+    }
+} 
