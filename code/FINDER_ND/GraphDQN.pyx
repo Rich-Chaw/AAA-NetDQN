@@ -69,6 +69,7 @@ cdef int aggregatorID = 0 #0:sum; 1:mean; 2:GCN
 cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 
 
+
 class GraphDQN:
 
     def __init__(self,
@@ -77,7 +78,7 @@ class GraphDQN:
         target_graph = "Digg",
         num_min = 30,
         num_max = 120,
-        save_model_dir = 'models/barabasi_albert',
+        save_model_dir = './models',
         ckpt_file = None
     ):
         # init some parameters
@@ -689,18 +690,19 @@ class GraphDQN:
         best_model_iter = 300 * min_vc
         # best_model = os.path.join(cfd,'models/%s/nrange_%d_%d_iter_%d.ckpt' % (self.g_type, NUM_MIN, NUM_MAX, best_model_iter))
         best_model = '%s_nrange_%d_%d_iter_%d.ckpt' % (self.embeddingMethod, self.num_min, self.num_max, best_model_iter)
+        print("Finding best model by validation score: %s"%best_model)
         return best_model
 
 
     def Evaluate(self, data_test):
         # only used in testSynthetic.py
         if self.ckpt_file == None:  #if user do not specify the ckpt_file
-            self.ckpt_file = os.path.join(self.save_model_dir, self.findModel())
+            self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
         else:
-            self.ckpt_file = os.path.join(self.save_model_dir, self.ckpt_file)
-        print ('The best model is :%s'%(self.ckpt_file))
+            self.ckpt_file_path = os.path.join(self.save_model_dir, self.ckpt_file)
+        print ('Evaluating model :%s'%(self.ckpt_file_path))
         sys.stdout.flush()
-        self.LoadModel(self.ckpt_file)
+        self.LoadModel(self.ckpt_file_path)
         cdef int n_test = 100
         cdef int i
         result_list_score = []
@@ -729,7 +731,7 @@ class GraphDQN:
             self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
         else:
             self.ckpt_file_path = os.path.join(self.save_model_dir, self.ckpt_file)
-        print ('The best model is :%s'%(self.ckpt_file_path))
+        print ('Evaluating model :%s'%(self.ckpt_file_path))
         sys.stdout.flush()
         self.LoadModel(self.ckpt_file_path)
         cdef double solution_time = 0.0
@@ -930,9 +932,8 @@ class GraphDQN:
         print(f'{model_path} has been saved success!\n')
 
     def LoadModel(self,model_path):
-        print(model_path)
         self.saver.restore(self.session, model_path)
-        print('restore model from file successfully')
+        print(f'restore model from {model_path} successfully')
 
     def GenNetwork(self, g):    #networkx2four
         edges = g.edges()

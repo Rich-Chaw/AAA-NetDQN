@@ -24,7 +24,7 @@ The configuration is stored in `config.json` with the following structure:
         "random_remove_ratios": [0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2],
         "repeat_times": 100
     },
-    "training_config": {
+    "train_config": {
         "batch_size": 256,
         "learning_rate": 0.0001,
         "embedding_size": 64,
@@ -59,7 +59,7 @@ The configuration is stored in `config.json` with the following structure:
 - **random_remove_ratios**: List of ratios for random node removal tests
 - **repeat_times**: Number of repetitions for random removal tests
 
-### Training Configuration (`training_config`)
+### Training Configuration (`train_config`)
 
 - **batch_size**: Training batch size
 - **learning_rate**: Learning rate for optimization
