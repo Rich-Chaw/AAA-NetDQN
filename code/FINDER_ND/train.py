@@ -57,6 +57,7 @@ def main():
             target_graph = "Digg",
             num_min = 30,
             num_max = 50,
+            save_model_dir = 'models_temp/barabasi_albert',
             ckpt_file = None
         )
         

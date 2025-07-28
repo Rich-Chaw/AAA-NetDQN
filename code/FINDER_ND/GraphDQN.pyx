@@ -69,7 +69,6 @@ cdef int aggregatorID = 0 #0:sum; 1:mean; 2:GCN
 cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 
 
-
 class GraphDQN:
 
     def __init__(self,
@@ -78,7 +77,7 @@ class GraphDQN:
         target_graph = "Digg",
         num_min = 30,
         num_max = 120,
-        save_model_dir = 'models/barabasi_albert'
+        save_model_dir = 'models/barabasi_albert',
         ckpt_file = None
     ):
         # init some parameters
