@@ -1,4 +1,5 @@
 from calendar import c
+from re import T
 import sys,os
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 from GraphDQN import GraphDQN
@@ -72,86 +73,91 @@ def load_graph_from_file(data_file):
             return None
     return G
 
-def eval_one_iter(iter, config,save_sol = False):
-    """Evaluate a single iteration checkpoint on all datasets"""
-    print(f"\nEvaluating iteration {iter}...")
+# def eval_one_iter(iter, config,save_sol = False):
+#     """Evaluate a single iteration checkpoint on all datasets"""
+#     print(f"\nEvaluating iteration {iter}...")
     
-    model_config = config['model_config']
-    eval_config = config['eval_config']
-    data_config = config['data_config']
+#     model_config = config['model_config']
+#     eval_config = config['eval_config']
+#     data_config = config['data_config']
 
-    # Reset TensorFlow graph/session before creating a new model
-    try:
-        import tensorflow as tf
-        try:
-            tf.compat.v1.reset_default_graph()
-        except AttributeError:
-            tf.keras.backend.clear_session()  # For TF 2.x
-    except ImportError:
-        pass  # If tensorflow is not available, skip
+#     # Reset TensorFlow graph/session before creating a new model
+#     try:
+#         import tensorflow as tf
+#         try:
+#             tf.compat.v1.reset_default_graph()
+#         except AttributeError:
+#             tf.keras.backend.clear_session()  # For TF 2.x
+#     except ImportError:
+#         pass  # If tensorflow is not available, skip
 
-    # Create model for this iteration
-    dqn = create_model(model_config, iter)
+#     # Create model for this iteration
+#     dqn = create_model(model_config, iter)
+#     print("Dqn created")
+
+#     datasets = eval_config['datasets']
+#     step_ratio = eval_config['step_ratio']
+#     strategy_id = eval_config['strategy_id']
+#     dataset_dir = data_config['dataset_dir']
     
-    datasets = eval_config['datasets']
-    step_ratio = eval_config['step_ratio']
-    strategy_id = eval_config['strategy_id']
-    dataset_dir = data_config['dataset_dir']
+#     # Results for this iteration
+#     iter_results = {
+#         'iter': iter,
+#         'scores': {},
+#         'times': {}
+#     }
     
-    # Results for this iteration
-    iter_results = {
-        'iter': iter,
-        'scores': {},
-        'times': {}
-    }
-    
-    # Evaluate each dataset
-    for dataset in datasets:
-        print(f"  Evaluating dataset: {dataset}")
+#     # Evaluate each dataset
+#     for dataset in datasets:
+#         print(f"  Evaluating dataset: {dataset}")
         
-        # Find and load graph
-        data_file = find_data_file(dataset, dataset_dir)
-        if data_file is None:
-            print(f"    Warning: Could not find data file for {dataset}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
-            continue
+#         # Find and load graph
+#         data_file = find_data_file(dataset, dataset_dir)
+#         if data_file is None:
+#             print(f"    Warning: Could not find data file for {dataset}")
+#             iter_results['scores'][dataset] = None
+#             iter_results['times'][dataset] = None
+#             continue
             
-        g_test = load_graph_from_file(data_file)
-        if g_test is None:
-            print(f"    Warning: Could not load graph for {dataset}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
-            continue
+#         g_test = load_graph_from_file(data_file)
+#         if g_test is None:
+#             print(f"    Warning: Could not load graph for {dataset}")
+#             iter_results['scores'][dataset] = None
+#             iter_results['times'][dataset] = None
+#             continue
         
-        # Get solution
-        if save_sol == False:
-            temp_result_file = f"temp_{dataset}_{iter}.txt"
-        try:
-            solution, get_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
+#         # Get solution
+#         if save_sol == False:
+#             temp_result_file = f"temp_{dataset}_{iter}.txt"
+#         else:
+#             save_result_dir = detailed_result_dir(config)
+#             temp_result_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
+        
+#         try:
+#             solution, sol_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
             
-            # Evaluate solution
-            t1 = time.time()
-            score, MaxCCList = dqn.EvaluateSol(g_test, temp_result_file, strategy_id, reInsertStep=0.001)
-            eval_time = time.time() - t1
+#             # Evaluate solution
+#             t1 = time.time()
+#             score, MaxCCList = dqn.EvaluateSol(g_test, temp_result_file, strategy_id, reInsertStep=0.001)
+#             eval_time = time.time() - t1
             
-            iter_results['scores'][dataset] = score
-            iter_results['times'][dataset] = get_time + eval_time
+#             iter_results['scores'][dataset] = score
+#             iter_results['times'][dataset] = sol_time + eval_time
             
-            print(f"    Score: {score:.6f}, Total time: {get_time + eval_time:.2f}s")
+#             print(f"    Score: {score:.6f}, Total time: {sol_time + eval_time:.2f}s")
             
-            # Clean up temp file
-            if os.path.exists(temp_result_file):
-                os.remove(temp_result_file)
+#             # Clean up temp file
+#             if save_sol == False and os.path.exists(temp_result_file):
+#                 os.remove(temp_result_file)
                 
-        except Exception as e:
-            print(f"    Error evaluating {dataset}: {e}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
+#         except Exception as e:
+#             print(f"    Error evaluating {dataset}: {e}")
+#             iter_results['scores'][dataset] = None
+#             iter_results['times'][dataset] = None
     
-    return iter_results
+#     return iter_results
 
-def eval_one_iter_partial(iter, config, existing_result=None, needed_datasets=None, save_sol=False):
+def eval_one_iter_partial(iter, config, existing_result=None, specified_datasets=None, save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
     print(f"\nEvaluating iteration {iter}...")
     
@@ -189,31 +195,31 @@ def eval_one_iter_partial(iter, config, existing_result=None, needed_datasets=No
         }
     
     # Determine which datasets to evaluate
-    if needed_datasets is None:
+    if specified_datasets is None:
         # If no specific datasets provided, evaluate all missing ones
-        datasets_to_evaluate = []
+        datasets_eval = []
         datasets_skipped = []
         for dataset in all_datasets:
             if (iter_results['scores'].get(dataset) is None or 
                 iter_results['times'].get(dataset) is None):
-                datasets_to_evaluate.append(dataset)
+                datasets_eval.append(dataset)
             else:
                 datasets_skipped.append(dataset)
     else:
         # Use the specific datasets that need evaluation
-        datasets_to_evaluate = needed_datasets
-        datasets_skipped = [d for d in all_datasets if d not in needed_datasets]
+        datasets_eval = specified_datasets
+        datasets_skipped = [d for d in all_datasets if d not in specified_datasets]
     
-    if not datasets_to_evaluate:
+    if not datasets_eval:
         print(f"  ✓ All datasets already evaluated for iteration {iter}")
         return iter_results
     
-    print(f"  ✓ Evaluating {len(datasets_to_evaluate)} datasets: {datasets_to_evaluate}")
+    print(f"  ✓ Evaluating {len(datasets_eval)} datasets: {datasets_eval}")
     if datasets_skipped:
         print(f"    Skipped: {datasets_skipped}")
     
     # Evaluate each specified dataset
-    for dataset in datasets_to_evaluate:
+    for dataset in datasets_eval:
         print(f"    Evaluating dataset: {dataset}")
         
         # Find and load graph
@@ -234,8 +240,12 @@ def eval_one_iter_partial(iter, config, existing_result=None, needed_datasets=No
         # Get solution
         if save_sol == False:
             temp_result_file = f"temp_{dataset}_{iter}.txt"
+        else:
+            save_result_dir = detailed_result_dir(config)
+            temp_result_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
+
         try:
-            solution, get_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
+            solution, sol_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
             
             # Evaluate solution
             t1 = time.time()
@@ -243,12 +253,11 @@ def eval_one_iter_partial(iter, config, existing_result=None, needed_datasets=No
             eval_time = time.time() - t1
             
             iter_results['scores'][dataset] = score
-            iter_results['times'][dataset] = get_time + eval_time
-            
-            print(f"      Score: {score:.6f}, Total time: {get_time + eval_time:.2f}s")
+            iter_results['times'][dataset] = sol_time + eval_time
+            print(f"      Score: {score:.6f}, Total time: {sol_time + eval_time:.2f}s")
             
             # Clean up temp file
-            if os.path.exists(temp_result_file):
+            if os.path.exists(temp_result_file) and save_sol == False:
                 os.remove(temp_result_file)
                 
         except Exception as e:
@@ -276,7 +285,7 @@ def eval_all_iters(config):
     
     # Determine what needs to be evaluated
     needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
-    
+
     # Print evaluation summary
     print_evaluation_summary(existing_results, target_iters, datasets)
     
@@ -307,11 +316,7 @@ def eval_all_iters(config):
             
             iter_results = eval_one_iter_partial(iter_num, config, existing_result, needed_datasets, save_sol=False)
             new_iter_results.append(iter_results)
-            
-            # Save results incrementally after each iteration
-            current_all_results = merge_results(existing_results, new_iter_results)
-            save_results_incremental(current_all_results, config, iter_num)
-            
+                  
         except Exception as e:
             print(f"✗ Error evaluating iteration {iter_num}: {e}")
             # Add empty results for failed iteration
@@ -327,20 +332,17 @@ def eval_all_iters(config):
     return all_results
 
 def save_results(results, config):
-    """Save evaluation results to solution_score and solution_time CSV files seperately
+    """Save evaluation results to solution_score and solution_time CSV fi les seperately
         results: list of dicts, each dict contains 'iter', 'scores', 'times'
-    
+        config: config file
+
+        return: score_df, time_df , constructing from results
     """
     eval_config = config['eval_config']
-    model_config = config['model_config']
 
     datasets = eval_config['datasets']
     save_result_dir = detailed_result_dir(config)
 
-    # Create save directory
-    if not os.path.exists(save_result_dir):
-        os.makedirs(save_result_dir)
-    
     # Prepare data for CSV
     iters = [result['iter'] for result in results]
     
@@ -360,55 +362,16 @@ def save_results(results, config):
     score_df = pd.DataFrame(score_data)
     time_df = pd.DataFrame(time_data)
     
-    score_df.to_csv(f"{save_result_dir}/sol_score.csv", index=False)
-    time_df.to_csv(f"{save_result_dir}/sol_time.csv", index=False)
-    
+    # check if the results exist
+    score_file = f"{save_result_dir}/sol_score.csv"
+    time_file = f"{save_result_dir}/sol_time.csv"
+
+    score_df.to_csv(score_file, index=False)
+    time_df.to_csv(time_file, index=False)
+        
     print(f"Results saved to {save_result_dir}/")
     print(f"  - sol_score.csv")
     print(f"  - sol_time.csv")
-    
-    return score_df, time_df
-
-def save_results_incremental(results, config, iteration=None):
-    """Save evaluation results incrementally to prevent data loss"""
-    eval_config = config['eval_config']
-    model_config = config['model_config']
-
-    datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(config)
-    
-    # Create save directory
-    if not os.path.exists(save_result_dir):
-        os.makedirs(save_result_dir)
-    
-    # Prepare data for CSV
-    iters = [result['iter'] for result in results]
-    
-    # Solution scores
-    score_data = {'iter': iters}
-    for dataset in datasets:
-        scores = [result['scores'].get(dataset) for result in results]
-        score_data[dataset] = scores
-    
-    # Solution times
-    time_data = {'iter': iters}
-    for dataset in datasets:
-        times = [result['times'].get(dataset) for result in results]
-        time_data[dataset] = times
-    
-    # Save to CSV
-    score_df = pd.DataFrame(score_data)
-    time_df = pd.DataFrame(time_data)
-    
-    score_df.to_csv(f"{save_result_dir}/sol_score.csv", index=False)
-    time_df.to_csv(f"{save_result_dir}/sol_time.csv", index=False)
-    
-    if iteration is not None:
-        print(f"  ✓ Saved results after iteration {iteration}")
-    else:
-        print(f"✓ Results saved to {save_result_dir}/")
-        print(f"  - sol_score.csv")
-        print(f"  - sol_time.csv")
     
     return score_df, time_df
 
@@ -498,6 +461,11 @@ def detailed_result_dir(config):
                                                 model_config['num_max'],
                                                 eval_config['step_ratio'])
     save_result_dir = save_result_dir + sub_dir
+
+    # Create save directory
+    if not os.path.exists(save_result_dir):
+        os.makedirs(save_result_dir)
+    
     return save_result_dir
 
 def load_existing_results(config):
@@ -566,18 +534,20 @@ def load_existing_results(config):
 
 def get_evaluation_status(existing_results, target_iters, datasets):
     """Determine which iterations and datasets need evaluation"""
+    # Find iterations that need evaluation and their missing datasets
+    needed_iters = []
+    needed_datasets_per_iter = {}
+    
     if not existing_results:
-        return target_iters, datasets
+        for iter_num in target_iters:
+            needed_datasets_per_iter[iter_num] = datasets.copy()
+        return target_iters, needed_datasets_per_iter
     
     # Create lookup for existing results
     existing_lookup = {}
     for result in existing_results:
         iter_num = result['iter']
         existing_lookup[iter_num] = result
-    
-    # Find iterations that need evaluation and their missing datasets
-    needed_iters = []
-    needed_datasets_per_iter = {}
     
     for iter_num in target_iters:
         if iter_num not in existing_lookup:

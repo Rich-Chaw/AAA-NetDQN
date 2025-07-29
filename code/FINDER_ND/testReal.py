@@ -173,10 +173,10 @@ def main():
     
     else:
         print("\neval_all_iter is False, evaluate iteration %d"%args.test_iter)
-        from testUtils import eval_one_iter,save_results
+        from testUtils import eval_one_iter_partial,save_results
         
         results = []
-        results.append(eval_one_iter(args.test_iter, config, save_sol= True))
+        results.append(eval_one_iter_partial(args.test_iter, config, save_sol= True))
         save_results(results, config)
 
 
