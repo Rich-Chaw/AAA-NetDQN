@@ -8,11 +8,11 @@
         "save_model_dir": "./models"
     },
     "eval_config": {
-        "datasets": ["Crime", "HI-II-14"],
+        "datasets": ["Crime", "HI-II-14","Digg","Enron","Gnutella31"],
         "step_ratio": 0.01,
         "strategy_id": 0,
         "save_result_dir": "result/temp",
-        "max_iter": 1000,
+        "max_iter": 15000,
         "iter_step": 300
     },
     "random_eval_config":{

@@ -134,7 +134,21 @@ def main():
     parser = argparse.ArgumentParser(description='manual to this script')
     parser.add_argument("--eval_all_iter", action="store_true")
     parser.add_argument("--test_iter", type=int, default=1200)
+    parser.add_argument("--test_logic", action="store_true", help="Test evaluation logic without running evaluation")
     args = parser.parse_args()
+    
+    
+    # Check if test_logic is enabled
+    if args.test_logic:
+        print("\nTesting evaluation logic...")
+        try:
+            from testUtils import test_evaluation_logic
+            needed_iters, needed_datasets_per_iter = test_evaluation_logic(config)
+            print(f"\nTest completed. {len(needed_iters)} iterations need evaluation.")
+            return
+        except Exception as e:
+            print(f"✗ Error during test: {e}")
+            return
     
     # Check if eval_all_iter is enabled
     if args.eval_all_iter == True:
@@ -149,7 +163,6 @@ def main():
             score_df, time_df = save_results(all_results, config)
     
             # Create comparison plot
-            print("\nCreating comparison plot...")
             val_scores = load_validation_scores(config)
             create_comparison_plot(score_df, val_scores, config)
     
@@ -161,12 +174,9 @@ def main():
     else:
         print("\neval_all_iter is False, evaluate iteration %d"%args.test_iter)
         from testUtils import eval_one_iter,save_results
-        model_config = config['model_config']
-        eval_config = config['eval_config']
-        data_config = config['data_config']
         
         results = []
-        results.append(eval_one_iter(args.test_iter, model_config, eval_config, data_config))
+        results.append(eval_one_iter(args.test_iter, config, save_sol= True))
         save_results(results, config)
 
 
