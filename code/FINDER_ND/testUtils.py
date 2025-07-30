@@ -157,7 +157,7 @@ def load_graph_from_file(data_file):
     
 #     return iter_results
 
-def eval_one_iter_partial(iter, config, existing_result=None, specified_datasets=None, save_sol=False):
+def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=None, save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
     print(f"\nEvaluating iteration {iter}...")
     
@@ -184,8 +184,8 @@ def eval_one_iter_partial(iter, config, existing_result=None, specified_datasets
     dataset_dir = data_config['dataset_dir']
     
     # Initialize results
-    if existing_result:
-        iter_results = existing_result.copy()
+    if iter_results:
+        iter_results = iter_results.copy()
         print(f"  Using existing results for iteration {iter}")
     else:
         iter_results = {
@@ -281,7 +281,7 @@ def eval_all_iters(config):
     print(f"Target iterations: {len(target_iters)} iterations from {target_iters[0]} to {target_iters[-1]} (step: {iter_step})")
     
     # Load existing results
-    existing_results = load_existing_results(config)
+    existing_results = load_csv(config)
     
     # Determine what needs to be evaluated
     needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
@@ -299,35 +299,35 @@ def eval_all_iters(config):
     print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets)
     
     # Results storage for new evaluations
-    new_iter_results = []
+    new_results = []
     
     # Evaluate each needed iteration
-    for iter_num in tqdm(needed_iters, desc="Evaluating iterations"):
+    for iter in tqdm(needed_iters, desc="Evaluating iterations"):
         try:
             # Check if we have partial results for this iteration
-            existing_result = None
+            iter_results = None
             for result in existing_results:
-                if result['iter'] == iter_num:
-                    existing_result = result
+                if result['iter'] == iter:
+                    iter_results = result
                     break
             
             # Get the specific datasets that need evaluation for this iteration
-            needed_datasets = needed_datasets_per_iter.get(iter_num, datasets)
+            needed_datasets = needed_datasets_per_iter.get(iter, datasets)
             
-            iter_results = eval_one_iter_partial(iter_num, config, existing_result, needed_datasets, save_sol=False)
-            new_iter_results.append(iter_results)
+            iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=False)
+            new_results.append(iter_results)
                   
         except Exception as e:
-            print(f"✗ Error evaluating iteration {iter_num}: {e}")
+            print(f"✗ Error evaluating iteration {iter}: {e}")
             # Add empty results for failed iteration
-            new_iter_results.append({
-                'iter': iter_num,
+            new_results.append({
+                'iter': iter,
                 'scores': {dataset: None for dataset in datasets},
                 'times': {dataset: None for dataset in datasets}
             })
     
     # Merge new results with existing results
-    all_results = merge_results(existing_results, new_iter_results)
+    all_results = merge_results(existing_results, new_results)
     
     return all_results
 
@@ -468,7 +468,7 @@ def detailed_result_dir(config):
     
     return save_result_dir
 
-def load_existing_results(config):
+def load_csv(config):
     """Load existing evaluation results from CSV files"""
     eval_config = config['eval_config']
 
@@ -531,6 +531,19 @@ def load_existing_results(config):
             print(f"  Time file not found: {time_file}")
     
     return existing_results
+
+
+def load_sol(iter,config):
+    """load solution files for a given iteration"""
+    eval_config = config['eval_config']
+    datasets = eval_config['datasets']
+    save_result_dir = detailed_result_dir(config)
+    sol_files = []
+    for dataset in datasets:
+        sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
+        if os.path.exists(sol_file):
+            sol_files.append(sol_file)
+    return sol_files
 
 def get_evaluation_status(existing_results, target_iters, datasets):
     """Determine which iterations and datasets need evaluation"""
@@ -695,7 +708,7 @@ def test_evaluation_logic(config):
     print(f"Datasets: {datasets}")
     
     # Load existing results
-    existing_results = load_existing_results(config)
+    existing_results = load_csv(config)
     
     # Determine what needs to be evaluated
     needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
