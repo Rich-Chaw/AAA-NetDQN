@@ -172,7 +172,7 @@ class GraphDQN:
         # saving and loading networks
         self.saver = tf1.train.Saver(max_to_keep=None)
         #self.session = tf.InteractiveSession()
-        config = tf1.ConfigProto(device_count={"CPU": 9},  # limit to num_cpu_core CPU usage
+        config = tf1.ConfigProto(device_count={"CPU": 6},  # limit to num_cpu_core CPU usage
                                 inter_op_parallelism_threads=100,
                                 intra_op_parallelism_threads=100,
                                 log_device_placement=False,

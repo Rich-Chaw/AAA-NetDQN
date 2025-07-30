@@ -45,9 +45,6 @@ def main():
     # Check GPU setup first
     gpu_available = check_gpu_setup()
     
-    if not gpu_available:
-        print("WARNING: No GPU detected. Training will be slow on CPU.")
-    
     print("\n=== Starting GraphDQN Training ===")
     
     try:

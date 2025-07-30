@@ -2632,8 +2632,8 @@ static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
 static PyObject *__pyx_int_4;
+static PyObject *__pyx_int_6;
 static PyObject *__pyx_int_8;
-static PyObject *__pyx_int_9;
 static PyObject *__pyx_int_10;
 static PyObject *__pyx_int_20;
 static PyObject *__pyx_int_24;
@@ -4527,7 +4527,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         # saving and loading networks
  *         self.saver = tf1.train.Saver(max_to_keep=None)             # <<<<<<<<<<<<<<
  *         #self.session = tf.InteractiveSession()
- *         config = tf1.ConfigProto(device_count={"CPU": 9},  # limit to num_cpu_core CPU usage
+ *         config = tf1.ConfigProto(device_count={"CPU": 6},  # limit to num_cpu_core CPU usage
  */
   __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_tf1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
@@ -4550,7 +4550,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":175
  *         self.saver = tf1.train.Saver(max_to_keep=None)
  *         #self.session = tf.InteractiveSession()
- *         config = tf1.ConfigProto(device_count={"CPU": 9},  # limit to num_cpu_core CPU usage             # <<<<<<<<<<<<<<
+ *         config = tf1.ConfigProto(device_count={"CPU": 6},  # limit to num_cpu_core CPU usage             # <<<<<<<<<<<<<<
  *                                 inter_op_parallelism_threads=100,
  *                                 intra_op_parallelism_threads=100,
  */
@@ -4563,7 +4563,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_9 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_CPU, __pyx_int_9) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_CPU, __pyx_int_6) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_device_count, __pyx_t_9) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_inter_op_parallelism_threads, __pyx_int_100) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
@@ -4572,15 +4572,15 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":178
  *                                 inter_op_parallelism_threads=100,
  *                                 intra_op_parallelism_threads=100,
- *                                 log_device_placement=False,             # <<<<<<<<<<<<<<
+ *                                 log_device_placement=True,             # <<<<<<<<<<<<<<
  *                                 allow_soft_placement=True)
  *         config.gpu_options.allow_growth = True
  */
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_log_device_placement, Py_False) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_log_device_placement, Py_True) < 0) __PYX_ERR(0, 175, __pyx_L1_error)
 
   /* "GraphDQN.pyx":179
  *                                 intra_op_parallelism_threads=100,
- *                                 log_device_placement=False,
+ *                                 log_device_placement=True,
  *                                 allow_soft_placement=True)             # <<<<<<<<<<<<<<
  *         config.gpu_options.allow_growth = True
  *         self.session = tf1.Session(config = config)
@@ -4590,7 +4590,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":175
  *         self.saver = tf1.train.Saver(max_to_keep=None)
  *         #self.session = tf.InteractiveSession()
- *         config = tf1.ConfigProto(device_count={"CPU": 9},  # limit to num_cpu_core CPU usage             # <<<<<<<<<<<<<<
+ *         config = tf1.ConfigProto(device_count={"CPU": 6},  # limit to num_cpu_core CPU usage             # <<<<<<<<<<<<<<
  *                                 inter_op_parallelism_threads=100,
  *                                 intra_op_parallelism_threads=100,
  */
@@ -4602,7 +4602,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   __pyx_t_9 = 0;
 
   /* "GraphDQN.pyx":180
- *                                 log_device_placement=False,
+ *                                 log_device_placement=True,
  *                                 allow_soft_placement=True)
  *         config.gpu_options.allow_growth = True             # <<<<<<<<<<<<<<
  *         self.session = tf1.Session(config = config)
@@ -28687,8 +28687,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_6 = PyInt_FromLong(6); if (unlikely(!__pyx_int_6)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_9 = PyInt_FromLong(9); if (unlikely(!__pyx_int_9)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_10 = PyInt_FromLong(10); if (unlikely(!__pyx_int_10)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_20 = PyInt_FromLong(20); if (unlikely(!__pyx_int_20)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_24 = PyInt_FromLong(24); if (unlikely(!__pyx_int_24)) __PYX_ERR(0, 1, __pyx_L1_error)
