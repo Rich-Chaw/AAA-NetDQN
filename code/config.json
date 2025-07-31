@@ -1,7 +1,7 @@
 {
     "model_config": {
         "g_type": "barabasi_albert",
-        "gnn_model": "graphSage",
+        "gnn_model": "GIN",
         "target_graph": "Digg",
         "num_min": 30,
         "num_max": 50,
@@ -9,12 +9,12 @@
     },
     "eval_config": {
         "eval_mode":"synthetic",
-        "datasets": ["30-50", "50-100", "100-200", "200-300", "300-400", "400-500"],
+        "datasets": ["30-50","50-100"],
         "step_ratio": 0.01,
         "strategy_id": 0,
         "save_result_dir": "result/temp",
         "min_iter":0,
-        "max_iter": 15000,
+        "max_iter": 600,
         "iter_step": 300
     },
     "random_eval_config":{

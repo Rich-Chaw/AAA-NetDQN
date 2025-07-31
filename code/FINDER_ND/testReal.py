@@ -159,13 +159,16 @@ def main():
         print("\neval_all_iters is True, running comprehensive evaluation...")
         
         try:
-            from testUtils import eval_all_iters,save_results,load_validation_scores,create_comparison_plot
-            all_results = eval_all_iters(config)
+            from testUtils import eval_all_iters,save_results,load_validation_scores,create_comparison_plot,results_to_df
+            all_results,append_flag = eval_all_iters(config)
     
             # Save results
-            print("\nSaving results...")
-            score_df, time_df = save_results(all_results, config)
-    
+            if append_flag:
+                print("\nSaving results...")
+                score_df, time_df = save_results(all_results, config)
+            else:
+                print("No new evaluation needed, skipping saving results...")
+                score_df, time_df = results_to_df(all_results,config)
             # Create comparison plot
             val_scores = load_validation_scores(config)
             create_comparison_plot(score_df, val_scores, config)
@@ -196,35 +199,29 @@ def main():
                 needed_datasets = [dataset for dataset in datasets if dataset not in evaled_datasets]
                 print(f"Evaluating iteration {iter} with datasets: {needed_datasets}")
                 eval_one_iter_partial(iter, config,specified_datasets = needed_datasets, save_sol=True)
-                # existing_results = load_csv(config)
-                # iter_results = None
-                # for result in existing_results:
-                #     if result['iter'] == iter:
-                #         iter_results = result
-                #         break
-                # new_iter_results = eval_one_iter_partial(iter, config,iter_results,specified_datasets = needed_datasets, save_sol=True)
-                # new_results.append(new_iter_results)
-            # all_results = merge_results(existing_results, new_results)
-            # save_results(all_results, config)
+            
         else:
             # similar to the logic of eval_all_iters
             existing_results = load_csv(config)
             needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
-            new_results = []
-            for iter in needed_iters:
-                iter_results = None
-                for result in existing_results:
-                    if result['iter'] == iter:
-                        iter_results = result
-                        break
-                
-                # Get the specific datasets that need evaluation for this iteration
-                needed_datasets = needed_datasets_per_iter.get(iter, datasets)
-                new_iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=True)
-                new_results.append(new_iter_results)
-            # Merge new results with existing results
-            all_results = merge_results(existing_results, new_results)
-            save_results(all_results, config)
+            if not needed_iters:
+                print("No new evaluation needed, skipping evaluation and save_results...")
+            else:
+                new_results = []
+                for iter in needed_iters:
+                    iter_results = None
+                    for result in existing_results:
+                        if result['iter'] == iter:
+                            iter_results = result
+                            break
+                    
+                    # Get the specific datasets that need evaluation for this iteration
+                    needed_datasets = needed_datasets_per_iter.get(iter, datasets)
+                    new_iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=True)
+                    new_results.append(new_iter_results)
+                # Merge new results with existing results
+                all_results = merge_results(existing_results, new_results)
+                save_results(all_results, config)
 
 
     # # Create GraphDQN model from configuration

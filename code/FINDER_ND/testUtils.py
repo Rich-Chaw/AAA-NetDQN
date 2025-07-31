@@ -229,7 +229,7 @@ def eval_all_iters(config):
     
     if not needed_iters:
         print("✓ All iterations already evaluated! No new evaluation needed.")
-        return existing_results
+        return existing_results,False
     
     print(f"✓ Need to evaluate {len(needed_iters)} iterations: {needed_iters}")
     
@@ -267,7 +267,31 @@ def eval_all_iters(config):
     # Merge new results with existing results
     all_results = merge_results(existing_results, new_results)
     
-    return all_results
+    return all_results,True
+
+def results_to_df(results, config):
+    """Save evaluation results to solution_score and solution_time CSV files"""
+    eval_config = config['eval_config']
+
+    datasets = eval_config['datasets']
+    
+    # Prepare data for CSV
+    iters = [result['iter'] for result in results]
+    
+    # Solution scores and times
+    score_data = {'iter': iters}
+    time_data = {'iter': iters}
+    for dataset in datasets:
+        scores = [result['scores'].get(dataset) for result in results]
+        score_data[dataset] = scores
+        times = [result['times'].get(dataset) for result in results]
+        time_data[dataset] = times
+    
+    # Save to CSV
+    score_df = pd.DataFrame(score_data)
+    time_df = pd.DataFrame(time_data)
+    return score_df,time_df
+
 
 def save_results(results, config):
     """Save evaluation results to solution_score and solution_time CSV fi les seperately
@@ -276,31 +300,10 @@ def save_results(results, config):
 
         return: score_df, time_df , constructing from results
     """
-    eval_config = config['eval_config']
-
-    datasets = eval_config['datasets']
     save_result_dir = detailed_result_dir(config)
 
-    # Prepare data for CSV
-    iters = [result['iter'] for result in results]
+    score_df, time_df = results_to_df(results, config)
     
-    # Solution scores
-    score_data = {'iter': iters}
-    for dataset in datasets:
-        scores = [result['scores'].get(dataset) for result in results]
-        score_data[dataset] = scores
-    
-    # Solution times
-    time_data = {'iter': iters}
-    for dataset in datasets:
-        times = [result['times'].get(dataset) for result in results]
-        time_data[dataset] = times
-    
-    # Save to CSV
-    score_df = pd.DataFrame(score_data)
-    time_df = pd.DataFrame(time_data)
-    
-    # check if the results exist
     score_file = f"{save_result_dir}/sol_score.csv"
     time_file = f"{save_result_dir}/sol_time.csv"
 
@@ -361,9 +364,13 @@ def create_comparison_plot(score_df, val_scores, config):
         axes = [axes]
     
     iters = score_df['iter'].values
-    
+    figname = "sol_score"
     for i, dataset in enumerate(datasets):
-        ax = axes[i//row][i%col]
+        figname += "_" + dataset  
+        if len(axes) == 1:
+            ax = axes[i]
+        else:
+            ax = axes[i//row][i%col]
         
         # Plot real dataset scores (emphasized)
         real_scores = score_df[dataset].values
@@ -387,7 +394,7 @@ def create_comparison_plot(score_df, val_scores, config):
         ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig(f"{save_result_dir}/sol_score.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{save_result_dir}/{figname}.png", dpi=300, bbox_inches='tight')
     print(f"Plot saved to {save_result_dir}/sol_score.png")
     plt.close()
 
@@ -410,7 +417,9 @@ def detailed_result_dir(config):
     return save_result_dir
 
 def load_csv(config):
-    """Load existing evaluation results from CSV files"""
+    """Load existing evaluation results from CSV files
+        for datasets in eval_config
+    """
     eval_config = config['eval_config']
 
     datasets = eval_config['datasets']
