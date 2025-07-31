@@ -694,7 +694,7 @@ class GraphDQN:
         return best_model
 
 
-    def Evaluate(self, data_test):
+    def Evaluate(self, test_graphs):
         # only used in testSynthetic.py
         if self.ckpt_file == None:  #if user do not specify the ckpt_file
             self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
@@ -703,14 +703,15 @@ class GraphDQN:
         print ('Evaluating model :%s'%(self.ckpt_file_path))
         sys.stdout.flush()
         self.LoadModel(self.ckpt_file_path)
-        cdef int n_test = 100
+        
+        g_num = len(test_graphs)
+        cdef int n_test = g_num
         cdef int i
         result_list_score = []
         result_list_time = []
         sys.stdout.flush()
         for i in tqdm(range(n_test)):
-            g_path = '%s/'%data_test + 'g_%d'%i
-            g = nx.read_gml(g_path)
+            g = test_graphs[i]
             self.InsertGraph(g, is_test=True)
             t1 = time.time()
             val, sol = self.GetSol(i)

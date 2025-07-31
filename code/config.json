@@ -1,6 +1,6 @@
 {
     "model_config": {
-        "g_type": "BA_sota",
+        "g_type": "barabasi_albert",
         "gnn_model": "graphSage",
         "target_graph": "Digg",
         "num_min": 30,
@@ -8,11 +8,13 @@
         "save_model_dir": "./models"
     },
     "eval_config": {
-        "datasets": ["Crime", "HI-II-14","Digg","Enron","Gnutella31","Epinions","Facebook","Youtube","Flickr"],
+        "eval_mode":"synthetic",
+        "datasets": ["30-50", "50-100", "100-200", "200-300", "300-400", "400-500"],
         "step_ratio": 0.01,
         "strategy_id": 0,
         "save_result_dir": "result/temp",
-        "max_iter": 30000,
+        "min_iter":0,
+        "max_iter": 15000,
         "iter_step": 300
     },
     "random_eval_config":{
@@ -28,7 +30,7 @@
         "update_time": 1000
     },
     "data_config": {
-        "dataset_dir": "../../dataset/real",
+        "dataset_dir": "../../dataset",
         "model_dir": "./models"
     }
 } 

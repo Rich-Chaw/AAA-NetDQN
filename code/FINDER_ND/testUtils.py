@@ -45,18 +45,15 @@ def create_model(model_config,iter = None):
     )
     return dqn
 
-def find_data_file(dataset_name, dataset_dir):
+
+def load_one_graph(dataset_name, dataset_dir):
     if dataset_name in ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']:
         data_file = f'{dataset_dir}/%s.txt'%(dataset_name)
     elif dataset_name in ['corruption']:
         data_file = f'{dataset_dir}/%s.gt'%(dataset_name)
     else: 
-        data_file = None
-    
-    return data_file
+        data_file = ''
 
-
-def load_graph_from_file(data_file):
     if data_file.split('.')[-1] == 'txt': 
         G = nx.read_edgelist(data_file,nodetype=int)
     else:
@@ -73,6 +70,32 @@ def load_graph_from_file(data_file):
             return None
     return G
 
+def load_num_graphs(dataset_name,data_dir,g_num = 100,cost = 'uniform'):
+    graphs = []
+    if dataset_name in ['30-50', '50-100', '100-200', '200-300', '300-400', '400-500']:
+        for i in range(g_num):
+            g_path = f'{data_dir}/{cost}_cost/{dataset_name}/g_{i}'
+            g = nx.read_gml(g_path)
+            graphs.append(g)
+    else: pass
+    return graphs
+
+
+def load_graph(dataset,config):
+    data_config = config['data_config']
+    eval_mode = config['eval_config']['eval_mode']
+    # dataset_dir/synthtic or dataset_dir/real
+    dataset_dir = os.path.join(data_config['dataset_dir'],eval_mode)
+    
+    if eval_mode == 'real':
+        g = load_one_graph(dataset,dataset_dir)
+        return g
+    elif eval_mode == 'synthetic':
+        graphs = load_num_graphs(dataset,dataset_dir)
+        return graphs
+    else: pass
+
+    
 
 def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=None, save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
@@ -98,7 +121,7 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
     all_datasets = eval_config['datasets']
     step_ratio = eval_config['step_ratio']
     strategy_id = eval_config['strategy_id']
-    dataset_dir = data_config['dataset_dir']
+    # dataset_dir = data_config['dataset_dir']
     
     # Initialize results
     if iter_results:
@@ -138,16 +161,8 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
     # Evaluate each specified dataset
     for dataset in datasets_eval:
         print(f"    Evaluating dataset: {dataset}")
-        
-        # Find and load graph
-        data_file = find_data_file(dataset, dataset_dir)
-        if data_file is None:
-            print(f"      Warning: Could not find data file for {dataset}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
-            continue
             
-        g_test = load_graph_from_file(data_file)
+        g_test = load_graph(dataset,config)
         if g_test is None:
             print(f"      Warning: Could not load graph for {dataset}")
             iter_results['scores'][dataset] = None
@@ -162,16 +177,21 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
             temp_result_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
 
         try:
-            solution, sol_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
-            
-            # Evaluate solution
-            t1 = time.time()
-            score, MaxCCList = dqn.EvaluateSol(g_test, temp_result_file, strategy_id, reInsertStep=0.001)
-            eval_time = time.time() - t1
+            if eval_config['eval_mode'] == 'real':
+                solution, sol_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
+                # Evaluate solution
+                t1 = time.time()
+                score, MaxCCList = dqn.EvaluateSol(g_test, temp_result_file, strategy_id, reInsertStep=0.001)
+                eval_time = time.time() - t1
+                total_time = sol_time + eval_time
+            elif eval_config['eval_mode'] == 'synthetic':
+                score_mean, score_std, time_mean, time_std = dqn.Evaluate(g_test)
+                score = score_mean
+                total_time = time_mean
             
             iter_results['scores'][dataset] = score
-            iter_results['times'][dataset] = sol_time + eval_time
-            print(f"      Score: {score:.6f}, Total time: {sol_time + eval_time:.2f}s")
+            iter_results['times'][dataset] = total_time
+            print(f"      Score: {score:.6f}, Total time: {total_time:.2f}s")
             
             # Clean up temp file
             if os.path.exists(temp_result_file) and save_sol == False:
@@ -185,16 +205,17 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
     return iter_results
 
 def eval_all_iters(config):
-    """Evaluate all checkpoints from 0 to max_iter, skipping already evaluated iterations"""
+    """Evaluate all checkpoints from min_iter to max_iter, skipping already evaluated iterations"""
     
     eval_config = config['eval_config']
     
+    min_iter = eval_config['min_iter']
     max_iter = eval_config['max_iter']
     iter_step = eval_config['iter_step']
     datasets = eval_config['datasets']
     
     # Generate target iteration list
-    target_iters = list(range(0, max_iter + 1, iter_step))
+    target_iters = list(range(min_iter, max_iter + 1, iter_step))
     print(f"Target iterations: {len(target_iters)} iterations from {target_iters[0]} to {target_iters[-1]} (step: {iter_step})")
     
     # Load existing results
@@ -292,7 +313,7 @@ def save_results(results, config):
     
     return score_df, time_df
 
-def load_validation_scores(config,max_iter = 400000):
+def load_validation_scores(config,min_iter=0,max_iter = 30000,iter_step = 300):
     """Load validation scores from ModelVC CSV file"""
     model_config = config['model_config']
 
@@ -312,8 +333,10 @@ def load_validation_scores(config,max_iter = 400000):
     try:
         vc_data = pd.read_csv(vc_file, header=None)
         # Extract iteration numbers and validation scores
-        iters = vc_data.iloc[:100, 0].values  # First column: iteration
-        val_scores = vc_data.iloc[:100, 1].values  # Second column: validation score
+        s_i = min_iter // iter_step
+        e_i = max_iter // iter_step
+        iters = vc_data.iloc[s_i:e_i, 0].values  # First column: iteration
+        val_scores = vc_data.iloc[s_i:e_i, 1].values  # Second column: validation score
         
         return dict(zip(iters, val_scores))
     except Exception as e:
@@ -372,7 +395,8 @@ def detailed_result_dir(config):
     eval_config = config['eval_config']
     model_config = config['model_config']
     save_result_dir = eval_config['save_result_dir']
-    sub_dir = '/%s/%s_%d_%d_StepRatio_%.4f/' %( model_config['g_type'],
+    sub_dir = '/%s/%s/%s_%d_%d_StepRatio_%.4f/' %(eval_config['eval_mode'], 
+                                                model_config['g_type'],
                                                 model_config['gnn_model'],
                                                 model_config['num_min'],
                                                 model_config['num_max'],
@@ -616,10 +640,11 @@ def test_evaluation_logic(config):
     
     eval_config = config['eval_config']
     datasets = eval_config['datasets']
+    min_iter = eval_config['min_iter']
     max_iter = eval_config['max_iter']
     iter_step = eval_config['iter_step']
     
-    target_iters = list(range(0, max_iter + 1, iter_step))
+    target_iters = list(range(min_iter, max_iter + 1, iter_step))
     
     print(f"Target iterations: {target_iters}")
     print(f"Datasets: {datasets}")

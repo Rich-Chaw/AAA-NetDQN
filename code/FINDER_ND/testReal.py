@@ -15,66 +15,66 @@ import pickle as cp
 import json
 import argparse
 
-from testUtils import load_config, create_model, find_data_file, load_graph_from_file
+from testUtils import load_config, create_model
 
 
-def GetSolution(dqn,stepRatio, datasets, dataset_dir, save_result_dir):
-    ######################################################################################################################
-    ##................................................Get Solution (model).....................................................
+# def GetSolution(dqn,stepRatio, datasets, dataset_dir, save_result_dir):
+#     ######################################################################################################################
+#     ##................................................Get Solution (model).....................................................
     
-    ## begin computing...
-    sol_time_df = pd.DataFrame(np.arange(1*len(datasets)).reshape((1,len(datasets))),index=['time'], columns=datasets)
+#     ## begin computing...
+#     sol_time_df = pd.DataFrame(np.arange(1*len(datasets)).reshape((1,len(datasets))),index=['time'], columns=datasets)
 
-    for j in range(len(datasets)):
-        print ('\nTesting dataset %s'%datasets[j])
+#     for j in range(len(datasets)):
+#         print ('\nTesting dataset %s'%datasets[j])
         
-        data_file = find_data_file(datasets[j], dataset_dir)
-        if data_file is None:
-            print(f"Warning: Could not find data file for {datasets[j]}")
-            continue
+#         data_file = find_data_file(datasets[j], dataset_dir)
+#         if data_file is None:
+#             print(f"Warning: Could not find data file for {datasets[j]}")
+#             continue
 
-        g_test = load_graph_from_file(data_file)
-        if g_test is None:
-            print(f"Warning: Could not load graph for {datasets[j]}")
-            continue
-        result_file = save_result_dir + datasets[j] + '.txt'
-        solution, time = dqn.EvaluateRealData(g_test, result_file, stepRatio)
-        sol_time_df.iloc[0,j] = time
-        print('Data:%s, get_sol_time:%.2f'%(datasets[j], time))
-    sol_time_df.to_csv(save_result_dir + 'solution_time.csv' , encoding='utf-8', index=False)
+#         g_test = load_graph_from_file(data_file)
+#         if g_test is None:
+#             print(f"Warning: Could not load graph for {datasets[j]}")
+#             continue
+#         result_file = save_result_dir + datasets[j] + '.txt'
+#         solution, time = dqn.EvaluateRealData(g_test, result_file, stepRatio)
+#         sol_time_df.iloc[0,j] = time
+#         print('Data:%s, get_sol_time:%.2f'%(datasets[j], time))
+#     sol_time_df.to_csv(save_result_dir + 'solution_time.csv' , encoding='utf-8', index=False)
 
     
 
-def EvaluateSolution(dqn,strategyID,datasets, dataset_dir, save_result_dir ):
-    #######################################################################################################################
-    ##................................................Evaluate Solution.....................................................
+# def EvaluateSolution(dqn,strategyID,datasets, dataset_dir, save_result_dir ):
+#     #######################################################################################################################
+#     ##................................................Evaluate Solution.....................................................
    
-    ## begin computing...
-    score_df = pd.DataFrame(np.arange(1 * len(datasets)).reshape((1, len(datasets))), index=['solution'], columns=datasets)
-    for i in range(len(datasets)):
-        print('\nEvaluating dataset %s' % datasets[i])
-        data_file = find_data_file(datasets[i], dataset_dir)
-        if data_file is None:
-            print(f"Warning: Could not find data file for {datasets[i]}")
-            continue
-        g_test = load_graph_from_file(data_file)
-        if g_test is None:
-            print(f"Warning: Could not load graph for {datasets[i]}")
-            continue
-        solution = save_result_dir + datasets[i] + '.txt'
-        t1 = time.time()
-        # strategyID: 0:no insert; 1:count; 2:rank; 3:multiply
-        ################################## modify to choose which strategy to evaluate
-        score, MaxCCList = dqn.EvaluateSol(g_test, solution, strategyID, reInsertStep=0.001)
-        t2 = time.time()
-        print('Data: %s, score:%.6f, eval_sol_time: %.6f'% (datasets[i], score,t2 - t1))
+#     ## begin computing...
+#     score_df = pd.DataFrame(np.arange(1 * len(datasets)).reshape((1, len(datasets))), index=['solution'], columns=datasets)
+#     for i in range(len(datasets)):
+#         print('\nEvaluating dataset %s' % datasets[i])
+#         data_file = find_data_file(datasets[i], dataset_dir)
+#         if data_file is None:
+#             print(f"Warning: Could not find data file for {datasets[i]}")
+#             continue
+#         g_test = load_graph_from_file(data_file)
+#         if g_test is None:
+#             print(f"Warning: Could not load graph for {datasets[i]}")
+#             continue
+#         solution = save_result_dir + datasets[i] + '.txt'
+#         t1 = time.time()
+#         # strategyID: 0:no insert; 1:count; 2:rank; 3:multiply
+#         ################################## modify to choose which strategy to evaluate
+#         score, MaxCCList = dqn.EvaluateSol(g_test, solution, strategyID, reInsertStep=0.001)
+#         t2 = time.time()
+#         print('Data: %s, score:%.6f, eval_sol_time: %.6f'% (datasets[i], score,t2 - t1))
 
-        score_df.iloc[0, i] = score
-        result_file = save_result_dir + 'MaxCCList_Strategy_' + datasets[i] + '.txt'
-        with open(result_file, 'w') as f_out:
-            for j in range(len(MaxCCList)):
-                f_out.write('%.8f\n' % MaxCCList[j])
-    score_df.to_csv(save_result_dir + 'solution_score.csv', encoding='utf-8', index=False)
+#         score_df.iloc[0, i] = score
+#         result_file = save_result_dir + 'MaxCCList_Strategy_' + datasets[i] + '.txt'
+#         with open(result_file, 'w') as f_out:
+#             for j in range(len(MaxCCList)):
+#                 f_out.write('%.8f\n' % MaxCCList[j])
+#     score_df.to_csv(save_result_dir + 'solution_score.csv', encoding='utf-8', index=False)
 
 # def RandomRemoveEvaluate(dqn,STEPRATIO, REPEAT, MODEL_FILE_CKPT=None, datasets=None, dataset_dir=None, model_dir=None):
 
@@ -134,7 +134,7 @@ def main():
     
     # parse args
     parser = argparse.ArgumentParser(description='manual to this script')
-    parser.add_argument("--eval_all_iter", action="store_true")
+    parser.add_argument("--eval_all_iters", action="store_true")
     parser.add_argument("--eval_iter", type=int)
     parser.add_argument("--test_logic", action="store_true", help="Test evaluation logic without running evaluation")
     parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt")
@@ -154,9 +154,9 @@ def main():
             print(f"✗ Error during test: {e}")
             return
     
-    # Check if eval_all_iter is enabled
-    if args.eval_all_iter == True:
-        print("\neval_all_iter is True, running comprehensive evaluation...")
+    # Check if eval_all_iters is enabled
+    if args.eval_all_iters == True:
+        print("\neval_all_iters is True, running comprehensive evaluation...")
         
         try:
             from testUtils import eval_all_iters,save_results,load_validation_scores,create_comparison_plot
