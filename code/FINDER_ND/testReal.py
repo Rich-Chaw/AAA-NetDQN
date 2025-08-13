@@ -15,8 +15,118 @@ import pickle as cp
 import json
 import argparse
 
-from testUtils import load_config, create_model
+from testUtils import load_config,create_model
+# from config import load_config
 
+
+def main():
+    # Load configuration
+    try:
+        config = load_config()
+        print("✓ Configuration loaded successfully")
+    except Exception as e:
+        print(f"✗ Error loading configuration: {e}")
+        return
+    
+    # parse args
+    parser = argparse.ArgumentParser(description='manual to this script')
+    parser.add_argument("--eval_all_iters", action="store_true")
+    parser.add_argument("--eval_iter", type=int)
+    parser.add_argument("--test_logic", action="store_true", help="Test evaluation logic without running evaluation")
+    parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt,not update csv")
+    parser.add_argument("--compare_models", action="store_true", help="plot comparison of models with different params")
+    args = parser.parse_args()
+    
+    
+    # Check if test_logic is enabled
+    if args.test_logic:
+        print("\nTesting evaluation logic...")
+        try:
+            from testUtils import test_evaluation_logic
+            needed_iters, needed_datasets_per_iter = test_evaluation_logic(config)
+            print(f"\nTest completed. {len(needed_iters)} iterations need evaluation.")
+            return
+        except Exception as e:
+            print(f"✗ Error during test: {e}")
+            return
+    
+
+    if args.compare_models:
+        return
+
+    # eval_all_iters
+    if args.eval_all_iters == True:
+        print("\neval_all_iters is True, running comprehensive evaluation...")
+        
+        try:
+            from testUtils import eval_all_iters,save_results,load_validation_scores,plot_val_eval_scores,results_to_df
+            all_results,append_flag = eval_all_iters(config)
+    
+            # Save results
+            if append_flag:
+                print("\nSaving results...")
+                score_df, time_df = save_results(all_results, config)
+                # Create comparison plot
+                val_df = load_validation_scores(config)
+                plot_val_eval_scores(score_df, val_df, config)
+            else:
+                print("No new evaluation needed, skipping saving results...")
+            return
+        except ImportError:
+            print("Warning: eval_all_iterations.py not found, falling back to single iteration evaluation")
+    
+    else:
+        # eval one iter
+        if args.eval_iter is None:
+            # find best model iter using Dqn.findModel
+            dqn = create_model(config['model_config'])
+            print("eval_iter = None, find best iter by dqn.findModel")
+            best_ckpt_file = dqn.findModel()
+            dqn.LoadModel(best_ckpt_file)
+            best_iter = int(best_ckpt_file.split('.ckpt')[0].split('_')[-1])
+            args.eval_iter = best_iter
+        print("\neval_all_iter is False, evaluate iteration %d"%args.eval_iter)
+
+        from testUtils import eval_one_iter_partial,merge_results,save_results,get_evaluation_status,load_csv,load_sol
+        target_iters = [args.eval_iter]
+        eval_config = config['eval_config']
+        datasets = eval_config['datasets']
+        new_results = []
+        if args.save_sol_only:
+            # when save_sol, do not save results to prevent overwrite
+            for iter in target_iters:
+                existing_sols = load_sol(iter,config)
+                evaled_datasets = [sol.split('/')[-1].split('_')[0] for sol in existing_sols]
+                needed_datasets = [dataset for dataset in datasets if dataset not in evaled_datasets]
+                print(f"Evaluating iteration {iter} with datasets: {needed_datasets}")
+                eval_one_iter_partial(iter, config,specified_datasets = needed_datasets, save_sol=True)
+            
+        else:
+            # similar to the logic of eval_all_iters, save sol and save results
+            existing_results = load_csv(config)
+            needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
+            if not needed_iters:
+                print("No new evaluation needed, skipping evaluation and save_results...")
+            else:
+                new_results = []
+                for iter in needed_iters:
+                    iter_results = None
+                    for result in existing_results:
+                        if result['iter'] == iter:
+                            iter_results = result
+                            break
+                    
+                    # Get the specific datasets that need evaluation for this iteration
+                    needed_datasets = needed_datasets_per_iter.get(iter, datasets)
+                    new_iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=True)
+                    new_results.append(new_iter_results)
+                # Merge new results with existing results
+                all_results = merge_results(existing_results, new_results)
+                save_results(all_results, config)
+
+
+if __name__=="__main__":
+    main()
 
 # def GetSolution(dqn,stepRatio, datasets, dataset_dir, save_result_dir):
 #     ######################################################################################################################
@@ -121,134 +231,3 @@ from testUtils import load_config, create_model
     #             df.iloc[t,r_i] = score
     #     print('Data:%s, remove ratio:%f, time:%.2f'%(datasets[j], r, time))
     #     df.to_csv(save_dir_local + '/%s.csv'%(datasets[j]), encoding='utf-8', index=False)
-
-
-def main():
-    # Load configuration
-    try:
-        config = load_config()
-        print("✓ Configuration loaded successfully")
-    except Exception as e:
-        print(f"✗ Error loading configuration: {e}")
-        return
-    
-    # parse args
-    parser = argparse.ArgumentParser(description='manual to this script')
-    parser.add_argument("--eval_all_iters", action="store_true")
-    parser.add_argument("--eval_iter", type=int)
-    parser.add_argument("--test_logic", action="store_true", help="Test evaluation logic without running evaluation")
-    parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt")
-
-    args = parser.parse_args()
-    
-    
-    # Check if test_logic is enabled
-    if args.test_logic:
-        print("\nTesting evaluation logic...")
-        try:
-            from testUtils import test_evaluation_logic
-            needed_iters, needed_datasets_per_iter = test_evaluation_logic(config)
-            print(f"\nTest completed. {len(needed_iters)} iterations need evaluation.")
-            return
-        except Exception as e:
-            print(f"✗ Error during test: {e}")
-            return
-    
-    # Check if eval_all_iters is enabled
-    if args.eval_all_iters == True:
-        print("\neval_all_iters is True, running comprehensive evaluation...")
-        
-        try:
-            from testUtils import eval_all_iters,save_results,load_validation_scores,create_comparison_plot,results_to_df
-            all_results,append_flag = eval_all_iters(config)
-    
-            # Save results
-            if append_flag:
-                print("\nSaving results...")
-                score_df, time_df = save_results(all_results, config)
-            else:
-                print("No new evaluation needed, skipping saving results...")
-                score_df, time_df = results_to_df(all_results,config)
-            # Create comparison plot
-            val_scores = load_validation_scores(config)
-            create_comparison_plot(score_df, val_scores, config)
-    
-            print("\n✓ Evaluation completed successfully!")
-            return
-        except ImportError:
-            print("Warning: eval_all_iterations.py not found, falling back to single iteration evaluation")
-    
-    else:
-        if args.eval_iter is None:
-            # find best model iter using Dqn.findModel
-            dqn = create_model(config['model_config'])
-            best_iter = int(dqn.findModel().split('.ckpt')[0].split('_')[-1])
-            args.eval_iter = best_iter
-        print("\neval_all_iter is False, evaluate iteration %d"%args.eval_iter)
-
-        from testUtils import eval_one_iter_partial,merge_results,save_results,get_evaluation_status,load_csv,load_sol
-        target_iters = [args.eval_iter]
-        eval_config = config['eval_config']
-        datasets = eval_config['datasets']
-        new_results = []
-        if args.save_sol_only:
-            # when save_sol, do not save results to prevent overwrite
-            for iter in target_iters:
-                existing_sols = load_sol(iter,config)
-                evaled_datasets = [sol.split('/')[-1].split('_')[0] for sol in existing_sols]
-                needed_datasets = [dataset for dataset in datasets if dataset not in evaled_datasets]
-                print(f"Evaluating iteration {iter} with datasets: {needed_datasets}")
-                eval_one_iter_partial(iter, config,specified_datasets = needed_datasets, save_sol=True)
-            
-        else:
-            # similar to the logic of eval_all_iters
-            existing_results = load_csv(config)
-            needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
-            if not needed_iters:
-                print("No new evaluation needed, skipping evaluation and save_results...")
-            else:
-                new_results = []
-                for iter in needed_iters:
-                    iter_results = None
-                    for result in existing_results:
-                        if result['iter'] == iter:
-                            iter_results = result
-                            break
-                    
-                    # Get the specific datasets that need evaluation for this iteration
-                    needed_datasets = needed_datasets_per_iter.get(iter, datasets)
-                    new_iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=True)
-                    new_results.append(new_iter_results)
-                # Merge new results with existing results
-                all_results = merge_results(existing_results, new_results)
-                save_results(all_results, config)
-
-
-    # # Create GraphDQN model from configuration
-    # model_config = config['model_config']
-    # test_iter = config['eval_config']['test_iter']
-    # dqn = create_model(model_config,test_iter)
-    
-    # # Extract parameters from config
-    # eval_config = config['eval_config']
-    # data_config = config['data_config']
-    
-    # datasets = eval_config['datasets']
-    # STEPRATIO = eval_config['step_ratio']
-    # STRTEGYID = eval_config['strategy_id']
-    # save_result_dir = eval_config['save_result_dir']
-    # dataset_dir = data_config['dataset_dir']
-
-    # save_dir_local = save_result_dir + '/%s/%s_%d_%d_StepRatio_%.4f/' %(dqn.g_type,dqn.embeddingMethod,dqn.num_min,dqn.num_max,STEPRATIO)
-    # if not os.path.exists(save_dir_local):#make dir
-    #         os.makedirs(save_dir_local)
-
-    # # case 1
-    # # RandomRemoveEvaluate(dqn,0.01,100,model_file)
-    
-    # # case 2
-    # GetSolution(dqn,STEPRATIO, datasets, dataset_dir, save_dir_local,)
-    # EvaluateSolution(dqn,STRTEGYID, datasets, dataset_dir, save_dir_local)
-
-if __name__=="__main__":
-    main()

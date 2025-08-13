@@ -20,22 +20,22 @@ class GraphEncoder:
             # Create MLP weights for each GIN layer
             self.gin_mlps = []
             for i in range(gnn_layers):
-                w1 = tf.Variable(tf1.truncated_normal([embedding_size if i > 0 else feature_size, embedding_size], stddev=initialization_stddev), tf.float32)
-                b1 = tf.Variable(tf.zeros([embedding_size]), tf.float32)
-                w2 = tf.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
-                b2 = tf.Variable(tf.zeros([embedding_size]), tf.float32)
+                w1 = tf1.Variable(tf1.truncated_normal([embedding_size if i > 0 else feature_size, embedding_size], stddev=initialization_stddev), tf.float32)
+                b1 = tf1.Variable(tf.zeros([embedding_size]), tf.float32)
+                w2 = tf1.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
+                b2 = tf1.Variable(tf.zeros([embedding_size]), tf.float32)
                 self.gin_mlps.append((w1, b1, w2, b2))
-            self.epsilons = [tf.Variable(0.0, dtype=tf.float32) for _ in range(gnn_layers)]
+            self.epsilons = [tf1.Variable(0.0, dtype=tf.float32) for _ in range(gnn_layers)]
         
         # graphSage or S2V ,originally in FINDER
-        self.w_n2l = tf.Variable(tf1.truncated_normal([feature_size, embedding_size], stddev=initialization_stddev), tf.float32)
+        self.w_n2l = tf1.Variable(tf1.truncated_normal([feature_size, embedding_size], stddev=initialization_stddev), tf.float32)
         # W_1 
-        self.p_node_conv = tf.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
+        self.p_node_conv = tf1.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
         if embeddingMethod == 'graphSage':
             # W_2
-            self.p_node_conv2 = tf.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
+            self.p_node_conv2 = tf1.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
             # W_3
-            self.p_node_conv3 = tf.Variable(tf1.truncated_normal([2*embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
+            self.p_node_conv3 = tf1.Variable(tf1.truncated_normal([2*embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
         elif embeddingMethod == 'S2V':
             self.p_node_conv2 = None
             self.p_node_conv3 = None
@@ -117,12 +117,12 @@ class MLPDecoder:
         self.aux_dim = aux_dim
         self.initialization_stddev = initialization_stddev
         if reg_hidden > 0:
-            self.h1_weight = tf.Variable(tf1.truncated_normal([embedding_size, reg_hidden], stddev=initialization_stddev), tf.float32)
-            self.last_w = tf.Variable(tf1.truncated_normal([reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
+            self.h1_weight = tf1.Variable(tf1.truncated_normal([embedding_size, reg_hidden], stddev=initialization_stddev), tf.float32)
+            self.last_w = tf1.Variable(tf1.truncated_normal([reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
         else:
-            self.h1_weight = tf.Variable(tf1.truncated_normal([embedding_size, 2 * embedding_size], stddev=initialization_stddev), tf.float32)
-            self.last_w = tf.Variable(tf1.truncated_normal([2 * embedding_size + aux_dim, 1], stddev=initialization_stddev), tf.float32)
-        self.cross_product = tf.Variable(tf1.truncated_normal([embedding_size, 1], stddev=initialization_stddev), tf.float32)
+            self.h1_weight = tf1.Variable(tf1.truncated_normal([embedding_size, 2 * embedding_size], stddev=initialization_stddev), tf.float32)
+            self.last_w = tf1.Variable(tf1.truncated_normal([2 * embedding_size + aux_dim, 1], stddev=initialization_stddev), tf.float32)
+        self.cross_product = tf1.Variable(tf1.truncated_normal([embedding_size, 1], stddev=initialization_stddev), tf.float32)
 
     def decode_q(self, cur_message_layer,action_select, y_cur_message_layer, aux_input):
         '''

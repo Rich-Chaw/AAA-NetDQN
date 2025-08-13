@@ -57,7 +57,7 @@ cdef int N_STEP = 5
 cdef int NUM_MIN = 30
 cdef int NUM_MAX = 120
 cdef int REG_HIDDEN = 32
-cdef int BATCH_SIZE = 64  # Increased from 128 for better GPU utilization
+cdef int BATCH_SIZE = 64  
 cdef double initialization_stddev = 0.01  # 权重初始化的方差
 cdef int n_valid = 200
 cdef int aux_dim = 4
@@ -74,22 +74,22 @@ class GraphDQN:
 
     def __init__(self,
         g_type = 'barabasi_albert',
+        g_params = {'num_min': 30,
+                    'num_max' : 50,
+                    'm':2},
         gnn_model = 'graphSage',
         target_graph = "Digg",
-        num_min = 30,
-        num_max = 120,
-        save_model_dir = './models',
-        ckpt_file = None
+        save_model_dir = './models'
     ):
         # init some parameters
         self.embeddingMethod = gnn_model
         self.embedding_size = EMBEDDING_SIZE
         self.learning_rate = LEARNING_RATE
-        self.g_type = g_type #barabasi_albert,erdos_renyi, powerlaw, small-world, ego
+        self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+        self.g_params = g_params
         self.target_graph = target_graph
-        self.ckpt_file = ckpt_file
-        self.num_min = num_min
-        self.num_max = num_max
+        self.num_min = g_params['num_min']
+        self.num_max = g_params['num_max']
         self.TrainSet = graph.py_GSet()
         self.TestSet = graph.py_GSet()
         self.inputs = dict()
@@ -102,11 +102,11 @@ class GraphDQN:
         # train ego graph id,begin with 0
         self.dataset_id = 24    
         # save_model_dir: directory to save the models
-        self.save_model_dir = f"{save_model_dir}/{self.g_type}"
+        self.save_model_dir = f"{save_model_dir}/{self.g_type}_nrange_{g_params['num_min']}_{g_params['num_max']}_m_{g_params['m']}"
         if not os.path.exists(self.save_model_dir):
             os.makedirs(self.save_model_dir)
         # VCFile: file to store the validation results
-        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}_{self.num_min}_{self.num_max}.csv")
+        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}.csv")
 
 
 
@@ -275,8 +275,8 @@ class GraphDQN:
             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
         elif self.g_type == 'small-world':
             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
-        elif self.g_type == 'barabasi_albert':
-            g = nx.barabasi_albert_graph(n=cur_n, m=4)
+        elif self.g_type == 'BA':
+            g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
         elif self.g_type == 'ego':
             print("please implement one ego graph generation")
             exit()
@@ -286,7 +286,7 @@ class GraphDQN:
         print('Generating new training graphs...')
         sys.stdout.flush()
         self.ClearTrainGraphs()
-        if self.g_type in ['erdos_renyi','powerlaw','small-world','barabasi_albert']:
+        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
             for i in tqdm(range(1000), desc="Training graphs"):
                 g = self.gen_graph(num_min, num_max)
                 self.InsertGraph(g, is_test=False)
@@ -324,7 +324,7 @@ class GraphDQN:
         sys.stdout.flush()
         cdef double result_degree = 0.0
         cdef double result_betweenness = 0.0
-        if self.g_type in ['erdos_renyi','powerlaw','small-world','barabasi_albert']:
+        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
             for i in tqdm(range(n_valid), desc="Validation graphs"):
                 g = self.gen_graph(self.num_min, self.num_max)
                 g_degree = g.copy()
@@ -610,7 +610,7 @@ class GraphDQN:
         last_ckpt, last_iter = self.resume_checkpoint_and_iter()
         if last_ckpt != None:
             print(f"Resuming from checkpoint: {last_ckpt} at iter {last_iter}")
-            self.LoadModel(os.path.join(self.save_model_dir, last_ckpt))
+            self.LoadModel(last_ckpt)
             start_iter = last_iter + 1
             _,runtime = self.resume_nlines_and_runtime()
             # Open CSV in append mode
@@ -650,8 +650,8 @@ class GraphDQN:
                 N_start = N_end
                 sys.stdout.flush()
                 ########--------- Save --------########
-                model_path = '%s/%s_nrange_%d_%d_iter_%d.ckpt' % (self.save_model_dir,self.embeddingMethod,self.num_min, self.num_max, iter)
-                self.SaveModel(model_path)
+                ckpt_file = '%s_iter_%d.ckpt' % (self.embeddingMethod, iter)
+                self.SaveModel(ckpt_file)
             if iter % UPDATE_TIME == 0:
                 self.TakeSnapShot()
             ########--------- Fit --------########    
@@ -689,21 +689,15 @@ class GraphDQN:
         min_vc = start_loc + np.argmin(vc_list[start_loc:])
         best_model_iter = 300 * min_vc
         # best_model = os.path.join(cfd,'models/%s/nrange_%d_%d_iter_%d.ckpt' % (self.g_type, NUM_MIN, NUM_MAX, best_model_iter))
-        best_model = '%s_nrange_%d_%d_iter_%d.ckpt' % (self.embeddingMethod, self.num_min, self.num_max, best_model_iter)
+        best_model = '%s_iter_%d.ckpt' % (self.embeddingMethod, best_model_iter)
         print("Finding best model by validation score: %s"%best_model)
         return best_model
 
 
     def Evaluate(self, test_graphs):
-        # only used in testSynthetic.py
-        if self.ckpt_file == None:  #if user do not specify the ckpt_file
-            self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
-        else:
-            self.ckpt_file_path = os.path.join(self.save_model_dir, self.ckpt_file)
-        print ('Evaluating model :%s'%(self.ckpt_file_path))
+        # evaluate on a number of graphs
         sys.stdout.flush()
-        self.LoadModel(self.ckpt_file_path)
-        
+
         g_num = len(test_graphs)
         cdef int n_test = g_num
         cdef int i
@@ -726,15 +720,11 @@ class GraphDQN:
         return  score_mean, score_std, time_mean, time_std
 
 
-    def EvaluateRealData(self, test_graph, result_file, stepRatio=0.0025):  #测试真实数据
+    def EvaluateRealData(self, test_graph, result_file=None, stepRatio=0.0025):  
+        # evaluate on a graph, mostly used when eval real graph
         # save sol in result_file
-        if self.ckpt_file == None:  #if user do not specify the ckpt_file
-            self.ckpt_file_path = os.path.join(self.save_model_dir, self.findModel())
-        else:
-            self.ckpt_file_path = os.path.join(self.save_model_dir, self.ckpt_file)
-        print ('Evaluating model :%s'%(self.ckpt_file_path))
         sys.stdout.flush()
-        self.LoadModel(self.ckpt_file_path)
+
         cdef double solution_time = 0.0
         g = test_graph
         
@@ -752,15 +742,17 @@ class GraphDQN:
         t2 = time.time()
         solution_time = (t2 - t1)
 
-        with open(result_file, 'w') as f_out:
-            for i in range(len(solution)):
-                f_out.write('%d\n' % solution[i])
+        if result_file:
+            with open(result_file, 'w') as f_out:
+                for i in range(len(solution)):
+                    f_out.write('%d\n' % solution[i])
         
         self.ClearTestGraphs()
         return solution, solution_time
 
 
     def GetSolution(self, int gid, int step=1):
+        # inner function, used inside the class
         # use TestSet to initialize testEnv
         g_list = []
         self.test_env.s0(self.TestSet.Get(gid))
@@ -856,7 +848,7 @@ class GraphDQN:
     def EvaluateRealData_random(self, data_test, save_dir, randomRatio,stepRatio=0.0025):
         # random remove 1%/5%/10%(randomRatio) nodes before test model
         sys.stdout.flush()
-        self.LoadModel(self.ckpt_file)
+
         cdef double solution_time = 0.0
         test_name = data_test.split('/')[-1]
         save_dir_local = save_dir+'/StepRatio_%.4f'%stepRatio
@@ -928,11 +920,13 @@ class GraphDQN:
         return Robustness, sol
 
 
-    def SaveModel(self,model_path):
+    def SaveModel(self,ckpt_file):
+        model_path = os.path.join(self.save_model_dir,ckpt_file)
         self.saver.save(self.session, model_path)
         print(f'{model_path} has been saved success!\n')
 
-    def LoadModel(self,model_path):
+    def LoadModel(self,ckpt_file):
+        model_path = os.path.join(self.save_model_dir, ckpt_file)
         self.saver.restore(self.session, model_path)
         print(f'restore model from {model_path} successfully')
 

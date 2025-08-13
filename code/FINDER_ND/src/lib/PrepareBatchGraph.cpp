@@ -34,6 +34,7 @@ PrepareBatchGraph::~PrepareBatchGraph()
     aggregatorID = -1;
 }
 
+// Node Masking Logic
 int PrepareBatchGraph::GetStatusInfo(std::shared_ptr<Graph> g, int num, const int* covered,int& counter,int& twohop_number,int& threehop_number, std::vector<int>& idx_map)
 {
     std::set<int> c;
@@ -93,6 +94,7 @@ int PrepareBatchGraph::GetStatusInfo(std::shared_ptr<Graph> g, int num, const in
     return n;
 }
 
+// Creating Masked Graph Structure
 void PrepareBatchGraph::SetupGraphInput(std::vector<int> idxes,
                            std::vector< std::shared_ptr<Graph> > g_list, 
                            std::vector< std::vector<int> > covered, 

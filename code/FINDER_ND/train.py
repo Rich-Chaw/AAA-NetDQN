@@ -49,12 +49,12 @@ def main():
     
     try:
         dqn = GraphDQN(
-            g_type = 'barabasi_albert',
-            gnn_model = 'GIN',
-            target_graph = "Digg",
-            num_min = 30,
-            num_max = 50,
-            ckpt_file = None
+            g_type = 'BA',
+            g_params = {'num_min': 30,
+                        'num_max' : 50,
+                        'm':2},
+            gnn_model = 'graphSage',
+            target_graph = "Digg"
         )
         
         dqn.Train()

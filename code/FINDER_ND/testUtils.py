@@ -1,6 +1,8 @@
 from calendar import c
 from re import T
 import sys,os
+
+from tensorflow.python.keras.models import model_config
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 from GraphDQN import GraphDQN
 import numpy as np
@@ -22,35 +24,32 @@ def load_config(config_file='config.json'):
 def create_model(model_config,iter = None):
     """Create GraphDQN model from configuration"""
     gnn_model = model_config['gnn_model']
-    num_min = model_config['num_min']
-    num_max = model_config['num_max']
-    g_type=model_config['g_type']
+    train_g_type=model_config['g_type']
+    g_params = model_config['g_params']
     target_graph=model_config['target_graph']   
     save_model_dir=model_config['save_model_dir']
-    if iter is None:
-        # dqn will find the best iter and load
-        ckpt_file = None
-    else:
-        # e.g. GIN_nrange_30_50_iter_2700.ckpt
-        ckpt_file = f"{gnn_model}_nrange_{num_min}_{num_max}_iter_{iter}.ckpt"
     
     dqn = GraphDQN(
-        g_type=g_type,
+        g_type=train_g_type,
+        g_params  = g_params,
         gnn_model=gnn_model,
         target_graph=target_graph,
-        num_min=num_min,
-        num_max=num_max,
         save_model_dir=save_model_dir,
-        ckpt_file = ckpt_file
     )
-    return dqn
+    if iter is None:
+        return dqn
+    else:
+        # e.g. GIN_iter_2700.ckpt
+        ckpt_file = f"{gnn_model}_iter_{iter}.ckpt"
+        dqn.LoadModel(ckpt_file)
+        return dqn
 
 
-def load_one_graph(dataset_name, dataset_dir):
-    if dataset_name in ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']:
-        data_file = f'{dataset_dir}/%s.txt'%(dataset_name)
-    elif dataset_name in ['corruption']:
-        data_file = f'{dataset_dir}/%s.gt'%(dataset_name)
+def load_real_graph(dataset, dataset_dir):
+    if dataset in ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']:
+        data_file = f'{dataset_dir}/%s.txt'%(dataset)
+    elif dataset in ['corruption']:
+        data_file = f'{dataset_dir}/%s.gt'%(dataset)
     else: 
         data_file = ''
 
@@ -70,32 +69,19 @@ def load_one_graph(dataset_name, dataset_dir):
             return None
     return G
 
-def load_num_graphs(dataset_name,data_dir,g_num = 100,cost = 'uniform'):
+def load_synthetic_graphs(g_type,**kwargs):
     graphs = []
-    if dataset_name in ['30-50', '50-100', '100-200', '200-300', '300-400', '400-500']:
+    if g_type == "BA":
+        g_num,nrange,m = kwargs.values()
+        graphs_dir = f"../../dataset/synthetic/{g_type}/nrange_{nrange}/m_{m}"
         for i in range(g_num):
-            g_path = f'{data_dir}/{cost}_cost/{dataset_name}/g_{i}'
-            g = nx.read_gml(g_path)
+            g_path = f'{graphs_dir}/g_{i}'
+            g = nx.read_gml(g_path,destringizer=int) # destringizer=int to convert label string to int
             graphs.append(g)
     else: pass
     return graphs
 
 
-def load_graph(dataset,config):
-    data_config = config['data_config']
-    eval_mode = config['eval_config']['eval_mode']
-    # dataset_dir/synthtic or dataset_dir/real
-    dataset_dir = os.path.join(data_config['dataset_dir'],eval_mode)
-    
-    if eval_mode == 'real':
-        g = load_one_graph(dataset,dataset_dir)
-        return g
-    elif eval_mode == 'synthetic':
-        graphs = load_num_graphs(dataset,dataset_dir)
-        return graphs
-    else: pass
-
-    
 
 def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=None, save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
@@ -161,41 +147,36 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
     # Evaluate each specified dataset
     for dataset in datasets_eval:
         print(f"    Evaluating dataset: {dataset}")
-            
-        g_test = load_graph(dataset,config)
+        dataset_dir = os.path.join(data_config['dataset_dir'],"real")
+        g_test = load_real_graph(dataset,dataset_dir)
         if g_test is None:
             print(f"      Warning: Could not load graph for {dataset}")
             iter_results['scores'][dataset] = None
             iter_results['times'][dataset] = None
             continue
         
-        # Get solution
+        # Get solution, and save in temp_result_file
         if save_sol == False:
-            temp_result_file = f"temp_{dataset}_{iter}.txt"
+            temp_sol_file = f"temp_{dataset}_{iter}.txt"
         else:
-            save_result_dir = detailed_result_dir(config)
-            temp_result_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
+            save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
+            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
 
         try:
-            if eval_config['eval_mode'] == 'real':
-                solution, sol_time = dqn.EvaluateRealData(g_test, temp_result_file, step_ratio)
-                # Evaluate solution
-                t1 = time.time()
-                score, MaxCCList = dqn.EvaluateSol(g_test, temp_result_file, strategy_id, reInsertStep=0.001)
-                eval_time = time.time() - t1
-                total_time = sol_time + eval_time
-            elif eval_config['eval_mode'] == 'synthetic':
-                score_mean, score_std, time_mean, time_std = dqn.Evaluate(g_test)
-                score = score_mean
-                total_time = time_mean
+            sol, sol_time = dqn.EvaluateRealData(g_test, temp_sol_file, step_ratio)
+            # Evaluate solution
+            t1 = time.time()
+            score, MaxCCList = dqn.EvaluateSol(g_test, temp_sol_file, strategy_id, reInsertStep=0.001)
+            eval_time = time.time() - t1
+            total_time = sol_time + eval_time
             
             iter_results['scores'][dataset] = score
             iter_results['times'][dataset] = total_time
             print(f"      Score: {score:.6f}, Total time: {total_time:.2f}s")
             
             # Clean up temp file
-            if os.path.exists(temp_result_file) and save_sol == False:
-                os.remove(temp_result_file)
+            if os.path.exists(temp_sol_file) and save_sol == False:
+                os.remove(temp_sol_file)
                 
         except Exception as e:
             print(f"      Error evaluating {dataset}: {e}")
@@ -269,9 +250,8 @@ def eval_all_iters(config):
     
     return all_results,True
 
-def results_to_df(results, config):
+def results_to_df(results, eval_config):
     """Save evaluation results to solution_score and solution_time CSV files"""
-    eval_config = config['eval_config']
 
     datasets = eval_config['datasets']
     
@@ -300,9 +280,11 @@ def save_results(results, config):
 
         return: score_df, time_df , constructing from results
     """
-    save_result_dir = detailed_result_dir(config)
+    eval_config = config['eval_config']
+    model_config = config['model_config']
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
 
-    score_df, time_df = results_to_df(results, config)
+    score_df, time_df = results_to_df(results, eval_config)
     
     score_file = f"{save_result_dir}/sol_score.csv"
     time_file = f"{save_result_dir}/sol_time.csv"
@@ -316,43 +298,38 @@ def save_results(results, config):
     
     return score_df, time_df
 
-def load_validation_scores(config,min_iter=0,max_iter = 30000,iter_step = 300):
+def load_validation_scores(config):
     """Load validation scores from ModelVC CSV file"""
     model_config = config['model_config']
-
-    gnn_model = model_config['gnn_model']
-    g_type = model_config['g_type']
-    num_min = model_config['num_min']
-    num_max = model_config['num_max']
-    model_dir = model_config['save_model_dir']
-    model_dir = model_dir + f'/{g_type}'
-    
-    vc_file = f"{model_dir}/ModelVC_{gnn_model}_{num_min}_{num_max}.csv"
+    # vc_file is generated when training
+    vc_file = "%s/%s_nrange_%d_%d_m_%d/ModelVC_%s.csv"%(
+                                                model_config['save_model_dir'],
+                                                model_config['g_type'],
+                                                model_config['g_params']['num_min'],
+                                                model_config['g_params']['num_max'],
+                                                model_config['g_params']['m'],
+                                                model_config['gnn_model']
+                                                )
     
     if not os.path.exists(vc_file):
         print(f"Warning: Validation file not found: {vc_file}")
         return None
     
     try:
-        vc_data = pd.read_csv(vc_file, header=None)
-        # Extract iteration numbers and validation scores
-        s_i = min_iter // iter_step
-        e_i = max_iter // iter_step
-        iters = vc_data.iloc[s_i:e_i, 0].values  # First column: iteration
-        val_scores = vc_data.iloc[s_i:e_i, 1].values  # Second column: validation score
-        
-        return dict(zip(iters, val_scores))
+        vc_df = pd.read_csv(vc_file, header=None)
+        return vc_df
     except Exception as e:
         print(f"Error loading validation scores: {e}")
         return None
 
-def create_comparison_plot(score_df, val_scores, config):
+def plot_val_eval_scores(eval_df, val_df, config,min_iter = 0, max_iter = 30000,iter_step=300):
     """Create comparison plot of validation vs real dataset scores"""
     eval_config = config['eval_config']
+    model_config = config['model_config']
     datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(config)
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
     
-    if val_scores is None:
+    if val_df is None:
         print("Warning: No validation scores available, skipping plot")
         return
     
@@ -363,7 +340,12 @@ def create_comparison_plot(score_df, val_scores, config):
     if len(datasets) == 1:
         axes = [axes]
     
-    iters = score_df['iter'].values
+    s_i = min_iter // iter_step
+    e_i = max_iter // iter_step
+    val_iters = val_df.iloc[s_i:e_i, 0].values  # First column: iteration
+    val_scores = val_df.iloc[s_i:e_i, 1].values  # Second column: validation score
+
+    eval_iters = eval_df['iter'].values
     figname = "sol_score"
     for i, dataset in enumerate(datasets):
         figname += "_" + dataset  
@@ -373,19 +355,16 @@ def create_comparison_plot(score_df, val_scores, config):
             ax = axes[i//row][i%col]
         
         # Plot real dataset scores (emphasized)
-        real_scores = score_df[dataset].values
-        valid_mask = ~pd.isna(real_scores)
+        eval_scores = eval_df[dataset].values
+        valid_mask = ~pd.isna(eval_scores)
         if np.any(valid_mask):
-            ax.plot(iters[valid_mask], real_scores[valid_mask], 
-                    'r-o', label=f'{dataset} (Real)', markersize=2.0, linewidth=1.0, zorder=3)
+            ax.plot(eval_iters[valid_mask], eval_scores[valid_mask], 
+                    'r-o', label=f'Eval {dataset}', markersize=2.0, linewidth=1.0, zorder=3)
         
         # Plot validation scores (de-emphasized)
-        val_iters = list(val_scores.keys())
-        val_scores_list = list(val_scores.values())
-        if val_iters:
-            ax.plot(val_iters, val_scores_list, 
-                    color='blue', linestyle='--', marker='s', label='Validation', 
-                    markersize=1.5, linewidth=0.8, alpha=0.5, zorder=2)
+        ax.plot(val_iters, val_scores, 
+                color='blue', linestyle='--', marker='s', label='Valid', 
+                markersize=1.5, linewidth=0.8, alpha=0.5, zorder=2)
         
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Solution Score')
@@ -398,15 +377,141 @@ def create_comparison_plot(score_df, val_scores, config):
     print(f"Plot saved to {save_result_dir}/sol_score.png")
     plt.close()
 
-def detailed_result_dir(config):
-    eval_config = config['eval_config']
-    model_config = config['model_config']
+def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None, save_name=None, show=False, smooth_window=None):
+    """Plot evaluation scores of different models on the same dataset.
+
+    Parameters
+    - csv_files: list of str
+        Paths to sol_score.csv files for different models. Each CSV must have
+        an 'iter' column and a column named after the target `dataset`.
+    - dataset: str
+        Dataset column to compare (e.g., '30-50', '50-100', 'Crime').
+    - labels: list of str or None
+        Optional display labels for each model; inferred from paths if None.
+    - title: str or None
+        Optional plot title. Defaults to f"Eval scores on {dataset}".
+    - save_dir: str or None
+        Directory to save the figure. If None, uses the directory of the first CSV.
+    - save_name: str or None
+        Filename (without directory) for the saved figure. If None, uses
+        f"sol_score_compare_{dataset}.png".
+    - show: bool
+        If True, display the plot window (useful in notebooks). Defaults to False.
+    - smooth_window: int or None
+        Optional rolling window size for smoothing scores (moving average).
+
+    Example
+    >>> plot_eval_scores([
+    ...   'AAA-NetDQN/code/result/temp/synthetic/barabasi_albert_nrange_30_50_m_4/graphSage_StepRatio_0.0100/sol_score.csv',
+    ...   'AAA-NetDQN/code/result/temp/synthetic/barabasi_albert_nrange_30_50_m_1/graphSage_StepRatio_0.0100/sol_score.csv'
+    ... ], dataset='30-50')
+    """
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import numpy as np
+    import os
+
+    if not csv_files:
+        print("plot_eval_scores: no csv_files provided")
+        return
+
+    # Infer labels from path if not provided
+    if labels is None:
+        inferred_labels = []
+        for path in csv_files:
+            # Use the parent directory name (often contains model name and StepRatio)
+            try:
+                parent = os.path.basename(os.path.dirname(path))
+                inferred_labels.append(parent if parent else os.path.basename(path))
+            except Exception:
+                inferred_labels.append(os.path.basename(path))
+        labels = inferred_labels
+
+    if len(labels) != len(csv_files):
+        raise ValueError("labels must be the same length as csv_files")
+
+    # Prepare output path
+    if save_dir is None:
+        save_dir = os.path.dirname(csv_files[0]) if os.path.dirname(csv_files[0]) else "."
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir, exist_ok=True)
+    if save_name is None:
+        safe_dataset = str(dataset).replace('/', '_')
+        save_name = f"sol_score_compare_{safe_dataset}.png"
+    save_path = os.path.join(save_dir, save_name)
+
+    # Plot
+    plt.figure(figsize=(8, 5))
+    plotted_any = False
+
+    for path, label in zip(csv_files, labels):
+        if not os.path.exists(path):
+            print(f"Warning: file not found, skip: {path}")
+            continue
+
+        try:
+            df = pd.read_csv(path)
+        except Exception as e:
+            print(f"Warning: failed to read {path}: {e}")
+            continue
+
+        if 'iter' not in df.columns:
+            print(f"Warning: 'iter' column missing in {path}, skip")
+            continue
+        if dataset not in df.columns:
+            print(f"Warning: dataset '{dataset}' not found in {path}, available: {list(df.columns)}")
+            continue
+
+        # Clean and sort
+        sub = df[['iter', dataset]].copy()
+        # Coerce to numeric and drop NaNs
+        sub['iter'] = pd.to_numeric(sub['iter'], errors='coerce')
+        sub[dataset] = pd.to_numeric(sub[dataset], errors='coerce')
+        sub = sub.dropna(subset=['iter', dataset]).sort_values('iter')
+        if sub.empty:
+            print(f"Warning: no valid rows after cleaning for {path}")
+            continue
+
+        x = sub['iter'].values
+        y = sub[dataset].values
+
+        if smooth_window is not None and isinstance(smooth_window, int) and smooth_window > 1:
+            try:
+                y_series = pd.Series(y).rolling(window=smooth_window, min_periods=max(1, smooth_window // 2)).mean()
+                y = y_series.values
+            except Exception:
+                pass
+
+        plt.plot(x, y, marker='o', markersize=2.0, linewidth=1.2, label=label)
+        plotted_any = True
+
+    if not plotted_any:
+        print("plot_eval_scores: nothing to plot after processing inputs")
+        plt.close()
+        return
+
+    plt.xlabel('Iteration')
+    plt.ylabel('Solution Score')
+    plt.title(title if title is not None else f"Eval scores on {dataset}")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved to {save_path}")
+    if show:
+        plt.show()
+    plt.close()
+
+def detailed_result_dir(model_config,eval_config,mode='real'):
+
     save_result_dir = eval_config['save_result_dir']
-    sub_dir = '/%s/%s/%s_%d_%d_StepRatio_%.4f/' %(eval_config['eval_mode'], 
+    # real/barabasi_albert_nrange_30_50_m_4/GIN
+    sub_dir = '/%s/%s_nrange_%d_%d_m_%d/%s_StepRatio_%.4f/' %(mode, 
                                                 model_config['g_type'],
+                                                model_config['g_params']['num_min'],
+                                                model_config['g_params']['num_max'],
+                                                model_config['g_params']['m'],
                                                 model_config['gnn_model'],
-                                                model_config['num_min'],
-                                                model_config['num_max'],
                                                 eval_config['step_ratio'])
     save_result_dir = save_result_dir + sub_dir
 
@@ -421,9 +526,9 @@ def load_csv(config):
         for datasets in eval_config
     """
     eval_config = config['eval_config']
-
+    model_config = config['model_config']
     datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(config)
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
     
     score_file = f"{save_result_dir}/sol_score.csv"
     time_file = f"{save_result_dir}/sol_time.csv"
@@ -486,8 +591,9 @@ def load_csv(config):
 def load_sol(iter,config):
     """load solution files for a given iteration"""
     eval_config = config['eval_config']
+    model_config = config['model_config']
     datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(config)
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
     sol_files = []
     for dataset in datasets:
         sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
