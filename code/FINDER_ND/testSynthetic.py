@@ -425,13 +425,12 @@ def evaluate_checkpoint_on_synthetic_datasets(dqn, checkpoint_iter, eval_config)
                         
                 results[config_key] = {
                     'score': score,
-                    'time': total_time,
-                    'num_graphs': len(graphs)
+                    'time': total_time
                 }
                 
             except Exception as e:
                 print(f"      ✗ Error evaluating {config_key}: {e}")
-                results[config_key] = {'score': None, 'time': None, 'num_graphs': 0}
+                results[config_key] = {'score': None, 'time': None}
     
     return results
 
@@ -460,16 +459,16 @@ def save_synthetic_results(all_results, eval_config, model_config):
     for nrange in eval_config['synthetic_nranges']:
         for m in eval_config['synthetic_m_values']:
             config_key = f"nrange_{nrange}_m_{m}"
-            # eval_g_type = eval_config['synthetic_g_type']
-            csv_filename = f"{eval_config['synthetic_g_type']}_nrange_{nrange}_m_{m}.csv"
+            eval_g_type = eval_config['synthetic_g_type']
+            eval_per_graphs = eval_config['per_graphs']
+            csv_filename = f"{eval_g_type}_nrange_{nrange}_m_{m}_gn_{eval_per_graphs}.csv"
             csv_path = os.path.join(save_result_dir, csv_filename)
             
             # Prepare data for CSV
             data = {
                 'iter': [],
                 'score': [],
-                'time': [],
-                'num_graphs': []
+                'time': []
             }
             
             for iter_num in sorted(all_results.keys()):
@@ -478,7 +477,6 @@ def save_synthetic_results(all_results, eval_config, model_config):
                     data['iter'].append(iter_num)
                     data['score'].append(result['score'])
                     data['time'].append(result['time'])
-                    data['num_graphs'].append(result['num_graphs'])
             
             # Create DataFrame and save
             if data['iter']:
@@ -509,10 +507,12 @@ def main():
         'max_iter': args.max_iter,
         'iter_step': args.iter_step,
         'per_graphs': args.per_graphs,
-        'synthetic_nranges': ['30_50'],
-        'synthetic_m_values': [1]
+        'synthetic_nranges': ["30_50", "50_100", "100_200", "200_300", "300_400", "400_500"],
+        'synthetic_m_values': [1,2,3,4,5,6]
     })
     
+    
+
     # Update model config if model_path is provided
     model_config = config['model_config']
     if args.model_path:

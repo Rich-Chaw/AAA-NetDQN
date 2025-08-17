@@ -50,9 +50,9 @@ def main():
     try:
         dqn = GraphDQN(
             g_type = 'BA',
-            g_params = {'num_min': 30,
-                        'num_max' : 50,
-                        'm':2},
+            g_params = {'num_min': 50,
+                        'num_max' : 100,
+                        'm':4},
             gnn_model = 'graphSage',
             target_graph = "Digg"
         )

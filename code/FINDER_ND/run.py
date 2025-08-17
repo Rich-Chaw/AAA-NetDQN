@@ -23,37 +23,37 @@ def run_synthetic_evaluation():
 
     # eval model from model path
 
-    # cmd1 = [
-    #     "python", "./FINDER_ND/testSynthetic.py",
-    #     "--model_path", "./models/BA_nrange_30_50_m_3",
-    #     "--min_iter", "0",
-    #     "--max_iter", "300",
-    #     "--iter_step", "300",
-    #     "--per_graphs", "5"
-    # ]
+    cmd1 = [
+        "python", "./FINDER_ND/testSynthetic.py",
+        "--model_path", "./models/BA_nrange_30_50_m_1",
+        "--min_iter", "0",
+        "--max_iter", "900",
+        "--iter_step", "900",
+        "--per_graphs", "10"
+    ]
     
-    # subprocess.run(cmd1)
+    subprocess.run(cmd1)
 
     # cmd2 = [
     #     "python", "./FINDER_ND/testSynthetic.py",
     #     "--model_path", "./models/BA_nrange_30_50_m_2",
     #     "--min_iter", "0",
-    #     "--max_iter", "300",
-    #     "--iter_step", "300",
-    #     "--per_graphs", "10"
+    #     "--max_iter", "900",
+    #     "--iter_step", "900",
+    #     "--per_graphs", "50"
     # ]
     # subprocess.run(cmd2)
 
-    # eval iter 900,
-    cmd3 = [
-        "python", "./FINDER_ND/testSynthetic.py",
-        "--model_path", "./models/BA_nrange_30_50_m_2",
-        "--eval_iter","900",
-        "--per_graphs", "2"
-    ]
-    subprocess.run(cmd3)
+    # # eval iter 900,
+    # cmd3 = [
+    #     "python", "./FINDER_ND/testSynthetic.py",
+    #     "--model_path", "./models/BA_nrange_30_50_m_2",
+    #     "--eval_iter","900",
+    #     "--per_graphs", "2"
+    # ]
+    # subprocess.run(cmd3)
 
-    # !!! nrange and m still need to modify by hand
+    # !!! nrange and m still need to modify in or config.json by hand
 
 if __name__ == "__main__":
     run_synthetic_evaluation() 
