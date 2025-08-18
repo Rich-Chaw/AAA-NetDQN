@@ -14,6 +14,10 @@ import pandas as pd
 import pickle as cp
 import json
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib.patches import FancyBboxPatch
+import matplotlib.patches as mpatches
 
 def load_config(config_file='config.json'):
     """Load configuration from JSON file"""
@@ -82,231 +86,14 @@ def load_synthetic_graphs(g_type,**kwargs):
     return graphs
 
 
-
-def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=None, save_sol=False):
-    """Evaluate a single iteration checkpoint on specific datasets only"""
-    print(f"\nEvaluating iteration {iter}...")
-    
-    model_config = config['model_config']
-    eval_config = config['eval_config']
-    data_config = config['data_config']
-
-    # Reset TensorFlow graph/session before creating a new model
-    try:
-        import tensorflow as tf
-        try:
-            tf.compat.v1.reset_default_graph()
-        except AttributeError:
-            tf.keras.backend.clear_session()  # For TF 2.x
-    except ImportError:
-        pass  # If tensorflow is not available, skip
-
-    # Create model for this iteration
-    dqn = create_model(model_config, iter)
-    
-    all_datasets = eval_config['datasets']
-    step_ratio = eval_config['step_ratio']
-    strategy_id = eval_config['strategy_id']
-    # dataset_dir = data_config['dataset_dir']
-    
-    # Initialize results
-    if iter_results:
-        iter_results = iter_results.copy()
-        print(f"  Using existing results for iteration {iter}")
-    else:
-        iter_results = {
-            'iter': iter,
-            'scores': {},
-            'times': {}
-        }
-    
-    # Determine which datasets to evaluate
-    if specified_datasets is None:
-        # If no specific datasets provided, evaluate all missing ones
-        datasets_eval = []
-        datasets_skipped = []
-        for dataset in all_datasets:
-            if (iter_results['scores'].get(dataset) is None or 
-                iter_results['times'].get(dataset) is None):
-                datasets_eval.append(dataset)
-            else:
-                datasets_skipped.append(dataset)
-    else:
-        # Use the specific datasets that need evaluation
-        datasets_eval = specified_datasets
-        datasets_skipped = [d for d in all_datasets if d not in specified_datasets]
-    
-    if not datasets_eval:
-        print(f"  ✓ All datasets already evaluated for iteration {iter}")
-        return iter_results
-    
-    print(f"  ✓ Evaluating {len(datasets_eval)} datasets: {datasets_eval}")
-    if datasets_skipped:
-        print(f"    Skipped: {datasets_skipped}")
-    
-    # Evaluate each specified dataset
-    for dataset in datasets_eval:
-        print(f"    Evaluating dataset: {dataset}")
-        dataset_dir = os.path.join(data_config['dataset_dir'],"real")
-        g_test = load_real_graph(dataset,dataset_dir)
-        if g_test is None:
-            print(f"      Warning: Could not load graph for {dataset}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
-            continue
-        
-        # Get solution, and save in temp_result_file
-        if save_sol == False:
-            temp_sol_file = f"temp_{dataset}_{iter}.txt"
-        else:
-            save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
-
-        try:
-            sol, sol_time = dqn.EvaluateRealData(g_test, temp_sol_file, step_ratio)
-            # Evaluate solution
-            t1 = time.time()
-            score, MaxCCList = dqn.EvaluateSol(g_test, temp_sol_file, strategy_id, reInsertStep=0.001)
-            eval_time = time.time() - t1
-            total_time = sol_time + eval_time
-            
-            iter_results['scores'][dataset] = score
-            iter_results['times'][dataset] = total_time
-            print(f"      Score: {score:.6f}, Total time: {total_time:.2f}s")
-            
-            # Clean up temp file
-            if os.path.exists(temp_sol_file) and save_sol == False:
-                os.remove(temp_sol_file)
-                
-        except Exception as e:
-            print(f"      Error evaluating {dataset}: {e}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
-    
-    return iter_results
-
-def eval_all_iters(config):
-    """Evaluate all checkpoints from min_iter to max_iter, skipping already evaluated iterations"""
-    
-    eval_config = config['eval_config']
-    
-    min_iter = eval_config['min_iter']
-    max_iter = eval_config['max_iter']
-    iter_step = eval_config['iter_step']
-    datasets = eval_config['datasets']
-    
-    # Generate target iteration list
-    target_iters = list(range(min_iter, max_iter + 1, iter_step))
-    print(f"Target iterations: {len(target_iters)} iterations from {target_iters[0]} to {target_iters[-1]} (step: {iter_step})")
-    
-    # Load existing results
-    existing_results = load_csv(config)
-    
-    # Determine what needs to be evaluated
-    needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
-
-    # Print evaluation summary
-    print_evaluation_summary(existing_results, target_iters, datasets)
-    
-    if not needed_iters:
-        print("✓ All iterations already evaluated! No new evaluation needed.")
-        return existing_results,False
-    
-    print(f"✓ Need to evaluate {len(needed_iters)} iterations: {needed_iters}")
-    
-    # Print detailed evaluation plan
-    print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets)
-    
-    # Results storage for new evaluations
-    new_results = []
-    
-    # Evaluate each needed iteration
-    for iter in tqdm(needed_iters, desc="Evaluating iterations"):
-        try:
-            # Check if we have partial results for this iteration
-            iter_results = None
-            for result in existing_results:
-                if result['iter'] == iter:
-                    iter_results = result
-                    break
-            
-            # Get the specific datasets that need evaluation for this iteration
-            needed_datasets = needed_datasets_per_iter.get(iter, datasets)
-            
-            iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=False)
-            new_results.append(iter_results)
-                  
-        except Exception as e:
-            print(f"✗ Error evaluating iteration {iter}: {e}")
-            # Add empty results for failed iteration
-            new_results.append({
-                'iter': iter,
-                'scores': {dataset: None for dataset in datasets},
-                'times': {dataset: None for dataset in datasets}
-            })
-    
-    # Merge new results with existing results
-    all_results = merge_results(existing_results, new_results)
-    
-    return all_results,True
-
-def results_to_df(results, eval_config):
-    """Save evaluation results to solution_score and solution_time CSV files"""
-
-    datasets = eval_config['datasets']
-    
-    # Prepare data for CSV
-    iters = [result['iter'] for result in results]
-    
-    # Solution scores and times
-    score_data = {'iter': iters}
-    time_data = {'iter': iters}
-    for dataset in datasets:
-        scores = [result['scores'].get(dataset) for result in results]
-        score_data[dataset] = scores
-        times = [result['times'].get(dataset) for result in results]
-        time_data[dataset] = times
-    
-    # Save to CSV
-    score_df = pd.DataFrame(score_data)
-    time_df = pd.DataFrame(time_data)
-    return score_df,time_df
-
-
-def save_results(results, config):
-    """Save evaluation results to solution_score and solution_time CSV fi les seperately
-        results: list of dicts, each dict contains 'iter', 'scores', 'times'
-        config: config file
-
-        return: score_df, time_df , constructing from results
-    """
-    eval_config = config['eval_config']
-    model_config = config['model_config']
-    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-
-    score_df, time_df = results_to_df(results, eval_config)
-    
-    score_file = f"{save_result_dir}/sol_score.csv"
-    time_file = f"{save_result_dir}/sol_time.csv"
-
-    score_df.to_csv(score_file, index=False)
-    time_df.to_csv(time_file, index=False)
-        
-    print(f"Results saved to {save_result_dir}/")
-    print(f"  - sol_score.csv")
-    print(f"  - sol_time.csv")
-    
-    return score_df, time_df
-
 def load_validation_scores(config):
     """Load validation scores from ModelVC CSV file"""
     model_config = config['model_config']
     # vc_file is generated when training
-    vc_file = "%s/%s_nrange_%d_%d_m_%d/ModelVC_%s.csv"%(
+    vc_file = "%s/%s_nrange_%s_m_%d/ModelVC_%s.csv"%(
                                                 model_config['save_model_dir'],
                                                 model_config['g_type'],
-                                                model_config['g_params']['num_min'],
-                                                model_config['g_params']['num_max'],
+                                                model_config['g_params']['nrange'],
                                                 model_config['g_params']['m'],
                                                 model_config['gnn_model']
                                                 )
@@ -316,36 +103,27 @@ def load_validation_scores(config):
         return None
     
     try:
-        vc_df = pd.read_csv(vc_file, header=None)
+        vc_df = pd.read_csv(vc_file, names=['iter','score','time_all'])
         return vc_df
     except Exception as e:
         print(f"Error loading validation scores: {e}")
         return None
 
-def plot_val_eval_scores(eval_df, val_df, config,min_iter = 0, max_iter = 30000,iter_step=300):
+def plot_val_eval_scores(config,min_iter = 0, max_iter = 30000,iter_step=300):
     """Create comparison plot of validation vs real dataset scores"""
     eval_config = config['eval_config']
     model_config = config['model_config']
     datasets = eval_config['datasets']
     save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
     
-    if val_df is None:
-        print("Warning: No validation scores available, skipping plot")
-        return
-    
+  
     # Create figure
     row = math.ceil(math.sqrt(len(datasets)))
     col = row
     fig, axes = plt.subplots(row, col, figsize=(5*len(datasets), 5*len(datasets)))
     if len(datasets) == 1:
         axes = [axes]
-    
-    s_i = min_iter // iter_step
-    e_i = max_iter // iter_step
-    val_iters = val_df.iloc[s_i:e_i, 0].values  # First column: iteration
-    val_scores = val_df.iloc[s_i:e_i, 1].values  # Second column: validation score
 
-    eval_iters = eval_df['iter'].values
     figname = "sol_score"
     for i, dataset in enumerate(datasets):
         figname += "_" + dataset  
@@ -354,13 +132,35 @@ def plot_val_eval_scores(eval_df, val_df, config,min_iter = 0, max_iter = 30000,
         else:
             ax = axes[i//row][i%col]
         
-        # Plot real dataset scores (emphasized)
-        eval_scores = eval_df[dataset].values
-        valid_mask = ~pd.isna(eval_scores)
-        if np.any(valid_mask):
-            ax.plot(eval_iters[valid_mask], eval_scores[valid_mask], 
-                    'r-o', label=f'Eval {dataset}', markersize=2.0, linewidth=1.0, zorder=3)
+        # Load dataset-specific data from individual CSV file
+        dataset_file = f"{save_result_dir}/{dataset}.csv"
+        if os.path.exists(dataset_file):
+            try:
+                dataset_df = pd.read_csv(dataset_file)
+                if 'iter' in dataset_df.columns and 'score' in dataset_df.columns:
+                    # Clean and sort data
+                    clean_df = dataset_df.dropna(subset=['iter', 'score'])
+                    if not clean_df.empty:
+                        clean_df = clean_df.sort_values('iter')
+                        eval_iters = clean_df['iter'].values
+                        eval_scores = clean_df['score'].values
+                        
+                        # Plot real dataset scores (emphasized)
+                        valid_mask = ~pd.isna(eval_scores)
+                        if np.any(valid_mask):
+                            ax.plot(eval_iters[valid_mask], eval_scores[valid_mask], 
+                                    'r-o', label=f'Eval {dataset}', markersize=2.0, linewidth=1.0, zorder=3)
+                else:
+                    print(f"Warning: {dataset}.csv missing required columns")
+            except Exception as e:
+                print(f"Warning: Error loading {dataset}.csv: {e}")
+        else:
+            print(f"Warning: Dataset file not found: {dataset_file}")
         
+        val_df = load_validation_scores(config)
+        val_df = val_df[val_df['iter'].isin(eval_iters)]
+        val_iters = val_df['iter'].values  # First column: iteration
+        val_scores = val_df['score'].values  # Second column: validation score
         # Plot validation scores (de-emphasized)
         ax.plot(val_iters, val_scores, 
                 color='blue', linestyle='--', marker='s', label='Valid', 
@@ -374,7 +174,7 @@ def plot_val_eval_scores(eval_df, val_df, config,min_iter = 0, max_iter = 30000,
     
     plt.tight_layout()
     plt.savefig(f"{save_result_dir}/{figname}.png", dpi=300, bbox_inches='tight')
-    print(f"Plot saved to {save_result_dir}/sol_score.png")
+    print(f"Plot saved to {save_result_dir}/{figname}.png")
     plt.close()
 
 def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None, save_name=None, show=False, smooth_window=None):
@@ -382,10 +182,13 @@ def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None,
 
     Parameters
     - csv_files: list of str
-        Paths to sol_score.csv files for different models. Each CSV must have
-        an 'iter' column and a column named after the target `dataset`.
+        Paths to individual dataset CSV files for different models. Each CSV must have
+        columns 'iter', 'score', 'time' and contain data for the target `dataset`.
+        For the new format, use paths like:
+        'AAA-NetDQN/code/result/temp/synthetic/BA_nrange_30_50_m_4/graphSage_StepRatio_0.0100/30_50.csv'
     - dataset: str
-        Dataset column to compare (e.g., '30-50', '50-100', 'Crime').
+        Dataset name to compare (e.g., 'Crime').
+        This should match the filename (without .csv extension) of the CSV files.
     - labels: list of str or None
         Optional display labels for each model; inferred from paths if None.
     - title: str or None
@@ -402,9 +205,9 @@ def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None,
 
     Example
     >>> plot_eval_scores([
-    ...   'AAA-NetDQN/code/result/temp/synthetic/barabasi_albert_nrange_30_50_m_4/graphSage_StepRatio_0.0100/sol_score.csv',
-    ...   'AAA-NetDQN/code/result/temp/synthetic/barabasi_albert_nrange_30_50_m_1/graphSage_StepRatio_0.0100/sol_score.csv'
-    ... ], dataset='30-50')
+    ...   'AAA-NetDQN/code/result/temp/synthetic/BA_nrange_30_50_m_4/graphSage_StepRatio_0.0100/Crime.csv',
+    ...   'AAA-NetDQN/code/result/temp/synthetic/BA_nrange_30_50_m_1/graphSage_StepRatio_0.0100/Crime.csv'
+    ... ], dataset='Crime')
     """
     import matplotlib.pyplot as plt
     import pandas as pd
@@ -458,22 +261,24 @@ def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None,
         if 'iter' not in df.columns:
             print(f"Warning: 'iter' column missing in {path}, skip")
             continue
-        if dataset not in df.columns:
-            print(f"Warning: dataset '{dataset}' not found in {path}, available: {list(df.columns)}")
+        
+        # For new format: check if 'score' column exists (instead of dataset-specific column)
+        if 'score' not in df.columns:
+            print(f"Warning: 'score' column missing in {path}, available: {list(df.columns)}")
             continue
 
-        # Clean and sort
-        sub = df[['iter', dataset]].copy()
+        # Clean and sort - use 'score' column directly
+        sub = df[['iter', 'score']].copy()
         # Coerce to numeric and drop NaNs
         sub['iter'] = pd.to_numeric(sub['iter'], errors='coerce')
-        sub[dataset] = pd.to_numeric(sub[dataset], errors='coerce')
-        sub = sub.dropna(subset=['iter', dataset]).sort_values('iter')
+        sub['score'] = pd.to_numeric(sub['score'], errors='coerce')
+        sub = sub.dropna(subset=['iter', 'score']).sort_values('iter')
         if sub.empty:
             print(f"Warning: no valid rows after cleaning for {path}")
             continue
 
         x = sub['iter'].values
-        y = sub[dataset].values
+        y = sub['score'].values # Use 'score' column directly
 
         if smooth_window is not None and isinstance(smooth_window, int) and smooth_window > 1:
             try:
@@ -503,13 +308,16 @@ def plot_eval_scores(csv_files, dataset, labels=None, title=None, save_dir=None,
     plt.close()
 
 def detailed_result_dir(model_config,eval_config,mode='real'):
+    '''
+        eval_config['save_result_dir']: e.g. './result'
 
+        return detailed result dir e.g. './result/real/barabasi_albert_nrange_30_50_m_4/GIN'
+    '''
     save_result_dir = eval_config['save_result_dir']
     # real/barabasi_albert_nrange_30_50_m_4/GIN
-    sub_dir = '/%s/%s_nrange_%d_%d_m_%d/%s_StepRatio_%.4f/' %(mode, 
+    sub_dir = '/%s/%s_nrange_%s_m_%d/%s_StepRatio_%.4f/' %(mode, 
                                                 model_config['g_type'],
-                                                model_config['g_params']['num_min'],
-                                                model_config['g_params']['num_max'],
+                                                model_config['g_params']['nrange'],
                                                 model_config['g_params']['m'],
                                                 model_config['gnn_model'],
                                                 eval_config['step_ratio'])
@@ -521,263 +329,369 @@ def detailed_result_dir(model_config,eval_config,mode='real'):
     
     return save_result_dir
 
-def load_csv(config):
-    """Load existing evaluation results from CSV files
-        for datasets in eval_config
+def visualize_graph_dismantling(g, sol, viz_file_path):
     """
-    eval_config = config['eval_config']
-    model_config = config['model_config']
-    datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
+    Visualize the graph dismantling process step by step
     
-    score_file = f"{save_result_dir}/sol_score.csv"
-    time_file = f"{save_result_dir}/sol_time.csv"
+    Parameters:
+    - g: networkx graph
+    - sol: list of nodes to remove in order
+    """
+    print(f"\n Creating dismantling visualization...")
     
-    print(f"Looking for existing results in: {save_result_dir}")
-    print(f"Score file: {score_file}")
-    print(f"Time file: {time_file}")
+    # Input validation
+    if not sol or len(sol) == 0:
+        print(f"  ⚠ Empty solution, skipping visualization")
+        return
+    # Check if all solution nodes exist in the graph
+    check_sol_in_graph(g, sol)
     
-    existing_results = []
+    graph_id = int(viz_file_path.split("g_")[-1].split("_")[0])
+    iter_num = int(viz_file_path.split("iter_")[-1].split("_")[0])
+
+    # Create figure with subplots
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    fig.suptitle(f'Graph Dismantling Process - Graph {graph_id}, Iter {iter_num}\n'
+                 f'Nodes: {g.number_of_nodes()}, Edges: {g.number_of_edges()}', 
+                 fontsize=16, fontweight='bold')
     
-    if os.path.exists(score_file) and os.path.exists(time_file):
-        try:
-            score_df = pd.read_csv(score_file)
-            time_df = pd.read_csv(time_file)
+    # Original graph
+    ax = axes[0, 0]
+    pos = nx.spring_layout(g, seed=42)
+    nx.draw(g, pos, ax=ax, node_color='lightblue', node_size=300, 
+            edge_color='gray', width=1, with_labels=True, font_size=8)
+    ax.set_title('Original Graph', fontweight='bold')
+    ax.text(0.02, 0.98, f'Nodes: {g.number_of_nodes()}\nEdges: {g.number_of_edges()}', 
+            transform=ax.transAxes, verticalalignment='top', 
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    # Step-by-step dismantling (3 key steps)
+    dismantling_steps = [len(sol)//4, len(sol)//2, len(sol)]
+    colors = ['orange', 'red', 'darkred']
+    
+    for idx, step in enumerate(dismantling_steps):
+        if step == 0 or step > len(sol):
+            continue
             
-            print(f"Found existing files with {len(score_df)} rows")
-            print(f"Score columns: {list(score_df.columns)}")
-            print(f"Time columns: {list(time_df.columns)}")
-            
-            # Convert DataFrames back to results format
-            for idx, row in score_df.iterrows():
-                iter_num = int(row['iter'])
-                scores = {}
-                times = {}
-                
-                for dataset in datasets:
-                    if dataset in row and pd.notna(row[dataset]):
-                        scores[dataset] = float(row[dataset])
-                    else:
-                        scores[dataset] = None
-                    
-                    if dataset in time_df.columns and pd.notna(time_df.iloc[idx][dataset]):
-                        times[dataset] = float(time_df.iloc[idx][dataset])
-                    else:
-                        times[dataset] = None
-                
-                existing_results.append({
-                    'iter': iter_num,
-                    'scores': scores,
-                    'times': times
-                })
-            
-            print(f"✓ Loaded {len(existing_results)} existing evaluation results")
-            if existing_results:
-                print(f"  Iterations found: {[r['iter'] for r in existing_results]}")
-            
-        except Exception as e:
-            print(f"✗ Warning: Error loading existing results: {e}")
-            existing_results = []
+        ax = axes[0, idx+1] if idx < 2 else axes[1, 0]
+        
+        # Create a copy of the graph
+        g_temp = g.copy()
+        
+        # Remove nodes up to this step
+        nodes_to_remove = sol[:step]
+        g_temp.remove_nodes_from(nodes_to_remove)
+        
+        # Get remaining components
+        components = list(nx.connected_components(g_temp))
+        largest_cc = max(components, key=len) if components else set()
+        
+        # Color nodes based on their status
+        node_colors = []
+        for node in g.nodes():
+            if node in nodes_to_remove:
+                node_colors.append('red')  # Removed nodes
+            elif node in largest_cc:
+                node_colors.append('lightgreen')  # Largest component
+            else:
+                node_colors.append('lightgray')  # Other components
+        
+        # Draw the original graph with updated colors
+        nx.draw(g, pos, ax=ax, node_color=node_colors, node_size=300,
+                edge_color='gray', width=1, with_labels=True, font_size=8)
+        
+        # Highlight removed nodes with red outline
+        nx.draw_networkx_nodes(g, pos, nodelist=nodes_to_remove, 
+                              node_color='red', node_size=300, ax=ax)
+        
+        step_title = f'After removing {step} nodes\nLargest CC: {len(largest_cc)}'
+        ax.set_title(step_title, fontweight='bold')
+        
+        # Add legend
+        legend_elements = [
+            mpatches.Patch(color='lightgreen', label=f'Largest CC ({len(largest_cc)})'),
+            mpatches.Patch(color='red', label=f'Removed ({step})'),
+            mpatches.Patch(color='lightgray', label='Other components')
+        ]
+        ax.legend(handles=legend_elements, loc='upper right', fontsize=8)
+    
+    # Final dismantled state
+    ax = axes[1, 1]
+    g_final = g.copy()
+    g_final.remove_nodes_from(sol)
+    components_final = list(nx.connected_components(g_final))
+    
+    if components_final:
+        largest_cc_final = max(components_final, key=len)
+        pos_final = {node: pos[node] for node in g_final.nodes()}
+        
+        nx.draw(g_final, pos_final, ax=ax, node_color='lightgreen', 
+                node_size=300, edge_color='gray', width=1, 
+                with_labels=True, font_size=8)
+        ax.set_title(f'Final State\nLargest CC: {len(largest_cc_final)}', fontweight='bold')
     else:
-        print("✗ No existing results found, starting fresh evaluation")
-        if not os.path.exists(score_file):
-            print(f"  Score file not found: {score_file}")
-        if not os.path.exists(time_file):
-            print(f"  Time file not found: {time_file}")
+        ax.text(0.5, 0.5, 'All nodes removed\nGraph dismantled', 
+                ha='center', va='center', transform=ax.transAxes, 
+                fontsize=14, fontweight='bold')
+        ax.set_title('Final State - Graph Dismantled', fontweight='bold')
     
-    return existing_results
+    # Component size distribution
+    ax = axes[1, 2]
+    if components_final:
+        component_sizes = [len(comp) for comp in components_final]
+        ax.hist(component_sizes, bins=min(20, len(component_sizes)), 
+                color='skyblue', edgecolor='black', alpha=0.7)
+        ax.set_xlabel('Component Size')
+        ax.set_ylabel('Frequency')
+        ax.set_title('Component Size Distribution', fontweight='bold')
+        ax.grid(True, alpha=0.3)
+    else:
+        ax.text(0.5, 0.5, 'No components\nremaining', 
+                ha='center', va='center', transform=ax.transAxes, 
+                fontsize=14, fontweight='bold')
+        ax.set_title('Component Distribution', fontweight='bold')
+    
+    plt.tight_layout()
+    
+    # Save the visualization
 
+    plt.savefig(viz_file_path, dpi=300, bbox_inches='tight')
+    print(f"  ✓ Saved dismantling visualization: {viz_file_path}")
+    
+    
+    plt.close()
 
-def load_sol(iter,config):
-    """load solution files for a given iteration"""
-    eval_config = config['eval_config']
-    model_config = config['model_config']
-    datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-    sol_files = []
-    for dataset in datasets:
-        sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
-        if os.path.exists(sol_file):
-            sol_files.append(sol_file)
-    return sol_files
-
-def get_evaluation_status(existing_results, target_iters, datasets):
-    """Determine which iterations and datasets need evaluation"""
-    # Find iterations that need evaluation and their missing datasets
-    needed_iters = []
-    needed_datasets_per_iter = {}
+def create_dismantling_animation(g, sol, anim_file_path):
+    """
+    Create an animated visualization of the dismantling process
     
-    if not existing_results:
-        for iter_num in target_iters:
-            needed_datasets_per_iter[iter_num] = datasets.copy()
-        return target_iters, needed_datasets_per_iter
+    Parameters:
+    - g: networkx graph
+    - sol: list of nodes to remove in order
+    """
+    print(f"  Creating dismantling animation...")
     
-    # Create lookup for existing results
-    existing_lookup = {}
-    for result in existing_results:
-        iter_num = result['iter']
-        existing_lookup[iter_num] = result
+    fig, ax = plt.subplots(figsize=(12, 10))
+    pos = nx.spring_layout(g, seed=42)
     
-    for iter_num in target_iters:
-        if iter_num not in existing_lookup:
-            # New iteration - need all datasets
-            needed_iters.append(iter_num)
-            needed_datasets_per_iter[iter_num] = datasets.copy()
-            continue
+    def animate(frame):
+        ax.clear()
         
-        # Check which datasets are missing for this iteration
-        result = existing_lookup[iter_num]
-        missing_datasets = []
-        for dataset in datasets:
-            if result['scores'].get(dataset) is None or result['times'].get(dataset) is None:
-                missing_datasets.append(dataset)
+        # Calculate how many nodes to remove at this frame
+        nodes_removed = int((frame / 100) * len(sol))
+        nodes_to_remove = sol[:nodes_removed]
         
-        if missing_datasets:
-            # Incomplete iteration - need missing datasets
-            needed_iters.append(iter_num)
-            needed_datasets_per_iter[iter_num] = missing_datasets
+        # Create temporary graph
+        g_temp = g.copy()
+        g_temp.remove_nodes_from(nodes_to_remove)
+        
+        # Get components
+        components = list(nx.connected_components(g_temp))
+        largest_cc = max(components, key=len) if components else set()
+        
+        # Color nodes
+        node_colors = []
+        for node in g.nodes():
+            if node in nodes_to_remove:
+                node_colors.append('red')
+            elif node in largest_cc:
+                node_colors.append('lightgreen')
+            else:
+                node_colors.append('lightgray')
+        
+        # Draw graph
+        nx.draw(g, pos, ax=ax, node_color=node_colors, node_size=300,
+                edge_color='gray', width=1, with_labels=True, font_size=8)
+        
+        # Highlight removed nodes
+        if nodes_to_remove:
+            nx.draw_networkx_nodes(g, pos, nodelist=nodes_to_remove, 
+                                  node_color='red', node_size=300, ax=ax)
+        
+        # Update title
+        progress = (frame / 100) * 100
+        ax.set_title(f'Graph Dismantling Progress: {progress:.1f}%\n'
+                     f'Nodes removed: {nodes_removed}/{len(sol)}\n'
+                     f'Largest CC: {len(largest_cc)}', 
+                     fontweight='bold', fontsize=12)
+        
+        # Add progress bar
+        progress_bar = FancyBboxPatch((0.1, 0.02), progress/100 * 0.8, 0.02, 
+                                     boxstyle="round,pad=0.01", 
+                                     facecolor='blue', alpha=0.7)
+        ax.add_patch(progress_bar)
+        
+        return ax,
     
-    return needed_iters, needed_datasets_per_iter
+    # Create animation
+    anim = animation.FuncAnimation(fig, animate, frames=101, 
+                                  interval=100, blit=False, repeat=False)
+    
+    # Save animation
+    anim.save(anim_file_path, writer='pillow', fps=10)
+    print(f"  ✓ Saved dismantling animation: {anim_file_path}")
+    
+    plt.close()
 
-def merge_results(existing_results, new_results):
-    """Merge new results with existing results"""
-    if not existing_results:
-        return new_results
+def plot_max_cc_curve(MaxCCList, plot_file_path):
+    """
+    Plot the MaxCC curve showing how the largest connected component size changes
     
-    # Create lookup for existing results
-    existing_lookup = {result['iter']: result for result in existing_results}
+    Parameters:
+    - MaxCCList: list of largest connected component sizes
+    - save_dir: directory to save the plot
+    - graph_id: identifier for the graph
+    - iter_num: iteration number
+    """
+    print(f"  Creating MaxCC curve plot...")
     
-    # Merge new results
-    for new_result in new_results:
-        iter_num = new_result['iter']
-        if iter_num in existing_lookup:
-            # Update existing result with new data
-            existing = existing_lookup[iter_num]
-            for dataset in new_result['scores']:
-                if new_result['scores'][dataset] is not None:
-                    existing['scores'][dataset] = new_result['scores'][dataset]
-                if new_result['times'][dataset] is not None:
-                    existing['times'][dataset] = new_result['times'][dataset]
-        else:
-            # Add new result
-            existing_results.append(new_result)
-    
-    # Sort by iteration number
-    existing_results.sort(key=lambda x: x['iter'])
-    
-    return existing_results
-
-def print_evaluation_summary(existing_results, target_iters, datasets):
-    """Print a detailed summary of evaluation status"""
-    if not existing_results:
-        print(f"✓ No existing results found")
-        print(f"✓ Will evaluate {len(target_iters)} iterations: {target_iters}")
+    # Input validation
+    if not MaxCCList or len(MaxCCList) == 0:
+        print(f"  ⚠ Empty MaxCCList, skipping plot")
         return
     
-    # Create lookup for existing results
-    existing_lookup = {result['iter']: result for result in existing_results}
-    
-    completed_iters = []
-    partial_iters = []
-    missing_iters = []
-    
-    for iter_num in target_iters:
-        if iter_num not in existing_lookup:
-            missing_iters.append(iter_num)
-            continue
-        
-        result = existing_lookup[iter_num]
-        all_complete = True
-        missing_datasets = []
-        
-        for dataset in datasets:
-            if result['scores'].get(dataset) is None or result['times'].get(dataset) is None:
-                all_complete = False
-                missing_datasets.append(dataset)
-        
-        if all_complete:
-            completed_iters.append(iter_num)
-        else:
-            partial_iters.append((iter_num, missing_datasets))
-    
-    print(f"✓ Evaluation Summary:")
-    print(f"  - Completed iterations: {len(completed_iters)}")
-    if completed_iters:
-        print(f"    {completed_iters[:5]}{'...' if len(completed_iters) > 5 else ''}")
-    
-    print(f"  - Partial iterations: {len(partial_iters)}")
-    for iter_num, missing in partial_iters[:3]:  # Show first 3
-        print(f"    Iteration {iter_num}: missing {missing}")
-    if len(partial_iters) > 3:
-        print(f"    ... and {len(partial_iters) - 3} more")
-    
-    # Show detailed missing datasets for each iteration
-    if partial_iters:
-        print(f"  - Detailed missing datasets:")
-        for iter_num, missing in partial_iters:
-            print(f"    Iteration {iter_num}: {missing}")
-    
-    print(f"  - Missing iterations: {len(missing_iters)}")
-    if missing_iters:
-        print(f"    {missing_iters[:5]}{'...' if len(missing_iters) > 5 else ''}")
-    
-    total_to_evaluate = len(missing_iters) + len(partial_iters)
-    print(f"  - Total iterations to evaluate: {total_to_evaluate}")
+    graph_id = int(plot_file_path.split("g_")[-1].split("_")[0])
+    iter_num = int(plot_file_path.split("iter_")[-1].split("_")[0])
 
-def print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets):
-    """Print detailed plan of what will be evaluated"""
-    print(f"\n" + "="*60)
-    print("EVALUATION PLAN")
-    print("="*60)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
     
-    if not needed_iters:
-        print("✓ No evaluation needed - all iterations are complete!")
+    # Convert to numpy array and normalize
+    max_cc_array = np.array(MaxCCList)
+    nodes_removed = np.arange(len(max_cc_array))
+    
+    # Plot 1: MaxCC vs Nodes Removed
+    ax1.plot(nodes_removed, max_cc_array, 'b-o', linewidth=2, markersize=4, alpha=0.7)
+    ax1.set_xlabel('Number of Nodes Removed', fontweight='bold')
+    ax1.set_ylabel('Largest Connected Component Size', fontweight='bold')
+    ax1.set_title(f'MaxCC Curve - Graph {graph_id}, Iter {iter_num}', fontweight='bold')
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(0, len(max_cc_array))
+    ax1.set_ylim(0, max_cc_array[0] * 1.05)
+    
+    # Add annotations for key points
+    # Find where MaxCC drops significantly
+    if len(max_cc_array) > 1:
+        # Find the first significant drop (e.g., 50% of original)
+        threshold = max_cc_array[0] * 0.5
+        significant_drop_idx = np.where(max_cc_array <= threshold)[0]
+        if len(significant_drop_idx) > 0:
+            first_drop = significant_drop_idx[0]
+            ax1.annotate(f'50% drop at {first_drop} nodes', 
+                        xy=(first_drop, max_cc_array[first_drop]),
+                        xytext=(first_drop + len(max_cc_array)*0.1, max_cc_array[first_drop]),
+                        arrowprops=dict(arrowstyle='->', color='red', lw=2),
+                        bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7))
+    
+    # Plot 2: Normalized MaxCC (percentage of original)
+    normalized_cc = max_cc_array / max_cc_array[0] * 100
+    ax2.plot(nodes_removed, normalized_cc, 'r-s', linewidth=2, markersize=4, alpha=0.7)
+    ax2.set_xlabel('Number of Nodes Removed', fontweight='bold')
+    ax2.set_ylabel('Largest CC Size (% of Original)', fontweight='bold')
+    ax2.set_title(f'Normalized MaxCC Curve - Graph {graph_id}, Iter {iter_num}', fontweight='bold')
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(0, len(normalized_cc))
+    ax2.set_ylim(0, 105)
+    
+    # Add horizontal lines for key thresholds
+    ax2.axhline(y=50, color='orange', linestyle='--', alpha=0.7, label='50% threshold')
+    ax2.axhline(y=25, color='red', linestyle='--', alpha=0.7, label='25% threshold')
+    ax2.axhline(y=10, color='darkred', linestyle='--', alpha=0.7, label='10% threshold')
+    ax2.legend()
+    
+    # Add statistics
+    stats_text = f"""Statistics:
+Original size: {max_cc_array[0]}
+Final size: {max_cc_array[-1]}
+Total nodes removed: {len(max_cc_array)}
+Efficiency: {len(max_cc_array)/max_cc_array[0]:.3f} nodes/unit size"""
+    
+    ax2.text(0.02, 0.98, stats_text, transform=ax2.transAxes, 
+              verticalalignment='top', fontsize=10,
+              bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+    
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig(plot_file_path, dpi=300, bbox_inches='tight')
+    print(f"  ✓ Saved MaxCC curve plot: {plot_file_path}")
+    
+    plt.close()
+
+
+def check_sol_in_graph(g, sol):
+    missing_nodes = [node for node in sol if node not in g.nodes()]
+    if missing_nodes:
+        print(f"  ⚠ Warning: Some solution nodes ({missing_nodes}) are not in the graph")
+        # Filter out missing nodes
+        sol = [node for node in sol if node in g.nodes()]
+        if not sol:
+            print(f"  ⚠ No valid nodes in solution after filtering")
+            return
+
+def plot_max_cc_lists(all_MaxCCList, plot_file_path):
+    """
+    Plot all MaxCCList curves together in one figure (raw and normalized),
+    following the style of plot_max_cc_curve.
+
+    Parameters:
+    - all_MaxCCList: list of lists. Each inner list is a MaxCC sequence for a graph
+    - plot_file_path: output image path
+    """
+    print(f"  Creating comprehensive analysis...")
+
+    if not all_MaxCCList:
+        print("  ⚠ No MaxCC data provided, skipping")
         return
-    
-    print(f"✓ Will evaluate {len(needed_iters)} iterations:")
-    
-    for iter_num in needed_iters:
-        needed_datasets = needed_datasets_per_iter.get(iter_num, datasets)
-        if len(needed_datasets) == len(datasets):
-            print(f"  - Iteration {iter_num}: ALL datasets ({len(needed_datasets)} datasets)")
-        else:
-            print(f"  - Iteration {iter_num}: {needed_datasets} ({len(needed_datasets)} datasets)")
-    
-    total_datasets_to_evaluate = sum(len(needed_datasets_per_iter.get(iter, datasets)) for iter in needed_iters)
-    print(f"\n✓ Total evaluations: {total_datasets_to_evaluate} dataset-iteration combinations")
-    print("="*60)
 
-def test_evaluation_logic(config):
-    """Test the evaluation logic without running actual evaluation"""
-    print("\n" + "="*60)
-    print("TESTING EVALUATION LOGIC")
-    print("="*60)
-    
-    eval_config = config['eval_config']
-    datasets = eval_config['datasets']
-    min_iter = eval_config['min_iter']
-    max_iter = eval_config['max_iter']
-    iter_step = eval_config['iter_step']
-    
-    target_iters = list(range(min_iter, max_iter + 1, iter_step))
-    
-    print(f"Target iterations: {target_iters}")
-    print(f"Datasets: {datasets}")
-    
-    # Load existing results
-    existing_results = load_csv(config)
-    
-    # Determine what needs to be evaluated
-    needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
-    
-    # Print evaluation summary
-    print_evaluation_summary(existing_results, target_iters, datasets)
-    
-    # Print evaluation plan
-    print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets)
-    
-    print("="*60)
-    return needed_iters, needed_datasets_per_iter
+    # Filter out any empty sequences
+    series_list = [np.asarray(seq, dtype=float) for seq in all_MaxCCList if seq is not None and len(seq) > 0]
+    if not series_list:
+        print("  ⚠ All MaxCC lists are empty, skipping")
+        return
+
+    # Build x ranges per series (they may have different lengths)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Raw MaxCC vs nodes removed
+    max_first = 0.0
+    max_len = 0
+    for idx, arr in enumerate(series_list):
+        x = np.arange(len(arr))
+        ax1.plot(x, arr, linewidth=1.6, alpha=0.8, label=f'g{idx}')
+        max_first = max(max_first, arr[0])
+        max_len = max(max_len, len(arr))
+    ax1.set_xlabel('Number of Nodes Removed', fontweight='bold')
+    ax1.set_ylabel('Largest Connected Component Size', fontweight='bold')
+    ax1.set_title('MaxCC Curves (all graphs)', fontweight='bold')
+    ax1.grid(True, alpha=0.3)
+    if max_len > 0:
+        ax1.set_xlim(0, max_len)
+    if max_first > 0:
+        ax1.set_ylim(0, max_first * 1.05)
+    ax1.legend(fontsize=8, ncol=2)
+
+    # Normalized (% of original)
+    for idx, arr in enumerate(series_list):
+        x = np.arange(len(arr))
+        base = arr[0] if arr[0] != 0 else 1.0
+        norm = arr / base * 100.0
+        ax2.plot(x, norm, linewidth=1.6, alpha=0.8, label=f'g{idx}')
+    ax2.set_xlabel('Number of Nodes Removed', fontweight='bold')
+    ax2.set_ylabel('Largest CC Size (% of Original)', fontweight='bold')
+    ax2.set_title('Normalized MaxCC Curves (all graphs)', fontweight='bold')
+    ax2.grid(True, alpha=0.3)
+    if max_len > 0:
+        ax2.set_xlim(0, max_len)
+    ax2.set_ylim(0, 105)
+    ax2.axhline(y=50, color='orange', linestyle='--', alpha=0.7, label='50%')
+    ax2.axhline(y=25, color='red', linestyle='--', alpha=0.7, label='25%')
+    ax2.axhline(y=10, color='darkred', linestyle='--', alpha=0.7, label='10%')
+    ax2.legend(fontsize=8, ncol=2)
+
+    plt.tight_layout()
+    plt.savefig(plot_file_path, dpi=300, bbox_inches='tight')
+    print(f"  ✓ Saved comprehensive analysis: {plot_file_path}")
+    plt.close()
 
 
 

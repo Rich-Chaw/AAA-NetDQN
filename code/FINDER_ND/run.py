@@ -23,18 +23,19 @@ def run_synthetic_evaluation():
 
     # eval model from model path
 
-    cmd1 = [
-        "python", "./FINDER_ND/testSynthetic.py",
-        "--model_path", "./models/BA_nrange_30_50_m_1",
-        "--min_iter", "0",
-        "--max_iter", "900",
-        "--iter_step", "900",
-        "--per_graphs", "10"
-    ]
+    # cmd = [
+    #     "python", "./FINDER_ND/testSynthetic.py",
+    #     "--model_path", "./models/BA_nrange_30_50_m_1",
+    #     "--min_iter", "900",
+    #     "--max_iter", "900",
+    #     "--iter_step", "900",
+    #     "--per_graphs", "5",
+    #     "--eval_all_iters"
+    # ]
     
-    subprocess.run(cmd1)
+    # subprocess.run(cmd)
 
-    # cmd2 = [
+    # cmd = [
     #     "python", "./FINDER_ND/testSynthetic.py",
     #     "--model_path", "./models/BA_nrange_30_50_m_2",
     #     "--min_iter", "0",
@@ -42,18 +43,67 @@ def run_synthetic_evaluation():
     #     "--iter_step", "900",
     #     "--per_graphs", "50"
     # ]
-    # subprocess.run(cmd2)
+    # subprocess.run(cmd)
 
     # # eval iter 900,
-    # cmd3 = [
+    # cmd = [
     #     "python", "./FINDER_ND/testSynthetic.py",
     #     "--model_path", "./models/BA_nrange_30_50_m_2",
     #     "--eval_iter","900",
     #     "--per_graphs", "2"
     # ]
-    # subprocess.run(cmd3)
+    # subprocess.run(cmd)
+
+    # # eval_iter < 0, eval best iter,
+    # cmd = [
+    #     "python", "./FINDER_ND/testSynthetic.py",
+    #     "--model_path", "./models/BA_nrange_30_50_m_2",
+    #     "--eval_iter","-1",
+    #     "--per_graphs", "2"
+    # ]
+
+
+    cmd = [
+        "python", "./FINDER_ND/testSynthetic.py",
+        "--model_path", "./models/BA_nrange_30_50_m_2",
+        "--per_graphs", "2"
+    ]
+
 
     # !!! nrange and m still need to modify in or config.json by hand
+
+
+    # Real
+
+    # cmd = [
+    #         "python", "./FINDER_ND/testReal.py",
+    #         "--eval_all_iters"
+    #     ]
+
+
+    # cmd = [
+    #         "python", "./FINDER_ND/testReal.py",
+    #         "--eval_iter","108300"
+    #     ]
+
+    # find best iter as iter
+    # cmd = [
+    #         "python", "./FINDER_ND/testReal.py",
+    #         "--eval_iter","-1"
+    #     ]
+
+
+
+    # cmd = [
+    #         "python", "./FINDER_ND/testReal.py",
+    #         "--eval_iter","108300",
+    #         "--save_sol_only"
+    #     ]
+    
+    subprocess.run(cmd)
+
+
+
 
 if __name__ == "__main__":
     run_synthetic_evaluation() 

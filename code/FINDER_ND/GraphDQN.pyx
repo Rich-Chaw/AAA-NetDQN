@@ -74,8 +74,7 @@ class GraphDQN:
 
     def __init__(self,
         g_type = 'barabasi_albert',
-        g_params = {'num_min': 30,
-                    'num_max' : 50,
+        g_params = {'nrange': '30_50',
                     'm':2},
         gnn_model = 'graphSage',
         target_graph = "Digg",
@@ -85,11 +84,11 @@ class GraphDQN:
         self.embeddingMethod = gnn_model
         self.embedding_size = EMBEDDING_SIZE
         self.learning_rate = LEARNING_RATE
-        self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+        self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
         self.g_params = g_params
         self.target_graph = target_graph
-        self.num_min = g_params['num_min']
-        self.num_max = g_params['num_max']
+        self.num_min = int(g_params['nrange'].split('_')[0])
+        self.num_max = int(g_params['nrange'].split('_')[1])
         self.TrainSet = graph.py_GSet()
         self.TestSet = graph.py_GSet()
         self.inputs = dict()
@@ -102,7 +101,7 @@ class GraphDQN:
         # train ego graph id,begin with 0
         self.dataset_id = 24    
         # save_model_dir: directory to save the models
-        self.save_model_dir = f"{save_model_dir}/{self.g_type}_nrange_{g_params['num_min']}_{g_params['num_max']}_m_{g_params['m']}"
+        self.save_model_dir = f"{save_model_dir}/{self.g_type}_nrange_{g_params['nrange']}_m_{g_params['m']}"
         if not os.path.exists(self.save_model_dir):
             os.makedirs(self.save_model_dir)
         # VCFile: file to store the validation results
@@ -269,11 +268,11 @@ class GraphDQN:
         cdef int max_n = num_max
         cdef int min_n = num_min
         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
-        if self.g_type == 'erdos_renyi':
+        if self.g_type == 'ER':
             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
-        elif self.g_type == 'powerlaw':
+        elif self.g_type == 'PL':
             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
-        elif self.g_type == 'small-world':
+        elif self.g_type == 'SW':
             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
         elif self.g_type == 'BA':
             g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
@@ -286,7 +285,7 @@ class GraphDQN:
         print('Generating new training graphs...')
         sys.stdout.flush()
         self.ClearTrainGraphs()
-        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+        if self.g_type in ['ER','PL','SW','BA']:
             for i in tqdm(range(1000), desc="Training graphs"):
                 g = self.gen_graph(num_min, num_max)
                 self.InsertGraph(g, is_test=False)
