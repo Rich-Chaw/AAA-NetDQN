@@ -1495,6 +1495,9 @@ static const char __pyx_k_s[] = "s";
 static const char __pyx_k_t[] = "t";
 static const char __pyx_k_w[] = "w";
 static const char __pyx_k_BA[] = "BA";
+static const char __pyx_k_ER[] = "ER";
+static const char __pyx_k_PL[] = "PL";
+static const char __pyx_k_SW[] = "SW";
 static const char __pyx_k__2[] = "/";
 static const char __pyx_k__3[] = "\n";
 static const char __pyx_k__8[] = ")";
@@ -2050,6 +2053,7 @@ static PyObject *__pyx_n_s_ClearTestGraphs;
 static PyObject *__pyx_n_s_ClearTrainGraphs;
 static PyObject *__pyx_n_s_ConfigProto;
 static PyObject *__pyx_n_s_Digg;
+static PyObject *__pyx_n_s_ER;
 static PyObject *__pyx_n_s_ERROR;
 static PyObject *__pyx_n_s_Evaluate;
 static PyObject *__pyx_n_s_EvaluateRealData;
@@ -2135,6 +2139,7 @@ static PyObject *__pyx_n_s_N_end;
 static PyObject *__pyx_n_s_N_start;
 static PyObject *__pyx_kp_s_No_GPU_detected_training_will_u;
 static PyObject *__pyx_kp_s_No_checkpoint_found_starting_fr;
+static PyObject *__pyx_n_s_PL;
 static PyObject *__pyx_n_s_PlayGame;
 static PyObject *__pyx_n_s_Predict;
 static PyObject *__pyx_n_s_PredictWithCurrentQNet;
@@ -2148,6 +2153,7 @@ static PyObject *__pyx_n_s_Random;
 static PyObject *__pyx_kp_u_Resuming_from_checkpoint;
 static PyObject *__pyx_n_s_Robustness;
 static PyObject *__pyx_n_s_Run_simulator;
+static PyObject *__pyx_n_s_SW;
 static PyObject *__pyx_n_s_Sample;
 static PyObject *__pyx_n_s_Sampling;
 static PyObject *__pyx_n_s_SaveModel;
@@ -2964,7 +2970,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         self.embeddingMethod = gnn_model
  *         self.embedding_size = EMBEDDING_SIZE             # <<<<<<<<<<<<<<
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+ *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
  */
   __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_8GraphDQN_EMBEDDING_SIZE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -2975,7 +2981,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         self.embeddingMethod = gnn_model
  *         self.embedding_size = EMBEDDING_SIZE
  *         self.learning_rate = LEARNING_RATE             # <<<<<<<<<<<<<<
- *         self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+ *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params
  */
   __pyx_t_1 = PyFloat_FromDouble(__pyx_v_8GraphDQN_LEARNING_RATE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
@@ -2986,7 +2992,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":87
  *         self.embedding_size = EMBEDDING_SIZE
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego             # <<<<<<<<<<<<<<
+ *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego             # <<<<<<<<<<<<<<
  *         self.g_params = g_params
  *         self.target_graph = target_graph
  */
@@ -2994,7 +3000,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
 
   /* "GraphDQN.pyx":88
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+ *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params             # <<<<<<<<<<<<<<
  *         self.target_graph = target_graph
  *         self.num_min = int(g_params['nrange'].split('_')[0])
@@ -3002,7 +3008,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_g_params, __pyx_v_g_params) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
 
   /* "GraphDQN.pyx":89
- *         self.g_type = g_type #BA,erdos_renyi, powerlaw, small-world, ego
+ *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params
  *         self.target_graph = target_graph             # <<<<<<<<<<<<<<
  *         self.num_min = int(g_params['nrange'].split('_')[0])
@@ -6878,7 +6884,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
  *         cdef int max_n = num_max
  *         cdef int min_n = num_min             # <<<<<<<<<<<<<<
  *         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
- *         if self.g_type == 'erdos_renyi':
+ *         if self.g_type == 'ER':
  */
   __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_num_min); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 269, __pyx_L1_error)
   __pyx_v_min_n = __pyx_t_1;
@@ -6887,7 +6893,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
  *         cdef int max_n = num_max
  *         cdef int min_n = num_min
  *         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n             # <<<<<<<<<<<<<<
- *         if self.g_type == 'erdos_renyi':
+ *         if self.g_type == 'ER':
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 270, __pyx_L1_error)
@@ -6929,21 +6935,21 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
   /* "GraphDQN.pyx":271
  *         cdef int min_n = num_min
  *         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
- *         if self.g_type == 'erdos_renyi':             # <<<<<<<<<<<<<<
+ *         if self.g_type == 'ER':             # <<<<<<<<<<<<<<
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  */
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_g_type); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 271, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_erdos_renyi, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_ER, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 271, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_6) {
 
     /* "GraphDQN.pyx":272
  *         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
- *         if self.g_type == 'erdos_renyi':
+ *         if self.g_type == 'ER':
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)             # <<<<<<<<<<<<<<
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_nx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L1_error)
@@ -6968,31 +6974,31 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
     /* "GraphDQN.pyx":271
  *         cdef int min_n = num_min
  *         cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
- *         if self.g_type == 'erdos_renyi':             # <<<<<<<<<<<<<<
+ *         if self.g_type == 'ER':             # <<<<<<<<<<<<<<
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  */
     goto __pyx_L3;
   }
 
   /* "GraphDQN.pyx":273
- *         if self.g_type == 'erdos_renyi':
+ *         if self.g_type == 'ER':
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
- *         elif self.g_type == 'powerlaw':             # <<<<<<<<<<<<<<
+ *         elif self.g_type == 'PL':             # <<<<<<<<<<<<<<
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_g_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 273, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_powerlaw, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 273, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_PL, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 273, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_6) {
 
     /* "GraphDQN.pyx":274
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)             # <<<<<<<<<<<<<<
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_nx); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 274, __pyx_L1_error)
@@ -7016,31 +7022,31 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
     __pyx_t_3 = 0;
 
     /* "GraphDQN.pyx":273
- *         if self.g_type == 'erdos_renyi':
+ *         if self.g_type == 'ER':
  *             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
- *         elif self.g_type == 'powerlaw':             # <<<<<<<<<<<<<<
+ *         elif self.g_type == 'PL':             # <<<<<<<<<<<<<<
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  */
     goto __pyx_L3;
   }
 
   /* "GraphDQN.pyx":275
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
- *         elif self.g_type == 'small-world':             # <<<<<<<<<<<<<<
+ *         elif self.g_type == 'SW':             # <<<<<<<<<<<<<<
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
  *         elif self.g_type == 'BA':
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_g_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_kp_s_small_world, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_SW, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 275, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_6) {
 
     /* "GraphDQN.pyx":276
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)             # <<<<<<<<<<<<<<
  *         elif self.g_type == 'BA':
  *             g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
@@ -7066,9 +7072,9 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
     __pyx_t_4 = 0;
 
     /* "GraphDQN.pyx":275
- *         elif self.g_type == 'powerlaw':
+ *         elif self.g_type == 'PL':
  *             g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
- *         elif self.g_type == 'small-world':             # <<<<<<<<<<<<<<
+ *         elif self.g_type == 'SW':             # <<<<<<<<<<<<<<
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
  *         elif self.g_type == 'BA':
  */
@@ -7076,7 +7082,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
   }
 
   /* "GraphDQN.pyx":277
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
  *         elif self.g_type == 'BA':             # <<<<<<<<<<<<<<
  *             g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
@@ -7121,7 +7127,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_4gen_graph(CYTHON_UNUSED PyObject 
     __pyx_t_5 = 0;
 
     /* "GraphDQN.pyx":277
- *         elif self.g_type == 'small-world':
+ *         elif self.g_type == 'SW':
  *             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
  *         elif self.g_type == 'BA':             # <<<<<<<<<<<<<<
  *             g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
@@ -7327,7 +7333,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
  *         print('Generating new training graphs...')
  *         sys.stdout.flush()             # <<<<<<<<<<<<<<
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -7358,7 +7364,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
  *         print('Generating new training graphs...')
  *         sys.stdout.flush()
  *         self.ClearTrainGraphs()             # <<<<<<<<<<<<<<
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(1000), desc="Training graphs"):
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ClearTrainGraphs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
@@ -7383,25 +7389,25 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
   /* "GraphDQN.pyx":288
  *         sys.stdout.flush()
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:             # <<<<<<<<<<<<<<
+ *         if self.g_type in ['ER','PL','SW','BA']:             # <<<<<<<<<<<<<<
  *             for i in tqdm(range(1000), desc="Training graphs"):
  *                 g = self.gen_graph(num_min, num_max)
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_g_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_erdos_renyi, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_ER, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_powerlaw, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_PL, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_kp_s_small_world, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_SW, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
@@ -7416,7 +7422,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
 
     /* "GraphDQN.pyx":289
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(1000), desc="Training graphs"):             # <<<<<<<<<<<<<<
  *                 g = self.gen_graph(num_min, num_max)
  *                 self.InsertGraph(g, is_test=False)
@@ -7482,7 +7488,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
       __pyx_t_6 = 0;
 
       /* "GraphDQN.pyx":290
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(1000), desc="Training graphs"):
  *                 g = self.gen_graph(num_min, num_max)             # <<<<<<<<<<<<<<
  *                 self.InsertGraph(g, is_test=False)
@@ -7564,7 +7570,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
 
       /* "GraphDQN.pyx":289
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(1000), desc="Training graphs"):             # <<<<<<<<<<<<<<
  *                 g = self.gen_graph(num_min, num_max)
  *                 self.InsertGraph(g, is_test=False)
@@ -7575,7 +7581,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_6gen_new_graphs(CYTHON_UNUSED PyOb
     /* "GraphDQN.pyx":288
  *         sys.stdout.flush()
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:             # <<<<<<<<<<<<<<
+ *         if self.g_type in ['ER','PL','SW','BA']:             # <<<<<<<<<<<<<<
  *             for i in tqdm(range(1000), desc="Training graphs"):
  *                 g = self.gen_graph(num_min, num_max)
  */
@@ -27120,6 +27126,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ClearTrainGraphs, __pyx_k_ClearTrainGraphs, sizeof(__pyx_k_ClearTrainGraphs), 0, 0, 1, 1},
   {&__pyx_n_s_ConfigProto, __pyx_k_ConfigProto, sizeof(__pyx_k_ConfigProto), 0, 0, 1, 1},
   {&__pyx_n_s_Digg, __pyx_k_Digg, sizeof(__pyx_k_Digg), 0, 0, 1, 1},
+  {&__pyx_n_s_ER, __pyx_k_ER, sizeof(__pyx_k_ER), 0, 0, 1, 1},
   {&__pyx_n_s_ERROR, __pyx_k_ERROR, sizeof(__pyx_k_ERROR), 0, 0, 1, 1},
   {&__pyx_n_s_Evaluate, __pyx_k_Evaluate, sizeof(__pyx_k_Evaluate), 0, 0, 1, 1},
   {&__pyx_n_s_EvaluateRealData, __pyx_k_EvaluateRealData, sizeof(__pyx_k_EvaluateRealData), 0, 0, 1, 1},
@@ -27205,6 +27212,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_N_start, __pyx_k_N_start, sizeof(__pyx_k_N_start), 0, 0, 1, 1},
   {&__pyx_kp_s_No_GPU_detected_training_will_u, __pyx_k_No_GPU_detected_training_will_u, sizeof(__pyx_k_No_GPU_detected_training_will_u), 0, 0, 1, 0},
   {&__pyx_kp_s_No_checkpoint_found_starting_fr, __pyx_k_No_checkpoint_found_starting_fr, sizeof(__pyx_k_No_checkpoint_found_starting_fr), 0, 0, 1, 0},
+  {&__pyx_n_s_PL, __pyx_k_PL, sizeof(__pyx_k_PL), 0, 0, 1, 1},
   {&__pyx_n_s_PlayGame, __pyx_k_PlayGame, sizeof(__pyx_k_PlayGame), 0, 0, 1, 1},
   {&__pyx_n_s_Predict, __pyx_k_Predict, sizeof(__pyx_k_Predict), 0, 0, 1, 1},
   {&__pyx_n_s_PredictWithCurrentQNet, __pyx_k_PredictWithCurrentQNet, sizeof(__pyx_k_PredictWithCurrentQNet), 0, 0, 1, 1},
@@ -27218,6 +27226,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_Resuming_from_checkpoint, __pyx_k_Resuming_from_checkpoint, sizeof(__pyx_k_Resuming_from_checkpoint), 0, 1, 0, 0},
   {&__pyx_n_s_Robustness, __pyx_k_Robustness, sizeof(__pyx_k_Robustness), 0, 0, 1, 1},
   {&__pyx_n_s_Run_simulator, __pyx_k_Run_simulator, sizeof(__pyx_k_Run_simulator), 0, 0, 1, 1},
+  {&__pyx_n_s_SW, __pyx_k_SW, sizeof(__pyx_k_SW), 0, 0, 1, 1},
   {&__pyx_n_s_Sample, __pyx_k_Sample, sizeof(__pyx_k_Sample), 0, 0, 1, 1},
   {&__pyx_n_s_Sampling, __pyx_k_Sampling, sizeof(__pyx_k_Sampling), 0, 0, 1, 1},
   {&__pyx_n_s_SaveModel, __pyx_k_SaveModel, sizeof(__pyx_k_SaveModel), 0, 0, 1, 1},
@@ -27716,7 +27725,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "GraphDQN.pyx":289
  *         self.ClearTrainGraphs()
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(1000), desc="Training graphs"):             # <<<<<<<<<<<<<<
  *                 g = self.gen_graph(num_min, num_max)
  *                 self.InsertGraph(g, is_test=False)

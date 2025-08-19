@@ -10,7 +10,9 @@ import networkx as nx
 import pandas as pd
 import json
 import argparse
-from testUtils import load_config, create_model, load_synthetic_graphs,detailed_result_dir,visualize_graph_dismantling,create_dismantling_animation,plot_max_cc_curve,plot_max_cc_lists
+from testUtils import load_config, create_model, _get_synth_param_grid,load_synthetic_graphs,detailed_result_dir
+
+from testUtils import visualize_graph_dismantling,create_dismantling_animation,plot_max_cc_curve,plot_max_cc_lists
 
 
 def load_existing_synthetic_results(eval_config, model_config):
@@ -28,35 +30,33 @@ def load_existing_synthetic_results(eval_config, model_config):
     
     existing_results = {}
     
-    # Check each configuration for existing CSV files
-    for nrange in eval_config['synthetic_nranges']:
-        for m in eval_config['synthetic_m_values']:
-            config_key = f"nrange_{nrange}_m_{m}"
-            eval_g_type = eval_config['synthetic_g_type']
-            eval_per_graphs = eval_config['per_graphs']
-            csv_filename = f"{eval_g_type}_nrange_{nrange}_m_{m}_gn_{eval_per_graphs}.csv"
-            csv_path = os.path.join(save_result_dir, csv_filename)
+    # Check each configuration for existing CSV files using parameter grid
+    param_grid = _get_synth_param_grid(eval_config)
+    for entry in param_grid:
+        config_key = entry['config_key']
+        csv_filename = entry['filename']
+        csv_path = os.path.join(save_result_dir, csv_filename)
             
-            if os.path.exists(csv_path):
-                try:
-                    df = pd.read_csv(csv_path)
-                    print(f"  ✓ Found existing results: {csv_filename} ({len(df)} rows)")
+        if os.path.exists(csv_path):
+            try:
+                df = pd.read_csv(csv_path)
+                print(f"  ✓ Found existing results: {csv_filename} ({len(df)} rows)")
+                
+                # Convert DataFrame to results format
+                for _, row in df.iterrows():
+                    iter_num = int(row['iter'])
+                    if iter_num not in existing_results:
+                        existing_results[iter_num] = {}
                     
-                    # Convert DataFrame to results format
-                    for _, row in df.iterrows():
-                        iter_num = int(row['iter'])
-                        if iter_num not in existing_results:
-                            existing_results[iter_num] = {}
-                        
-                        existing_results[iter_num][config_key] = {
-                            'score': float(row['score']) if pd.notna(row['score']) else None,
-                            'time': float(row['time']) if pd.notna(row['time']) else None
-                        }
-                        
-                except Exception as e:
-                    print(f"  ⚠ Warning: Could not read {csv_filename}: {e}")
-            else:
-                print(f"  - No existing results for {config_key}")
+                    existing_results[iter_num][config_key] = {
+                        'score': float(row['score']) if pd.notna(row['score']) else None,
+                        'time': float(row['time']) if pd.notna(row['time']) else None
+                    }
+                    
+            except Exception as e:
+                print(f"  ⚠ Warning: Could not read {csv_filename}: {e}")
+        else:
+            print(f"  - No existing results for {config_key}")
     
     if existing_results:
         print(f"  ✓ Loaded {len(existing_results)} existing iterations")
@@ -76,27 +76,26 @@ def get_evaluation_status_synthetic(existing_results, target_iters, eval_config)
     needed_iters = []
     needed_configs_per_iter = {}
     
+    # Build the full configuration key set from grid
+    synth_grid = _get_synth_param_grid(eval_config)
+    config_keys = [g['config_key'] for g in synth_grid]
+
     for iter_num in target_iters:
         if iter_num not in existing_results:
             # New iteration - need all configs
             needed_iters.append(iter_num)
-            needed_configs_per_iter[iter_num] = []
-            for nrange in eval_config['synthetic_nranges']:
-                for m in eval_config['synthetic_m_values']:
-                    needed_configs_per_iter[iter_num].append(f"nrange_{nrange}_m_{m}")
+            needed_configs_per_iter[iter_num] = list(config_keys)
             continue
         
         # Check which configs are missing for this iteration
         existing_configs = existing_results[iter_num]
         missing_configs = []
         
-        for nrange in eval_config['synthetic_nranges']:
-            for m in eval_config['synthetic_m_values']:
-                config_key = f"nrange_{nrange}_m_{m}"
-                if (config_key not in existing_configs or 
-                    existing_configs[config_key]['score'] is None or 
-                    existing_configs[config_key]['time'] is None):
-                    missing_configs.append(config_key)
+        for config_key in config_keys:
+            if (config_key not in existing_configs or 
+                existing_configs[config_key]['score'] is None or 
+                existing_configs[config_key]['time'] is None):
+                missing_configs.append(config_key)
         
         if missing_configs:
             needed_iters.append(iter_num)
@@ -119,7 +118,9 @@ def print_evaluation_summary_synthetic(existing_results, target_iters, eval_conf
     partial_iters = []
     missing_iters = []
     
-    total_configs = len(eval_config['synthetic_nranges']) * len(eval_config['synthetic_m_values'])
+    synth_grid = _get_synth_param_grid(eval_config)
+    total_configs = len(synth_grid)
+    config_keys = [g['config_key'] for g in synth_grid]
     
     for iter_num in target_iters:
         if iter_num not in existing_results:
@@ -130,14 +131,12 @@ def print_evaluation_summary_synthetic(existing_results, target_iters, eval_conf
         all_complete = True
         missing_configs = []
         
-        for nrange in eval_config['synthetic_nranges']:
-            for m in eval_config['synthetic_m_values']:
-                config_key = f"nrange_{nrange}_m_{m}"
-                if (config_key not in result or 
-                    result[config_key]['score'] is None or 
-                    result[config_key]['time'] is None):
-                    all_complete = False
-                    missing_configs.append(config_key)
+        for config_key in config_keys:
+            if (config_key not in result or 
+                result[config_key]['score'] is None or 
+                result[config_key]['time'] is None):
+                all_complete = False
+                missing_configs.append(config_key)
         
         if all_complete:
             completed_iters.append(iter_num)
@@ -201,47 +200,48 @@ def evaluate_checkpoint_on_synthetic_datasets(dqn, checkpoint_iter, eval_config,
     existing_iter_results = existing_results.get(checkpoint_iter, {}) if existing_results else {}
     
     # Evaluate on each synthetic dataset configuration
-    for nrange in eval_config['synthetic_nranges']:
-        for m in eval_config['synthetic_m_values']:
-            config_key = f"nrange_{nrange}_m_{m}"
-            
-            # Check if we already have results for this config
-            if config_key in existing_iter_results:
-                existing_result = existing_iter_results[config_key]
-                if (existing_result['score'] is not None and 
-                    existing_result['time'] is not None):
-                    print(f"    ✓ Skipping {config_key} (already evaluated)")
-                    results[config_key] = existing_result
-                    continue
-            
-            print(f"    Testing {config_key}...")
-            
-            try:
-                # Load synthetic graphs for this configuration
-                graphs = load_synthetic_graphs(eval_config["synthetic_g_type"],
-                                        g_num = eval_config["per_graphs"],
-                                        nrange = nrange, 
-                                        m=m)
-                
-                if not graphs:
-                    print(f"      Warning: No graphs found for {config_key}")
-                    results[config_key] = {'score': None, 'time': None}
-                    continue
-                
-                # Evaluate on all graphs and get average
-                score_mean, score_std, time_mean, time_std = dqn.Evaluate(graphs)
-                score = score_mean
-                total_time = time_mean
-            
-                        
-                results[config_key] = {
-                    'score': score,
-                    'time': total_time
-                }
-                
-            except Exception as e:
-                print(f"      ✗ Error evaluating {config_key}: {e}")
+    synth_grid = _get_synth_param_grid(eval_config)
+    for entry in synth_grid:
+        config_key = entry['config_key']
+        params = entry['params']
+        
+        # Check if we already have results for this config
+        if config_key in existing_iter_results:
+            existing_result = existing_iter_results[config_key]
+            if (existing_result['score'] is not None and 
+                existing_result['time'] is not None):
+                print(f"    ✓ Skipping {config_key} (already evaluated)")
+                results[config_key] = existing_result
+                continue
+        
+        print(f"    Testing {config_key}...")
+        
+        try:
+            # Load synthetic graphs for this configuration
+
+            graphs = load_synthetic_graphs(eval_config["synthetic_g_type"],
+                                    g_num = eval_config["per_graphs"],
+                                    **params)
+
+            if not graphs:
+                print(f"      Warning: No graphs found for {config_key}")
                 results[config_key] = {'score': None, 'time': None}
+                continue
+            
+            # Evaluate on all graphs and get average
+            score_mean, score_std, time_mean, time_std = dqn.Evaluate(graphs)
+            score = score_mean
+            total_time = time_mean
+        
+                    
+            results[config_key] = {
+                'score': score,
+                'time': total_time
+            }
+                
+        except Exception as e:
+            print(f"      ✗ Error evaluating {config_key}: {e}")
+            results[config_key] = {'score': None, 'time': None}
     
     return results
 
@@ -263,64 +263,63 @@ def save_synthetic_results(all_results, eval_config, model_config):
     print(f"\nSaving results to: {save_result_dir}")
     
     # Save results for each dataset configuration
-    for nrange in eval_config['synthetic_nranges']:
-        for m in eval_config['synthetic_m_values']:
-            config_key = f"nrange_{nrange}_m_{m}"
-            eval_g_type = eval_config['synthetic_g_type']
-            eval_per_graphs = eval_config['per_graphs']
-            csv_filename = f"{eval_g_type}_nrange_{nrange}_m_{m}_gn_{eval_per_graphs}.csv"
-            csv_path = os.path.join(save_result_dir, csv_filename)
+    synth_grid = _get_synth_param_grid(eval_config)
+    for entry in synth_grid:
+        config_key = entry['config_key']
+        csv_filename = entry['filename']
+        csv_path = os.path.join(save_result_dir, csv_filename)
             
-            # Load existing data if file exists
-            existing_data = {'iter': [], 'score': [], 'time': []}
-            if os.path.exists(csv_path):
-                try:
-                    existing_df = pd.read_csv(csv_path)
-                    existing_data = {
-                        'iter': existing_df['iter'].tolist(),
-                        'score': existing_df['score'].tolist(),
-                        'time': existing_df['time'].tolist()
-                    }
-                    print(f"  ✓ Loaded existing data: {csv_filename} ({len(existing_df)} rows)")
-                except Exception as e:
-                    print(f"  ⚠ Warning: Could not read existing {csv_filename}: {e}")
+        # Load existing data if file exists
+        existing_data = {'iter': [], 'score': [], 'time': []}
+        if os.path.exists(csv_path):
+            try:
+                existing_df = pd.read_csv(csv_path)
+                existing_data = {
+                    'iter': existing_df['iter'].tolist(),
+                    'score': existing_df['score'].tolist(),
+                    'time': existing_df['time'].tolist()
+                }
+                print(f"  ✓ Loaded existing data: {csv_filename} ({len(existing_df)} rows)")
+            except Exception as e:
+                print(f"  ⚠ Warning: Could not read existing {csv_filename}: {e}")
+        
+        # Prepare new data
+        new_data = {
+            'iter': [],
+            'score': [],
+            'time': []
+        }
+        
+        for iter_num in sorted(all_results.keys()):
+            if all_results[iter_num] and config_key in all_results[iter_num]:
+                result = all_results[iter_num][config_key]
+                # Only add if not already in existing data
+                if iter_num not in existing_data['iter']:
+                    new_data['iter'].append(iter_num)
+                    new_data['score'].append(result['score'])
+                    new_data['time'].append(result['time'])
+        
+        # Merge existing and new data
+        merged_data = {
+            'iter': existing_data['iter'] + new_data['iter'],
+            'score': existing_data['score'] + new_data['score'],
+            'time': existing_data['time'] + new_data['time']
+        }
+        
+        # Create DataFrame and save
+        if merged_data['iter']:
+            df = pd.DataFrame(merged_data)
+            # Sort by iteration number
+            df = df.sort_values('iter').reset_index(drop=True)
+            df.to_csv(csv_path, index=False)
             
-            # Prepare new data
-            new_data = {
-                'iter': [],
-                'score': [],
-                'time': []
-            }
-            
-            for iter_num in sorted(all_results.keys()):
-                if all_results[iter_num] and config_key in all_results[iter_num]:
-                    result = all_results[iter_num][config_key]
-                    # Only add if not already in existing data
-                    if iter_num not in existing_data['iter']:
-                        new_data['iter'].append(iter_num)
-                        new_data['score'].append(result['score'])
-                        new_data['time'].append(result['time'])
-            
-            # Merge existing and new data
-            merged_data = {
-                'iter': existing_data['iter'] + new_data['iter'],
-                'score': existing_data['score'] + new_data['score'],
-                'time': existing_data['time'] + new_data['time']
-            }
-            
-            # Create DataFrame and save
-            if merged_data['iter']:
-                df = pd.DataFrame(merged_data)
-                # Sort by iteration number
-                df = df.sort_values('iter').reset_index(drop=True)
-                df.to_csv(csv_path, index=False)
-                
-                if new_data['iter']:
-                    print(f"  ✓ Updated {csv_filename}: {len(existing_data['iter'])} existing + {len(new_data['iter'])} new = {len(merged_data['iter'])} total")
-                else:
-                    print(f"  ✓ No new data for {csv_filename} (kept {len(existing_data['iter'])} existing)")
+            if new_data['iter']:
+                print(f"  ✓ Updated {csv_filename}: {len(existing_data['iter'])} existing + {len(new_data['iter'])} new = {len(merged_data['iter'])} total")
             else:
-                print(f"  ✗ No data for {csv_filename}")
+                print(f"  ✓ No new data for {csv_filename} (kept {len(existing_data['iter'])} existing)")
+        else:
+            print(f"  ✗ No data for {csv_filename}")
+
 
 def main():
     # Load configuration
@@ -344,9 +343,7 @@ def main():
         'min_iter': args.min_iter,
         'max_iter': args.max_iter,
         'iter_step': args.iter_step,
-        'per_graphs': args.per_graphs,
-        'synthetic_nranges': ["30_50", "50_100", "100_200", "200_300", "300_400", "400_500"],
-        'synthetic_m_values': [1,2,3,4,5,6]
+        'per_graphs': args.per_graphs
     })
     
     
@@ -358,7 +355,7 @@ def main():
         path_parts = args.model_path.split('/')[-1].split('_')
         if len(path_parts) >= 6:
             model_config['g_type'] = path_parts[0]
-            model_config['g_params']['nrange'] = int(path_parts[2])
+            model_config['g_params']['nrange'] = path_parts[2]+'_'+path_parts[3]
             model_config['g_params']['m'] = int(path_parts[5])
             print(f"✓ Updated model config: {model_config}")
     
@@ -394,7 +391,8 @@ def main():
             # Evaluate all checkpoints
             print(f"\nStarting evaluation...")
             print(f"Target iterations: {eval_config['min_iter']} to {eval_config['max_iter']} (step: {eval_config['iter_step']})")
-            print(f"Dataset configurations: {len(eval_config['synthetic_nranges'])} nrange × {len(eval_config['synthetic_m_values'])} m = {len(eval_config['synthetic_nranges']) * len(eval_config['synthetic_m_values'])} total")
+            grid = _get_synth_param_grid(eval_config)
+            print(f"Dataset configurations: {len(grid)} total")
             print(f"Graphs per: {eval_config['per_graphs']}")
             
             # Start with existing results
@@ -436,49 +434,51 @@ def main():
         
         dqn = create_model(model_config,args.eval_iter)
 
+        synth_grid = _get_synth_param_grid(eval_config)
+        for entry in synth_grid:
+            params = entry['params']
+            config_key = entry['config_key']
+    
+            graphs = load_synthetic_graphs(g_type = eval_config["synthetic_g_type"],
+                                            g_num = eval_config["per_graphs"],
+                                            **params)
 
-        for nrange in eval_config["synthetic_nranges"]:
-            for m in eval_config["synthetic_m_values"]:
-                graphs = load_synthetic_graphs(g_type = eval_config["synthetic_g_type"],
-                                               g_num = eval_config["per_graphs"],
-                                               nrange = nrange, 
-                                               m=m)
-                all_MaxCCList = []
-                save_result_dir = detailed_result_dir(model_config,eval_config,mode='synthetic')
-                for i,g in enumerate(graphs):
-                    general_result_file = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_nrange_{nrange}_m_{m}_g_{i}_iter_{iter}")
-                    
-                    # Get sol and MaxCCList
-                    temp_sol_file = f"{general_result_file}.txt"
-                    # sol = effective solution = nodes to remove
-                    sol, sol_time = dqn.EvaluateRealData(g, temp_sol_file, eval_config['step_ratio'])
-                    # print(sol)
-                    # Evaluate sol , solution = sol_reinsert + sol_left
-                    score, MaxCCList = dqn.EvaluateSol(g, temp_sol_file, eval_config['strategy_id'], reInsertStep=0.001)
-                    all_MaxCCList.append(MaxCCList)
-
-                    # Visualize dismantling process, the funcion has tested, however no need to do here
-                    if sol and len(sol) > 0:
-                        print(f"\nAnalyzing dismantling solution for graph {i}...")
-                        try:
-                            viz_file_path = f"{general_result_file}_dismantling.png"
-                            visualize_graph_dismantling(g, sol, viz_file_path)
-
-                            anim_file_path = f"{general_result_file}_dismantling_anim.gif"
-                            create_dismantling_animation(g, sol, anim_file_path)
-
-                            plot_file_path = f"{general_result_file}_MaxCC_curve.png"
-                            plot_max_cc_curve(MaxCCList, plot_file_path)
-
-                            print(f"  ✓ All visualizations completed for graph {i}")
-                        except Exception as e:
-                            print(f"  ✗ Error creating visualizations for graph {i}: {e}")
-                    else:
-                        print(f"  ⚠ No solution found for graph {i}, skipping visualizations")
+            all_MaxCCList = []
+            save_result_dir = detailed_result_dir(model_config,eval_config,mode='synthetic')
+            for i,g in enumerate(graphs):
+                general_result_file = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{config_key}_g_{i}_iter_{iter}")
                 
-                # plot MaxCC curve across graphs
-                compre_file_path = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_nrange_{nrange}_m_{m}_iter_{iter}_MaxCC_comparison.png")
-                plot_max_cc_lists(all_MaxCCList,compre_file_path)
+                # Get sol and MaxCCList
+                temp_sol_file = f"{general_result_file}.txt"
+                # sol = effective solution = nodes to remove
+                sol, sol_time = dqn.EvaluateRealData(g, temp_sol_file, eval_config['step_ratio'])
+                # print(sol)
+                # Evaluate sol , solution = sol_reinsert + sol_left
+                score, MaxCCList = dqn.EvaluateSol(g, temp_sol_file, eval_config['strategy_id'], reInsertStep=0.001)
+                all_MaxCCList.append(MaxCCList)
+
+                # Visualize dismantling process, the funcion has tested, however no need to do here
+                if sol and len(sol) > 0:
+                    print(f"\nAnalyzing dismantling solution for graph {i}...")
+                    try:
+                        viz_file_path = f"{general_result_file}_dismantling.png"
+                        visualize_graph_dismantling(g, sol, viz_file_path)
+
+                        anim_file_path = f"{general_result_file}_dismantling_anim.gif"
+                        create_dismantling_animation(g, sol, anim_file_path)
+
+                        plot_file_path = f"{general_result_file}_MaxCC_curve.png"
+                        plot_max_cc_curve(MaxCCList, plot_file_path)
+
+                        print(f"  ✓ All visualizations completed for graph {i}")
+                    except Exception as e:
+                        print(f"  ✗ Error creating visualizations for graph {i}: {e}")
+                else:
+                    print(f"  ⚠ No solution found for graph {i}, skipping visualizations")
+                
+            # plot MaxCC curve across graphs
+            compre_file_path = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{config_key}_iter_{iter}_MaxCC_comparison.png")
+            plot_max_cc_lists(all_MaxCCList,compre_file_path)
  
 
 

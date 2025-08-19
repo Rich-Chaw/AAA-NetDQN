@@ -284,16 +284,6 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
     eval_config = config['eval_config']
     data_config = config['data_config']
 
-    # Reset TensorFlow graph/session before creating a new model
-    try:
-        import tensorflow as tf
-        try:
-            tf.compat.v1.reset_default_graph()
-        except AttributeError:
-            tf.keras.backend.clear_session()  # For TF 2.x
-    except ImportError:
-        pass  # If tensorflow is not available, skip
-
     # Create model for this iteration
     dqn = create_model(model_config, iter)
     

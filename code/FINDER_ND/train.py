@@ -21,8 +21,8 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 from GraphDQN import GraphDQN
-
-
+print(sys.path)
+exit()
 
 def check_gpu_setup():
     """Check GPU setup before training"""
@@ -51,7 +51,7 @@ def main():
         dqn = GraphDQN(
             g_type = 'BA',
             g_params = {'nrange': '50_100',
-                        'm':5},
+                        'm':6},
             gnn_model = 'graphSage',
             target_graph = "Digg"
         )

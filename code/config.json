@@ -5,7 +5,8 @@
         "target_graph": "Digg",
         "g_params" : {
             "nrange": "30_50",
-            "m":4},
+            "m": 4
+        },
         "save_model_dir": "./models"
     },
     "eval_config": {
@@ -13,13 +14,14 @@
         "step_ratio": 0.01,
         "strategy_id": 0,
         "save_result_dir": "./result/temp",
-        "min_iter":300,
+        "min_iter": 300,
         "max_iter": 1200,
         "iter_step": 300,
-        "synthetic_g_type":"BA",
-
-        "synthetic_nranges": ["30_50", "50_100", "100_200", "200_300", "300_400", "400_500"],
-        "synthetic_m_values": [1, 2, 3, 4, 5, 6],
+        "synthetic_g_type": "BA",
+        "synthetic_g_params": {
+            "nranges": ["30_50", "50_100"],
+            "m_values": [1, 2]
+        },
         "per_graphs": 100
     },
     "random_eval_config":{

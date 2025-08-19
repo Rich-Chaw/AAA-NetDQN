@@ -37,22 +37,23 @@ def run_synthetic_evaluation():
 
     # cmd = [
     #     "python", "./FINDER_ND/testSynthetic.py",
-    #     "--model_path", "./models/BA_nrange_30_50_m_2",
+    #     "--model_path", "./models/BA_nrange_30_50_m_1",
     #     "--min_iter", "0",
-    #     "--max_iter", "900",
-    #     "--iter_step", "900",
-    #     "--per_graphs", "50"
+    #     "--max_iter", "300",
+    #     "--iter_step", "300",
+    #     "--per_graphs", "5",
+    #     "--eval_all_iters"
     # ]
     # subprocess.run(cmd)
 
-    # # eval iter 900,
-    # cmd = [
-    #     "python", "./FINDER_ND/testSynthetic.py",
-    #     "--model_path", "./models/BA_nrange_30_50_m_2",
-    #     "--eval_iter","900",
-    #     "--per_graphs", "2"
-    # ]
-    # subprocess.run(cmd)
+    # eval iter 900,
+    cmd = [
+        "python", "./FINDER_ND/testSynthetic.py",
+        "--model_path", "./models/BA_nrange_30_50_m_2",
+        "--eval_iter","900",
+        "--per_graphs", "2"
+    ]
+    subprocess.run(cmd)
 
     # # eval_iter < 0, eval best iter,
     # cmd = [
@@ -63,11 +64,6 @@ def run_synthetic_evaluation():
     # ]
 
 
-    cmd = [
-        "python", "./FINDER_ND/testSynthetic.py",
-        "--model_path", "./models/BA_nrange_30_50_m_2",
-        "--per_graphs", "2"
-    ]
 
 
     # !!! nrange and m still need to modify in or config.json by hand
@@ -100,7 +96,7 @@ def run_synthetic_evaluation():
     #         "--save_sol_only"
     #     ]
     
-    subprocess.run(cmd)
+    # subprocess.run(cmd)
 
 
 

@@ -1,6 +1,7 @@
 from calendar import c
 from re import T
 import sys,os
+import itertools
 
 from tensorflow.python.keras.models import model_config
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
@@ -32,7 +33,18 @@ def create_model(model_config,iter = None):
     g_params = model_config['g_params']
     target_graph=model_config['target_graph']   
     save_model_dir=model_config['save_model_dir']
+
+    # Reset TensorFlow graph/session before creating a new model
+    try:
+        import tensorflow as tf
+        try:
+            tf.compat.v1.reset_default_graph()
+        except AttributeError:
+            tf.keras.backend.clear_session()  # For TF 2.x
+    except ImportError:
+        pass  # If tensorflow is not available, skip
     
+
     dqn = GraphDQN(
         g_type=train_g_type,
         g_params  = g_params,
@@ -48,6 +60,44 @@ def create_model(model_config,iter = None):
         dqn.LoadModel(ckpt_file)
         return dqn
 
+
+def _get_synth_param_grid(eval_config):
+    """Build parameter grid for synthetic datasets from eval_config.
+    Supports families like BA (nranges, m_values) and small-world (nranges, k_values, p_values).
+    Returns a list of dicts with keys 'config_key', 'filename', and 'params'.
+    """
+    g_type = eval_config['synthetic_g_type']
+    params_cfg = eval_config.get('synthetic_g_params', {})
+    per_graphs = eval_config['per_graphs']
+
+    grid = []
+    if g_type == 'BA':
+        nranges = params_cfg.get('nranges', [])
+        m_values = params_cfg.get('m_values', [])
+        for nrange, m in itertools.product(nranges, m_values):
+            config_key = f"{g_type}_nrange_{nrange}_m_{m}"
+            filename = f"{g_type}_nrange_{nrange}_m_{m}_gn_{per_graphs}.csv"
+            grid.append({
+                'config_key': config_key,
+                'filename': filename,
+                'params': {'nrange': nrange, 'm': m}
+            })
+    elif g_type == 'PL':
+        # Future families, e.g., small-world: nranges, k_values, p_values
+        nranges = params_cfg.get('nranges', [])
+        k_values = params_cfg.get('k_values', [])
+        p_values = params_cfg.get('p_values', [])
+        for nrange, k, p in itertools.product(nranges, k_values, p_values):
+            # Sanitize p for filename
+            p_str = str(p).replace('.', '_')
+            config_key = f"{g_type}_nrange_{nrange}_k_{k}_p_{p_str}"
+            filename = f"{g_type}_nrange_{nrange}_k_{k}_p_{p_str}_gn_{per_graphs}.csv"
+            grid.append({
+                'config_key': config_key,
+                'filename': filename,
+                'params': {'nrange': nrange, 'k': k, 'p': p}
+            })
+    return grid
 
 def load_real_graph(dataset, dataset_dir):
     if dataset in ['Crime','HI-II-14','Digg','Enron','Gnutella31','Facebook','Epinions','Youtube','Flickr']:
