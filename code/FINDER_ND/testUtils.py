@@ -64,7 +64,7 @@ def create_model(model_config,iter = None):
 def _get_synth_param_grid(eval_config):
     """Build parameter grid for synthetic datasets from eval_config.
     Supports families like BA (nranges, m_values) and small-world (nranges, k_values, p_values).
-    Returns a list of dicts with keys 'config_key', 'filename', and 'params'.
+    Returns a list of dicts with keys 'synth_dataset', 'filename', and 'params'.
     """
     g_type = eval_config['synthetic_g_type']
     params_cfg = eval_config.get('synthetic_g_params', {})
@@ -75,10 +75,10 @@ def _get_synth_param_grid(eval_config):
         nranges = params_cfg.get('nranges', [])
         m_values = params_cfg.get('m_values', [])
         for nrange, m in itertools.product(nranges, m_values):
-            config_key = f"{g_type}_nrange_{nrange}_m_{m}"
+            synth_dataset = f"{g_type}_nrange_{nrange}_m_{m}"
             filename = f"{g_type}_nrange_{nrange}_m_{m}_gn_{per_graphs}.csv"
             grid.append({
-                'config_key': config_key,
+                'synth_dataset': synth_dataset,
                 'filename': filename,
                 'params': {'nrange': nrange, 'm': m}
             })
@@ -90,10 +90,10 @@ def _get_synth_param_grid(eval_config):
         for nrange, k, p in itertools.product(nranges, k_values, p_values):
             # Sanitize p for filename
             p_str = str(p).replace('.', '_')
-            config_key = f"{g_type}_nrange_{nrange}_k_{k}_p_{p_str}"
+            synth_dataset = f"{g_type}_nrange_{nrange}_k_{k}_p_{p_str}"
             filename = f"{g_type}_nrange_{nrange}_k_{k}_p_{p_str}_gn_{per_graphs}.csv"
             grid.append({
-                'config_key': config_key,
+                'synth_dataset': synth_dataset,
                 'filename': filename,
                 'params': {'nrange': nrange, 'k': k, 'p': p}
             })
@@ -135,6 +135,106 @@ def load_synthetic_graphs(g_type,**kwargs):
     else: pass
     return graphs
 
+def load_real_csv(model_config,eval_config):
+    """Load existing evaluation results from individual dataset CSV files
+        for datasets in eval_config
+    """
+    datasets = eval_config['datasets']
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
+    
+    print(f"Looking for existing real dataset results in: {save_result_dir}")
+    
+    existing_results = {} # New format: {dataset_name: {iter_num: {'score': score, 'time': time}}}
+    
+    for dataset in datasets:
+        dataset_file = f"{save_result_dir}/{dataset}.csv"
+        
+        if os.path.exists(dataset_file):
+            try:
+                df = pd.read_csv(dataset_file)
+                
+                if not all(col in df.columns for col in ['iter', 'score', 'time']):
+                    print(f"  Warning: {dataset}.csv missing required columns. Found: {list(df.columns)}")
+                    continue
+                
+                df_clean = df.dropna(subset=['iter', 'score', 'time'])
+                if df_clean.empty:
+                    print(f"  Warning: {dataset}.csv has no valid data after cleaning")
+                    continue
+                
+                existing_results[dataset] = {}
+                for _, row in df_clean.iterrows():
+                    iter_num = int(row['iter'])
+                    existing_results[dataset][iter_num] = {
+                        'score': float(row['score']),
+                        'time': float(row['time'])
+                    }
+                print(f"  ✓ Loaded {dataset}.csv with {len(df_clean)} valid rows for {len(existing_results[dataset])} iterations")
+                
+            except Exception as e:
+                print(f"  ⚠ Error loading {dataset}.csv: {e}")
+        else:
+            print(f"  - No existing results for dataset: {dataset} (file not found: {dataset_file})")
+            
+    if existing_results:
+        total_iters_loaded = sum(len(iters) for iters in existing_results.values())
+        print(f"✓ Successfully loaded existing results for {len(existing_results)} datasets, totaling {total_iters_loaded} iteration-dataset combinations.")
+    else:
+        print("✗ No existing real dataset results found to load.")
+            
+    return existing_results
+
+def load_synth_csv(model_config,eval_config):
+    """Load existing evaluation results from individual dataset CSV files
+        for datasets in eval_config
+    """
+
+    synth_grid = _get_synth_param_grid(eval_config)
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
+
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='synthetic')
+    
+    print(f"Looking for existing synthetic dataset results in: {save_result_dir}")
+    
+    existing_results = {} # New format: {dataset_name: {iter_num: {'score': score, 'time': time}}}
+    
+    for dataset in synth_datasets:
+        dataset_file = f"{save_result_dir}/{dataset}_gn_{eval_config['per_graphs']}.csv"
+        
+        if os.path.exists(dataset_file):
+            try:
+                df = pd.read_csv(dataset_file)
+                
+                if not all(col in df.columns for col in ['iter', 'score', 'time']):
+                    print(f"  Warning: {dataset}.csv missing required columns. Found: {list(df.columns)}")
+                    continue
+                
+                df_clean = df.dropna(subset=['iter', 'score', 'time'])
+                if df_clean.empty:
+                    print(f"  Warning: {dataset}.csv has no valid data after cleaning")
+                    continue
+                
+                existing_results[dataset] = {}
+                for _, row in df_clean.iterrows():
+                    iter_num = int(row['iter'])
+                    existing_results[dataset][iter_num] = {
+                        'score': float(row['score']),
+                        'time': float(row['time'])
+                    }
+                print(f"  ✓ Loaded {dataset}.csv with {len(df_clean)} valid rows for {len(existing_results[dataset])} iterations")
+                
+            except Exception as e:
+                print(f"  ⚠ Error loading {dataset}.csv: {e}")
+        else:
+            print(f"  - No existing results for dataset: {dataset} (file not found: {dataset_file})")
+            
+    if existing_results:
+        total_iters_loaded = sum(len(iters) for iters in existing_results.values())
+        print(f"✓ Successfully loaded existing results for {len(existing_results)} datasets, totaling {total_iters_loaded} iteration-dataset combinations.")
+    else:
+        print("✗ No existing synthetic dataset results found to load.")
+            
+    return existing_results
 
 def load_validation_scores(config):
     """Load validation scores from ModelVC CSV file"""
@@ -364,7 +464,8 @@ def detailed_result_dir(model_config,eval_config,mode='real'):
         return detailed result dir e.g. './result/real/barabasi_albert_nrange_30_50_m_4/GIN'
     '''
     save_result_dir = eval_config['save_result_dir']
-    # real/barabasi_albert_nrange_30_50_m_4/GIN
+    # model/train_dataset/gnn_step
+    # real/barabasi_albert_nrange_30_50_m_4/GIN_StepRatio_0.0100
     sub_dir = '/%s/%s_nrange_%s_m_%d/%s_StepRatio_%.4f/' %(mode, 
                                                 model_config['g_type'],
                                                 model_config['g_params']['nrange'],

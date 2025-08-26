@@ -20,7 +20,7 @@ def load_existing_synthetic_results(eval_config, model_config):
     Load existing evaluation results from CSV files to avoid re-evaluation
     
     Returns:
-    - dict: existing results organized by iteration -> config_key -> results
+    - dict: existing results organized by iteration -> synth_dataset -> results
     """
     save_result_dir = detailed_result_dir(model_config, eval_config, mode='synthetic')
     
@@ -33,7 +33,7 @@ def load_existing_synthetic_results(eval_config, model_config):
     # Check each configuration for existing CSV files using parameter grid
     param_grid = _get_synth_param_grid(eval_config)
     for entry in param_grid:
-        config_key = entry['config_key']
+        synth_dataset = entry['synth_dataset']
         csv_filename = entry['filename']
         csv_path = os.path.join(save_result_dir, csv_filename)
             
@@ -48,7 +48,7 @@ def load_existing_synthetic_results(eval_config, model_config):
                     if iter_num not in existing_results:
                         existing_results[iter_num] = {}
                     
-                    existing_results[iter_num][config_key] = {
+                    existing_results[iter_num][synth_dataset] = {
                         'score': float(row['score']) if pd.notna(row['score']) else None,
                         'time': float(row['time']) if pd.notna(row['time']) else None
                     }
@@ -56,7 +56,7 @@ def load_existing_synthetic_results(eval_config, model_config):
             except Exception as e:
                 print(f"  ⚠ Warning: Could not read {csv_filename}: {e}")
         else:
-            print(f"  - No existing results for {config_key}")
+            print(f"  - No existing results for {synth_dataset}")
     
     if existing_results:
         print(f"  ✓ Loaded {len(existing_results)} existing iterations")
@@ -78,24 +78,24 @@ def get_evaluation_status_synthetic(existing_results, target_iters, eval_config)
     
     # Build the full configuration key set from grid
     synth_grid = _get_synth_param_grid(eval_config)
-    config_keys = [g['config_key'] for g in synth_grid]
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
 
     for iter_num in target_iters:
         if iter_num not in existing_results:
             # New iteration - need all configs
             needed_iters.append(iter_num)
-            needed_configs_per_iter[iter_num] = list(config_keys)
+            needed_configs_per_iter[iter_num] = list(synth_datasets)
             continue
         
         # Check which configs are missing for this iteration
         existing_configs = existing_results[iter_num]
         missing_configs = []
         
-        for config_key in config_keys:
-            if (config_key not in existing_configs or 
-                existing_configs[config_key]['score'] is None or 
-                existing_configs[config_key]['time'] is None):
-                missing_configs.append(config_key)
+        for synth_dataset in synth_datasets:
+            if (synth_dataset not in existing_configs or 
+                existing_configs[synth_dataset]['score'] is None or 
+                existing_configs[synth_dataset]['time'] is None):
+                missing_configs.append(synth_dataset)
         
         if missing_configs:
             needed_iters.append(iter_num)
@@ -120,7 +120,7 @@ def print_evaluation_summary_synthetic(existing_results, target_iters, eval_conf
     
     synth_grid = _get_synth_param_grid(eval_config)
     total_configs = len(synth_grid)
-    config_keys = [g['config_key'] for g in synth_grid]
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
     
     for iter_num in target_iters:
         if iter_num not in existing_results:
@@ -131,12 +131,12 @@ def print_evaluation_summary_synthetic(existing_results, target_iters, eval_conf
         all_complete = True
         missing_configs = []
         
-        for config_key in config_keys:
-            if (config_key not in result or 
-                result[config_key]['score'] is None or 
-                result[config_key]['time'] is None):
+        for synth_dataset in synth_datasets:
+            if (synth_dataset not in result or 
+                result[synth_dataset]['score'] is None or 
+                result[synth_dataset]['time'] is None):
                 all_complete = False
-                missing_configs.append(config_key)
+                missing_configs.append(synth_dataset)
         
         if all_complete:
             completed_iters.append(iter_num)
@@ -202,19 +202,19 @@ def evaluate_checkpoint_on_synthetic_datasets(dqn, checkpoint_iter, eval_config,
     # Evaluate on each synthetic dataset configuration
     synth_grid = _get_synth_param_grid(eval_config)
     for entry in synth_grid:
-        config_key = entry['config_key']
+        synth_dataset = entry['synth_dataset']
         params = entry['params']
         
         # Check if we already have results for this config
-        if config_key in existing_iter_results:
-            existing_result = existing_iter_results[config_key]
+        if synth_dataset in existing_iter_results:
+            existing_result = existing_iter_results[synth_dataset]
             if (existing_result['score'] is not None and 
                 existing_result['time'] is not None):
-                print(f"    ✓ Skipping {config_key} (already evaluated)")
-                results[config_key] = existing_result
+                print(f"    ✓ Skipping {synth_dataset} (already evaluated)")
+                results[synth_dataset] = existing_result
                 continue
         
-        print(f"    Testing {config_key}...")
+        print(f"    Testing {synth_dataset}...")
         
         try:
             # Load synthetic graphs for this configuration
@@ -224,8 +224,8 @@ def evaluate_checkpoint_on_synthetic_datasets(dqn, checkpoint_iter, eval_config,
                                     **params)
 
             if not graphs:
-                print(f"      Warning: No graphs found for {config_key}")
-                results[config_key] = {'score': None, 'time': None}
+                print(f"      Warning: No graphs found for {synth_dataset}")
+                results[synth_dataset] = {'score': None, 'time': None}
                 continue
             
             # Evaluate on all graphs and get average
@@ -234,14 +234,14 @@ def evaluate_checkpoint_on_synthetic_datasets(dqn, checkpoint_iter, eval_config,
             total_time = time_mean
         
                     
-            results[config_key] = {
+            results[synth_dataset] = {
                 'score': score,
                 'time': total_time
             }
                 
         except Exception as e:
-            print(f"      ✗ Error evaluating {config_key}: {e}")
-            results[config_key] = {'score': None, 'time': None}
+            print(f"      ✗ Error evaluating {synth_dataset}: {e}")
+            results[synth_dataset] = {'score': None, 'time': None}
     
     return results
 
@@ -265,7 +265,7 @@ def save_synthetic_results(all_results, eval_config, model_config):
     # Save results for each dataset configuration
     synth_grid = _get_synth_param_grid(eval_config)
     for entry in synth_grid:
-        config_key = entry['config_key']
+        synth_dataset = entry['synth_dataset']
         csv_filename = entry['filename']
         csv_path = os.path.join(save_result_dir, csv_filename)
             
@@ -291,8 +291,8 @@ def save_synthetic_results(all_results, eval_config, model_config):
         }
         
         for iter_num in sorted(all_results.keys()):
-            if all_results[iter_num] and config_key in all_results[iter_num]:
-                result = all_results[iter_num][config_key]
+            if all_results[iter_num] and synth_dataset in all_results[iter_num]:
+                result = all_results[iter_num][synth_dataset]
                 # Only add if not already in existing data
                 if iter_num not in existing_data['iter']:
                     new_data['iter'].append(iter_num)
@@ -326,7 +326,7 @@ def main():
     config = load_config()
     
     # Parse arguments
-    parser = argparse.ArgumentParser(description='Evaluate models on synthetic datasets')
+    parser = argparse.ArgumentParser(description='Evaluate ONE model on synthetic datasets')
     parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
     parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
     parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
@@ -343,10 +343,15 @@ def main():
         'min_iter': args.min_iter,
         'max_iter': args.max_iter,
         'iter_step': args.iter_step,
-        'per_graphs': args.per_graphs
+        'per_graphs': args.per_graphs,
+        "synthetic_g_params": {
+            "nranges": ["30_50", "50_100","100_200","200_300","300_400","400_500"],
+            "m_values": [1, 2,3,4,5,6]
+        },
     })
     
-    
+    # "nranges": ["30_50", "50_100","100_200","200_300","300_400","400_500"],
+    # "m_values": [1, 2,3,4,5,6]
 
     # Update model config if model_path is provided
     model_config = config['model_config']
@@ -359,11 +364,10 @@ def main():
             model_config['g_params']['m'] = int(path_parts[5])
             print(f"✓ Updated model config: {model_config}")
     
-    print(f"\nSynthetic Dataset Evaluation")
+    print(f"\n{'-'*10}Synthetic Dataset Evaluation{'.'*10}")
     print(f"Target model: {model_config['g_type']}_nrange_{model_config['g_params']['nrange']}_m_{model_config['g_params']['m']}")
     
 
-    print(f"\nStarting evaluation...")
     if args.eval_all_iters:
         # --------------------------eval all iters ----------------------------------
         # Generate target iterations
@@ -421,7 +425,7 @@ def main():
         
         # Save results (this will merge existing and new results)
         save_synthetic_results(all_results, eval_config, model_config)
-        return
+        
     
     if args.eval_iter:
         # --------------------------eval specified iter, draw sol and CC curve ----------------------------------
@@ -437,7 +441,7 @@ def main():
         synth_grid = _get_synth_param_grid(eval_config)
         for entry in synth_grid:
             params = entry['params']
-            config_key = entry['config_key']
+            synth_dataset = entry['synth_dataset']
     
             graphs = load_synthetic_graphs(g_type = eval_config["synthetic_g_type"],
                                             g_num = eval_config["per_graphs"],
@@ -446,7 +450,7 @@ def main():
             all_MaxCCList = []
             save_result_dir = detailed_result_dir(model_config,eval_config,mode='synthetic')
             for i,g in enumerate(graphs):
-                general_result_file = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{config_key}_g_{i}_iter_{iter}")
+                general_result_file = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{synth_dataset}_g_{i}_iter_{iter}")
                 
                 # Get sol and MaxCCList
                 temp_sol_file = f"{general_result_file}.txt"
@@ -477,9 +481,9 @@ def main():
                     print(f"  ⚠ No solution found for graph {i}, skipping visualizations")
                 
             # plot MaxCC curve across graphs
-            compre_file_path = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{config_key}_iter_{iter}_MaxCC_comparison.png")
+            compre_file_path = os.path.join(save_result_dir,f"{eval_config['synthetic_g_type']}_{synth_dataset}_iter_{iter}_MaxCC_comparison.png")
             plot_max_cc_lists(all_MaxCCList,compre_file_path)
- 
+            
 
 
 

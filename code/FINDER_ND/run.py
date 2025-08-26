@@ -23,37 +23,38 @@ def run_synthetic_evaluation():
 
     # eval model from model path
 
-    # cmd = [
-    #     "python", "./FINDER_ND/testSynthetic.py",
-    #     "--model_path", "./models/BA_nrange_30_50_m_1",
-    #     "--min_iter", "900",
-    #     "--max_iter", "900",
-    #     "--iter_step", "900",
-    #     "--per_graphs", "5",
-    #     "--eval_all_iters"
-    # ]
-    
-    # subprocess.run(cmd)
+    # for nrange in ['30_50',"50_100"]:
+    #     for m in [1,2,3,4,5,6]:
+    #         cmd = [
+    #             "python", "./FINDER_ND/testSynthetic.py",
+    #             "--model_path", f"./models/BA_nrange_{nrange}_m_{m}",
+    #             "--min_iter", "3000",
+    #             "--max_iter", "90000",
+    #             "--iter_step", "3000",
+    #             "--per_graphs", "2",
+    #             "--eval_all_iters"
+    #         ]
+    #         subprocess.run(cmd)
 
     # cmd = [
-    #     "python", "./FINDER_ND/testSynthetic.py",
-    #     "--model_path", "./models/BA_nrange_30_50_m_1",
-    #     "--min_iter", "0",
-    #     "--max_iter", "300",
-    #     "--iter_step", "300",
-    #     "--per_graphs", "5",
-    #     "--eval_all_iters"
+    #         "python", "./FINDER_ND/testSynthetic.py",
+    #         "--model_path", f"./models/BA_nrange_30_50_m_6",
+    #         "--min_iter", "0",
+    #         "--max_iter", "50000",
+    #         "--iter_step", "600",
+    #         "--per_graphs", "5",
+    #         "--eval_all_iters"
     # ]
     # subprocess.run(cmd)
 
-    # eval iter 900,
-    cmd = [
-        "python", "./FINDER_ND/testSynthetic.py",
-        "--model_path", "./models/BA_nrange_30_50_m_2",
-        "--eval_iter","900",
-        "--per_graphs", "2"
-    ]
-    subprocess.run(cmd)
+    # # eval iter 900,
+    # cmd = [
+    #     "python", "./FINDER_ND/testSynthetic.py",
+    #     "--model_path", "./models/BA_nrange_30_50_m_2",
+    #     "--eval_iter","900",
+    #     "--per_graphs", "2"
+    # ]
+    # subprocess.run(cmd)
 
     # # eval_iter < 0, eval best iter,
     # cmd = [
@@ -73,9 +74,13 @@ def run_synthetic_evaluation():
 
     # cmd = [
     #         "python", "./FINDER_ND/testReal.py",
+    #         "--model_path", f"./models/BA_nrange_30_50_m_4",
+    #         "--min_iter", "3000",
+    #         "--max_iter", "3300",
+    #         "--iter_step", "300",
     #         "--eval_all_iters"
     #     ]
-
+    # subprocess.run(cmd)
 
     # cmd = [
     #         "python", "./FINDER_ND/testReal.py",
@@ -99,7 +104,14 @@ def run_synthetic_evaluation():
     # subprocess.run(cmd)
 
 
-
+    cmd = [
+            "python", "./FINDER_ND/testModels.py",
+            "--eval_synth",
+            "--eval_real",
+            "--eval_all_iters"
+        ]
+    
+    subprocess.run(cmd)
 
 if __name__ == "__main__":
     run_synthetic_evaluation() 

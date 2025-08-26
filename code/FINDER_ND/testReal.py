@@ -15,103 +15,8 @@ import pickle as cp
 import json
 import argparse
 
-from testUtils import load_config,create_model,detailed_result_dir,load_real_graph
+from testUtils import load_config,create_model,detailed_result_dir,load_real_graph,load_real_csv
 
-def load_csv(config):
-    """Load existing evaluation results from individual dataset CSV files
-        for datasets in eval_config
-    """
-    eval_config = config['eval_config']
-    model_config = config['model_config']
-    datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-    
-    print(f"Looking for existing results in: {save_result_dir}")
-    
-    existing_results = []
-    
-    # Check if individual dataset files exist
-    available_datasets = []
-    for dataset in datasets:
-        dataset_file = f"{save_result_dir}/{dataset}.csv"
-        if os.path.exists(dataset_file):
-            available_datasets.append(dataset)
-            print(f"  Found dataset file: {dataset_file}")
-        else:
-            print(f"  Dataset file not found: {dataset_file}")
-    
-    if not available_datasets:
-        print("✗ No existing results found, starting fresh evaluation")
-        return existing_results
-    
-    print(f"✓ Found {len(available_datasets)} dataset files")
-    
-    # Load data from each available dataset file
-    dataset_data = {}
-    for dataset in available_datasets:
-        try:
-            dataset_file = f"{save_result_dir}/{dataset}.csv"
-            df = pd.read_csv(dataset_file)
-            
-            # Verify required columns exist
-            if not all(col in df.columns for col in ['iter', 'score', 'time']):
-                print(f"  Warning: {dataset}.csv missing required columns. Found: {list(df.columns)}")
-                continue
-            
-            # Clean data - remove rows with NaN values
-            df_clean = df.dropna(subset=['iter', 'score', 'time'])
-            if df_clean.empty:
-                print(f"  Warning: {dataset}.csv has no valid data after cleaning")
-                continue
-            
-            dataset_data[dataset] = df_clean
-            print(f"  Loaded {dataset}.csv with {len(df_clean)} valid rows")
-            
-        except Exception as e:
-            print(f"  Error loading {dataset}.csv: {e}")
-            continue
-    
-    if not dataset_data:
-        print("✗ No valid dataset files could be loaded")
-        return existing_results
-    
-    # Combine data from all datasets
-    all_iters = set()
-    for dataset, df in dataset_data.items():
-        all_iters.update(df['iter'].tolist())
-    
-    all_iters = sorted(list(all_iters))
-    print(f"✓ Found {len(all_iters)} unique iterations across all datasets")
-    
-    # Create results structure
-    for iter_num in all_iters:
-        iter_result = {
-            'iter': int(iter_num),
-            'scores': {},
-            'times': {}
-        }
-        
-        for dataset in datasets:
-            if dataset in dataset_data:
-                df = dataset_data[dataset]
-                iter_row = df[df['iter'] == iter_num]
-                if not iter_row.empty:
-                    iter_result['scores'][dataset] = float(iter_row.iloc[0]['score'])
-                    iter_result['times'][dataset] = float(iter_row.iloc[0]['time'])
-                else:
-                    iter_result['scores'][dataset] = None
-                    iter_result['times'][dataset] = None
-            else:
-                iter_result['scores'][dataset] = None
-                iter_result['times'][dataset] = None
-        
-        existing_results.append(iter_result)
-    
-    print(f"✓ Successfully loaded {len(existing_results)} evaluation results")
-    if existing_results:
-        print(f"  Iterations found: {[r['iter'] for r in existing_results]}")
-    
-    return existing_results
 
 
 def load_sol(iter,config):
@@ -129,104 +34,74 @@ def load_sol(iter,config):
             sol_files.append(sol_file)
     return sol_files
 
-def get_evaluation_status(existing_results, target_iters, datasets):
-    """Determine which iterations and datasets need evaluation"""
-    # Find iterations that need evaluation and their missing datasets
+def get_evaluation_status(existing_results, target_iters, all_datasets):
+    """Determine which iterations and datasets need evaluation based on the new results format"""
     needed_iters = []
-    needed_datasets_per_iter = {}
+    needed_datasets_per_iter = {} # {iter_num: [dataset1, dataset2, ...]}
     
-    if not existing_results:
-        for iter_num in target_iters:
-            needed_datasets_per_iter[iter_num] = datasets.copy()
-        return target_iters, needed_datasets_per_iter
-    
-    # Create lookup for existing results
-    existing_lookup = {}
-    for result in existing_results:
-        iter_num = result['iter']
-        existing_lookup[iter_num] = result
-    
+    # For each target iteration, check if it's fully evaluated across all datasets
     for iter_num in target_iters:
-        if iter_num not in existing_lookup:
-            # New iteration - need all datasets
-            needed_iters.append(iter_num)
-            needed_datasets_per_iter[iter_num] = datasets.copy()
-            continue
+        datasets_missing_for_this_iter = []
+        for dataset in all_datasets:
+            # Check if this dataset exists in existing_results and if this iteration is present
+            if dataset not in existing_results or iter_num not in existing_results[dataset] or \
+               existing_results[dataset][iter_num]['score'] is None or existing_results[dataset][iter_num]['time'] is None:
+                datasets_missing_for_this_iter.append(dataset)
         
-        # Check which datasets are missing for this iteration
-        result = existing_lookup[iter_num]
-        missing_datasets = []
-        for dataset in datasets:
-            if result['scores'].get(dataset) is None or result['times'].get(dataset) is None:
-                missing_datasets.append(dataset)
-        
-        if missing_datasets:
-            # Incomplete iteration - need missing datasets
+        if datasets_missing_for_this_iter:
             needed_iters.append(iter_num)
-            needed_datasets_per_iter[iter_num] = missing_datasets
-    
+            needed_datasets_per_iter[iter_num] = datasets_missing_for_this_iter
+            
     return needed_iters, needed_datasets_per_iter
 
-def merge_results(existing_results, new_results):
-    """Merge new results with existing results"""
-    if not existing_results:
-        return new_results
-    
-    # Create lookup for existing results
-    existing_lookup = {result['iter']: result for result in existing_results}
-    
-    # Merge new results
-    for new_result in new_results:
-        iter_num = new_result['iter']
-        if iter_num in existing_lookup:
-            # Update existing result with new data
-            existing = existing_lookup[iter_num]
-            for dataset in new_result['scores']:
-                if new_result['scores'][dataset] is not None:
-                    existing['scores'][dataset] = new_result['scores'][dataset]
-                if new_result['times'][dataset] is not None:
-                    existing['times'][dataset] = new_result['times'][dataset]
-        else:
-            # Add new result
-            existing_results.append(new_result)
-    
-    # Sort by iteration number
-    existing_results.sort(key=lambda x: x['iter'])
-    
+def merge_results(existing_results, new_results_list, all_datasets):
+    """Merge new results into existing results structure"""
+    # existing_results: {dataset_name: {iter_num: {'score': score, 'time': time}}}
+    # new_results_list: list of {dataset_name: {iter_num: {'score': score, 'time': time}}} for new evaluations
+
+    # Iterate through each new evaluation result (which corresponds to one iter_num and its evaluated datasets)
+    for new_eval_for_iter in new_results_list:
+        # Each new_eval_for_iter is a dict: {dataset_name: {'score': s, 'time': t}}
+        for dataset_name, data in new_eval_for_iter.items():
+            iter_num = data.pop('iter') # Extract iter_num, it's added by eval_one_iter_partial
+            if dataset_name not in existing_results:
+                existing_results[dataset_name] = {}
+            existing_results[dataset_name][iter_num] = data
+
+    # Ensure all datasets are present in existing_results structure for completeness
+    for dataset in all_datasets:
+        if dataset not in existing_results:
+            existing_results[dataset] = {}
+            
     return existing_results
 
-def print_evaluation_summary(existing_results, target_iters, datasets):
-    """Print a detailed summary of evaluation status"""
+def print_evaluation_summary(existing_results, target_iters, all_datasets):
+    """Print a detailed summary of evaluation status based on the new results format"""
     if not existing_results:
-        print(f"✓ No existing results found")
+        print(f"✓ No existing results found.")
         print(f"✓ Will evaluate {len(target_iters)} iterations: {target_iters}")
         return
     
-    # Create lookup for existing results
-    existing_lookup = {result['iter']: result for result in existing_results}
-    
     completed_iters = []
-    partial_iters = []
+    partial_iters = [] # list of (iter_num, missing_datasets)
     missing_iters = []
     
+    total_possible_datasets_per_iter = len(all_datasets)
+
     for iter_num in target_iters:
-        if iter_num not in existing_lookup:
-            missing_iters.append(iter_num)
-            continue
+        missing_datasets_for_this_iter = []
+        for dataset in all_datasets:
+            if dataset not in existing_results or iter_num not in existing_results[dataset] or \
+               existing_results[dataset][iter_num]['score'] is None or existing_results[dataset][iter_num]['time'] is None:
+                missing_datasets_for_this_iter.append(dataset)
         
-        result = existing_lookup[iter_num]
-        all_complete = True
-        missing_datasets = []
-        
-        for dataset in datasets:
-            if result['scores'].get(dataset) is None or result['times'].get(dataset) is None:
-                all_complete = False
-                missing_datasets.append(dataset)
-        
-        if all_complete:
+        if not missing_datasets_for_this_iter:
             completed_iters.append(iter_num)
+        elif len(missing_datasets_for_this_iter) < total_possible_datasets_per_iter:
+            partial_iters.append((iter_num, missing_datasets_for_this_iter))
         else:
-            partial_iters.append((iter_num, missing_datasets))
+            # All datasets are missing for this iteration
+            missing_iters.append(iter_num)
     
     print(f"✓ Evaluation Summary:")
     print(f"  - Completed iterations: {len(completed_iters)}")
@@ -235,22 +110,22 @@ def print_evaluation_summary(existing_results, target_iters, datasets):
     
     print(f"  - Partial iterations: {len(partial_iters)}")
     for iter_num, missing in partial_iters[:3]:  # Show first 3
-        print(f"    Iteration {iter_num}: missing {missing}")
+        print(f"    Iteration {iter_num}: missing {len(missing)}/{total_possible_datasets_per_iter} datasets ({missing})")
     if len(partial_iters) > 3:
-        print(f"    ... and {len(partial_iters) - 3} more")
+        print(f"    ... and {len(partial_iters) - 3} more partial iterations")
     
     # Show detailed missing datasets for each iteration
     if partial_iters:
-        print(f"  - Detailed missing datasets:")
+        print(f"  - Detailed missing datasets for partial iterations:")
         for iter_num, missing in partial_iters:
             print(f"    Iteration {iter_num}: {missing}")
     
-    print(f"  - Missing iterations: {len(missing_iters)}")
+    print(f"  - Missing iterations (no datasets evaluated): {len(missing_iters)}")
     if missing_iters:
         print(f"    {missing_iters[:5]}{'...' if len(missing_iters) > 5 else ''}")
     
     total_to_evaluate = len(missing_iters) + len(partial_iters)
-    print(f"  - Total iterations to evaluate: {total_to_evaluate}")
+    print(f"  - Total iterations with pending evaluation: {total_to_evaluate}")
 
 def print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets):
     """Print detailed plan of what will be evaluated"""
@@ -276,74 +151,45 @@ def print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets):
     print("="*60)
 
 
-def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=None, save_sol=False):
+def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
-    print(f"\nEvaluating iteration {iter}...")
+    print(f"\nEvaluating iteration {iter_num}...")
     
     model_config = config['model_config']
     eval_config = config['eval_config']
     data_config = config['data_config']
 
     # Create model for this iteration
-    dqn = create_model(model_config, iter)
+    dqn = create_model(model_config, iter_num)
     
-    all_datasets = eval_config['datasets']
     step_ratio = eval_config['step_ratio']
     strategy_id = eval_config['strategy_id']
-    # dataset_dir = data_config['dataset_dir']
     
-    # Initialize results
-    if iter_results:
-        iter_results = iter_results.copy()
-        print(f"  Using existing results for iteration {iter}")
-    else:
-        iter_results = {
-            'iter': iter,
-            'scores': {},
-            'times': {}
-        }
-    
-    # Determine which datasets to evaluate
-    if specified_datasets is None:
-        # If no specific datasets provided, evaluate all missing ones
-        datasets_eval = []
-        datasets_skipped = []
-        for dataset in all_datasets:
-            if (iter_results['scores'].get(dataset) is None or 
-                iter_results['times'].get(dataset) is None):
-                datasets_eval.append(dataset)
-            else:
-                datasets_skipped.append(dataset)
-    else:
-        # Use the specific datasets that need evaluation
-        datasets_eval = specified_datasets
-        datasets_skipped = [d for d in all_datasets if d not in specified_datasets]
-    
-    if not datasets_eval:
-        print(f"  ✓ All datasets already evaluated for iteration {iter}")
-        return iter_results
-    
-    print(f"  ✓ Evaluating {len(datasets_eval)} datasets: {datasets_eval}")
-    if datasets_skipped:
-        print(f"    Skipped: {datasets_skipped}")
+    # Store results for this iteration for datasets_to_evaluate
+    newly_evaluated_results = {}
+
+    if not datasets_to_evaluate:
+        print(f"  ✓ No datasets specified for evaluation in iteration {iter_num}.")
+        return newly_evaluated_results
+        
+    print(f"  ✓ Evaluating {len(datasets_to_evaluate)} datasets: {datasets_to_evaluate}")
     
     # Evaluate each specified dataset
-    for dataset in datasets_eval:
+    for dataset in datasets_to_evaluate:
         print(f"    Evaluating dataset: {dataset}")
         dataset_dir = os.path.join(data_config['dataset_dir'],"real")
         g_test = load_real_graph(dataset,dataset_dir)
         if g_test is None:
             print(f"      Warning: Could not load graph for {dataset}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
+            newly_evaluated_results[dataset] = {'score': None, 'time': None}
             continue
         
         # Get solution, and save in temp_result_file
         if save_sol == False:
-            temp_sol_file = f"temp_{dataset}_{iter}.txt"
+            temp_sol_file = f"temp_{dataset}_{iter_num}.txt"
         else:
             save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter}.txt"
+            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter_num}.txt"
 
         try:
             sol, sol_time = dqn.EvaluateRealData(g_test, temp_sol_file, step_ratio)
@@ -353,8 +199,7 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
             eval_time = time.time() - t1
             total_time = sol_time + eval_time
             
-            iter_results['scores'][dataset] = score
-            iter_results['times'][dataset] = total_time
+            newly_evaluated_results[dataset] = {'score': score, 'time': total_time}
             print(f"      Score: {score:.6f}, Total time: {total_time:.2f}s")
             
             # Clean up temp file
@@ -363,16 +208,16 @@ def eval_one_iter_partial(iter, config, iter_results=None, specified_datasets=No
                 
         except Exception as e:
             print(f"      Error evaluating {dataset}: {e}")
-            iter_results['scores'][dataset] = None
-            iter_results['times'][dataset] = None
+            newly_evaluated_results[dataset] = {'score': None, 'time': None}
     
-    return iter_results
+    return newly_evaluated_results
 
 def eval_all_iters(config):
     """Evaluate all checkpoints from min_iter to max_iter, skipping already evaluated iterations"""
     
     eval_config = config['eval_config']
-    
+    model_config = config['model_config']
+
     min_iter = eval_config['min_iter']
     max_iter = eval_config['max_iter']
     iter_step = eval_config['iter_step']
@@ -382,8 +227,8 @@ def eval_all_iters(config):
     target_iters = list(range(min_iter, max_iter + 1, iter_step))
     print(f"Target iterations: {len(target_iters)} iterations from {target_iters[0]} to {target_iters[-1]} (step: {iter_step})")
     
-    # Load existing results
-    existing_results = load_csv(config)
+    # Load existing results (new format)
+    existing_results = load_real_csv(model_config,eval_config)
     
     # Determine what needs to be evaluated
     needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
@@ -401,70 +246,46 @@ def eval_all_iters(config):
     # Print detailed evaluation plan
     print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets)
     
-    # Results storage for new evaluations
-    new_results = []
+    # Results storage for newly evaluated data
+    new_results_list = [] # List of dicts, each dict is {dataset_name: {'score':s, 'time':t}, 'iter': iter_num}
     
     # Evaluate each needed iteration
-    for iter in tqdm(needed_iters, desc="Evaluating iterations"):
+    for iter_num in tqdm(needed_iters, desc="Evaluating iterations"):
         try:
-            # Check if we have partial results for this iteration
-            iter_results = None
-            for result in existing_results:
-                if result['iter'] == iter:
-                    iter_results = result
-                    break
-            
             # Get the specific datasets that need evaluation for this iteration
-            needed_datasets = needed_datasets_per_iter.get(iter, datasets)
+            datasets_to_evaluate = needed_datasets_per_iter.get(iter_num, datasets)
             
-            iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=False)
-            new_results.append(iter_results)
+            # Call eval_one_iter_partial to get results for this iteration and its needed datasets
+            # This function returns {dataset_name: {'score': s, 'time': t}}
+            iter_new_results = eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False)
+            
+            # Add iter_num to each dataset's result for easier merging
+            for dataset_name in iter_new_results:
+                iter_new_results[dataset_name]['iter'] = iter_num
+                
+            new_results_list.append(iter_new_results)
                   
         except Exception as e:
-            print(f"✗ Error evaluating iteration {iter}: {e}")
-            # Add empty results for failed iteration
-            new_results.append({
-                'iter': iter,
-                'scores': {dataset: None for dataset in datasets},
-                'times': {dataset: None for dataset in datasets}
-            })
+            print(f"✗ Error evaluating iteration {iter_num}: {e}")
+            # For a failed iteration, ensure we still record it as missing for affected datasets
+            failed_iter_results = {}
+            for dataset in datasets_to_evaluate:
+                failed_iter_results[dataset] = {'score': None, 'time': None, 'iter': iter_num}
+            new_results_list.append(failed_iter_results)
     
     # Merge new results with existing results
-    all_results = merge_results(existing_results, new_results)
+    all_results = merge_results(existing_results, new_results_list, datasets)
     # save results
-    score_df, time_df = save_results(all_results, config)
+    save_results(all_results, config)
     
     return all_results
 
-def results_to_df(results, eval_config):
-    """Save evaluation results to solution_score and solution_time CSV files"""
-
-    datasets = eval_config['datasets']
-    
-    # Prepare data for CSV
-    iters = [result['iter'] for result in results]
-    
-    # Solution scores and times
-    score_data = {'iter': iters}
-    time_data = {'iter': iters}
-    for dataset in datasets:
-        scores = [result['scores'].get(dataset) for result in results]
-        score_data[dataset] = scores
-        times = [result['times'].get(dataset) for result in results]
-        time_data[dataset] = times
-    
-    # Save to CSV
-    score_df = pd.DataFrame(score_data)
-    time_df = pd.DataFrame(time_data)
-    return score_df,time_df
-
-
 def save_results(results, config):
     """Save evaluation results to individual dataset CSV files
-        results: list of dicts, each dict contains 'iter', 'scores', 'times'
+        results: dict of dicts, {dataset_name: {iter_num: {'score': score, 'time': time}}}
         config: config file
 
-        return: score_df, time_df , constructing from results
+        Returns: None
     """
     eval_config = config['eval_config']
     model_config = config['model_config']
@@ -475,36 +296,26 @@ def save_results(results, config):
     if not os.path.exists(save_result_dir):
         os.makedirs(save_result_dir, exist_ok=True)
 
+    print(f"\nSaving evaluation results to: {save_result_dir}")
+
     # Save individual dataset files
     for dataset in datasets:
-        dataset_file = f"{save_result_dir}/{dataset}.csv"
+        dataset_file = os.path.join(save_result_dir, f"{dataset}.csv")
         
-        # Prepare data for this dataset
-        dataset_data = []
-        for result in results:
-            if (result['scores'].get(dataset) is not None and 
-                result['times'].get(dataset) is not None):
-                dataset_data.append({
-                    'iter': result['iter'],
-                    'score': result['scores'][dataset],
-                    'time': result['times'][dataset]
-                })
+        dataset_data_for_df = []
+        if dataset in results:
+            for iter_num, data in results[dataset].items():
+                dataset_data_for_df.append({'iter': iter_num, 'score': data['score'], 'time': data['time']})
         
-        if dataset_data:
-            # Create DataFrame and save
-            df = pd.DataFrame(dataset_data)
+        if dataset_data_for_df:
+            df = pd.DataFrame(dataset_data_for_df)
+            df = df.sort_values(by='iter').reset_index(drop=True)
             df.to_csv(dataset_file, index=False)
-            print(f"  Saved {dataset}.csv with {len(df)} rows")
+            print(f"  ✓ Saved {dataset}.csv with {len(df)} rows.")
         else:
-            print(f"  Warning: No valid data for {dataset}")
-    
-    print(f"Results saved to {save_result_dir}/")
-    print(f"  - Individual dataset CSV files created")
-    
-    # Also create the combined DataFrames for backward compatibility
-    score_df, time_df = results_to_df(results, eval_config)
-    
-    return score_df, time_df
+            print(f"  ⚠ No valid data for dataset {dataset} to save.")
+            
+    print("✓ All dataset CSV files updated.")
 
 
 def main():
@@ -516,12 +327,41 @@ def main():
         print(f"✗ Error loading configuration: {e}")
         return
     
+ 
     # parse args
-    parser = argparse.ArgumentParser(description='manual to this script')
+    parser = argparse.ArgumentParser(description='Evaluate ONE model on real datasets')
+    parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
+    parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
+    parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
+    parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
     parser.add_argument("--eval_all_iters", action="store_true")
     parser.add_argument("--eval_iter", type=int)
     parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt,not update csv")
     args = parser.parse_args()
+
+    # Update config with command line arguments
+    eval_config = config['eval_config']
+    eval_config.update({
+        'min_iter': args.min_iter,
+        'max_iter': args.max_iter,
+        'iter_step': args.iter_step,
+        "datasets": ["Digg"]
+    })
+    
+
+    # Update model config if model_path is provided
+    model_config = config['model_config']
+    if args.model_path:
+        # Parse model path to extract parameters
+        path_parts = args.model_path.split('/')[-1].split('_')
+        if len(path_parts) >= 6:
+            model_config['g_type'] = path_parts[0]
+            model_config['g_params']['nrange'] = path_parts[2]+'_'+path_parts[3]
+            model_config['g_params']['m'] = int(path_parts[5])
+            print(f"✓ Updated model config: {model_config}")
+    
+    print(f"\n{'-'*10}Real Dataset Evaluation{'.'*10}")
+    print(f"Target model: {model_config['g_type']}_nrange_{model_config['g_params']['nrange']}_m_{model_config['g_params']['m']}")
 
     # eval_all_iters
     if args.eval_all_iters:
@@ -530,9 +370,11 @@ def main():
         try:
             from testUtils import plot_val_eval_scores
             all_results = eval_all_iters(config)
-            plot_val_eval_scores(config)
+            # plot_val_eval_scores(config) # This function will need to be updated to handle new result format
+            return
         except ImportError:
-            print("Warning: eval_all_iterations.py not found, falling back to single iteration evaluation")
+            print("Warning: plot_val_eval_scores not found or import error, skipping plot")
+            
     
     if args.eval_iter:
         # eval one iter
@@ -546,41 +388,46 @@ def main():
             args.eval_iter = best_iter
         print("\neval_all_iter is False, evaluate iteration %d"%args.eval_iter)
 
-        from testUtils import eval_one_iter_partial,merge_results,save_results,get_evaluation_status,load_csv,load_sol
         target_iters = [args.eval_iter]
-        eval_config = config['eval_config']
-        datasets = eval_config['datasets']
-        new_results = []
+        all_datasets = eval_config['datasets']
+        
         if args.save_sol_only:
-            # when save_sol, do not save results to prevent overwrite
-            for iter in target_iters:
-                existing_sols = load_sol(iter,config)
-                evaled_datasets = [sol.split('/')[-1].split('_')[0] for sol in existing_sols]
-                needed_datasets = [dataset for dataset in datasets if dataset not in evaled_datasets]
-                print(f"Evaluating iteration {iter} with datasets: {needed_datasets}")
-                eval_one_iter_partial(iter, config,specified_datasets = needed_datasets, save_sol=True)
+            # When save_sol, do not save results to prevent overwrite of CSVs, just solutions
+            for iter_num in target_iters:
+                # Determine which datasets still need solution files
+                existing_sols = load_sol(iter_num, config)
+                evaluated_datasets_for_sols = [os.path.basename(s).split(f'_iter_{iter_num}.txt')[0].split('_')[0] for s in existing_sols]
+                needed_datasets_for_sols = [dataset for dataset in all_datasets if dataset not in evaluated_datasets_for_sols]
+                
+                if needed_datasets_for_sols:
+                    print(f"Evaluating iteration {iter_num} to save solutions for datasets: {needed_datasets_for_sols}")
+                    eval_one_iter_partial(iter_num, config, needed_datasets_for_sols, save_sol=True)
+                else:
+                    print(f"All solution files for iteration {iter_num} already exist, skipping.")
             
         else:
-            # similar to the logic of eval_all_iters, save sol and save results
-            existing_results = load_csv(config)
-            needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
+            # Normal evaluation for a specified iteration, including saving results
+            existing_results = load_real_csv(model_config,eval_config)
+            needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, all_datasets)
+            
             if not needed_iters:
-                print("No new evaluation needed, skipping evaluation and save_results...")
+                print("No new evaluation needed for specified iteration, skipping evaluation and save_results...")
             else:
-                new_results = []
-                for iter in needed_iters:
-                    iter_results = None
-                    for result in existing_results:
-                        if result['iter'] == iter:
-                            iter_results = result
-                            break
+                new_results_list = []
+                for iter_num in needed_iters:
+                    datasets_to_evaluate = needed_datasets_per_iter.get(iter_num, all_datasets)
                     
-                    # Get the specific datasets that need evaluation for this iteration
-                    needed_datasets = needed_datasets_per_iter.get(iter, datasets)
-                    new_iter_results = eval_one_iter_partial(iter, config, iter_results, needed_datasets, save_sol=True)
-                    new_results.append(new_iter_results)
-                # Merge new results with existing results
-                all_results = merge_results(existing_results, new_results)
+                    # Perform evaluation
+                    iter_new_results = eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=True)
+                    
+                    # Add iter_num to each dataset's result
+                    for dataset_name in iter_new_results:
+                        iter_new_results[dataset_name]['iter'] = iter_num
+                        
+                    new_results_list.append(iter_new_results)
+
+                # Merge and save results
+                all_results = merge_results(existing_results, new_results_list, all_datasets)
                 save_results(all_results, config)
 
 

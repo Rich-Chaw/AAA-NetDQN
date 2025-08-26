@@ -58,7 +58,7 @@ cdef int NUM_MIN = 30
 cdef int NUM_MAX = 120
 cdef int REG_HIDDEN = 32
 cdef int BATCH_SIZE = 64  
-cdef double initialization_stddev = 0.01  # 权重初始化的方差
+cdef double initialization_stddev = 0.01  # weight initialization standard deviation
 cdef int n_valid = 200
 cdef int aux_dim = 4
 cdef int num_env = 1
@@ -73,7 +73,7 @@ cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 class GraphDQN:
 
     def __init__(self,
-        g_type = 'barabasi_albert',
+        g_type = 'BA',
         g_params = {'nrange': '30_50',
                     'm':2},
         gnn_model = 'graphSage',
@@ -84,7 +84,7 @@ class GraphDQN:
         self.embeddingMethod = gnn_model
         self.embedding_size = EMBEDDING_SIZE
         self.learning_rate = LEARNING_RATE
-        self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
+        self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
         self.g_params = g_params
         self.target_graph = target_graph
         self.num_min = int(g_params['nrange'].split('_')[0])
@@ -185,13 +185,13 @@ class GraphDQN:
         # Print GPU information (cleaner version)
         gpus = tf1.config.list_physical_devices('GPU')
         if gpus:
-            print(f"✓ GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+            print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
         else:
-            print("⚠ No GPU detected - training will use CPU")
+            print("[WARNING] No GPU detected - training will use CPU")
         
 
-#################################################New code for graphDQN#####################################
+#################################################code for graphDQN#####################################
     def BuildNet(self):
         # N: number of nodes (of all graphs in a batch)
         nodes_size = tf.shape(self.n2nsum_param)[0]

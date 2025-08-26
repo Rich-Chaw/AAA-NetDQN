@@ -12,10 +12,11 @@ import json
 import argparse
 import matplotlib.pyplot as plt
 from testUtils import load_config, create_model, load_synthetic_graphs, detailed_result_dir, load_real_graph,_get_synth_param_grid
+from testUtils import load_real_csv,load_synth_csv
 
 # Model configurations to compare
-model_BA_params_configs = {'nrange_list':['30_50'],
-                            'm_list':[1,2]}
+model_BA_params_configs = {'nrange_list':['30_50','50_100'],
+                            'm_list':[1,2,3,4,5,6]}
 model_g_type_configs = ['BA']
 model_gnn_configs = ['graphSage']
 
@@ -57,7 +58,7 @@ def evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config):
 
     synth_grid = _get_synth_param_grid(eval_config)
     for entry in synth_grid:
-        config_key = entry['config_key']
+        synth_dataset = entry['synth_dataset']
         params = entry['params']
         try:
             # Load synthetic graphs (per_graphs=1)
@@ -66,13 +67,13 @@ def evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config):
                                     **params)
 
             if not graphs:
-                print(f"    Warning: No graphs found for {config_key}")
-                results[config_key] = {'score': None, 'time': None, 'MaxCCList': None}
+                print(f"    Warning: No graphs found for {synth_dataset}")
+                results[synth_dataset] = {'score': None, 'time': None, 'MaxCCList': None}
                 continue
             
             # Evaluate on the single graph
             g = graphs[0]  # Only one graph
-            temp_sol_file = f"temp_synthetic_{config_key}.txt"
+            temp_sol_file = f"temp_synthetic_{synth_dataset}.txt"
             
             # Get solution and evaluate
             sol, sol_time = dqn.EvaluateRealData(g, temp_sol_file, eval_config['step_ratio'])
@@ -82,18 +83,18 @@ def evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config):
             if os.path.exists(temp_sol_file):
                 os.remove(temp_sol_file)
             
-            results[config_key] = {
+            results[synth_dataset] = {
                 'score': score,
                 'time': sol_time,
                 'MaxCCList': MaxCCList,
                 'graph': g
             }
             
-            print(f"    ✓ {config_key}: score={score:.6f}, time={sol_time:.2f}s")
+            print(f"    ✓ {synth_dataset}: score={score:.6f}, time={sol_time:.2f}s")
                 
         except Exception as e:
-            print(f"    ✗ Error evaluating {config_key}: {e}")
-            results[config_key] = {'score': None, 'time': None, 'MaxCCList': None}
+            print(f"    ✗ Error evaluating {synth_dataset}: {e}")
+            results[synth_dataset] = {'score': None, 'time': None, 'MaxCCList': None}
     
     return results
 
@@ -183,6 +184,7 @@ def _compute_common_axes_limits(plot_step_ratio=0.05):
 
     return x_max, x_ticks, y_max, y_ticks
 
+
 def plot_max_cc_comparison(all_results, dataset_name, save_dir, model_configs):
     """
     Plot MaxCC comparison for different models on the same dataset/graph
@@ -202,7 +204,7 @@ def plot_max_cc_comparison(all_results, dataset_name, save_dir, model_configs):
         if results['MaxCCList'] is not None:
             # Extract model index from model_key (e.g., "model_0" -> 0)
             model_idx = int(model_key.split('_')[1])
-            model_config = model_configs[model_idx]
+            model_config = model_configs[model_idx-1]
             
             # Create model label
             g_type = model_config['g_type']
@@ -235,40 +237,40 @@ def plot_max_cc_comparison(all_results, dataset_name, save_dir, model_configs):
 
 
 def plot_synthetic_overview(all_model_results, eval_config, save_dir, model_configs):
-    """Plot all synthetic config_keys in a single figure of subplots.
+    """Plot all synthetic datasetss in a single figure of subplots.
     Saves to synthetic_{synthetic_g_type}_max_cc.png
     """
     synth_grid = _get_synth_param_grid(eval_config)
-    config_keys = [g['config_key'] for g in synth_grid]
-    n = len(config_keys)
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
+    n = len(synth_datasets)
     if n == 0:
         return
     rows = int(np.ceil(np.sqrt(n)))
     cols = int(np.ceil(n / rows))
-    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows), squeeze=False)
-    axes = axes.flatten() if len(config_keys) > 1 else [axes]
+    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
+    axes = axes.flatten() if rows*cols > 1 else [axes]
     # Build common limits
     x_max, x_ticks, y_max, y_ticks = _compute_common_axes_limits()
-
+    print(rows,cols,axes)
     handles = []
     labels = []
-    for idx, ck in enumerate(config_keys):
-        ax = axes[idx]
+    for i, ds in enumerate(synth_datasets):
+        ax = axes[i]
         for model_key, model_results in all_model_results.items():
-            results = model_results.get('synthetic', {}).get(ck)
+            results = model_results.get('synthetic', {}).get(ds)
             if not results or results.get('MaxCCList') is None:
                 continue
             # Plot MaxCC curve
             MaxCCList = np.array(results['MaxCCList'])
             x,y = max_cc_to_xy(MaxCCList)
             model_idx = int(model_key.split('_')[1])
-            mc = model_configs[model_idx]
+            mc = model_configs[model_idx-1]
             label = f"{mc['gnn_model']}_{mc['g_type']}_nrange_{mc['g_params']['nrange']}_m_{mc['g_params']['m']}"
             line, = ax.plot(x, y, linewidth=1.4, marker='o', markersize=2.5, label=label)
             if label not in labels:
                 handles.append(line)
                 labels.append(label)
-        ax.set_title(ck, fontsize=10)
+        ax.set_title(ds, fontsize=10)
         ax.set_xlim(0, x_max if x_max > 0 else 1.0)
         ax.set_ylim(0, y_max)
         ax.set_xticks(x_ticks)
@@ -301,15 +303,16 @@ def plot_real_overview(all_model_results, eval_config, save_dir, model_configs):
     n = len(datasets)
     rows = int(np.ceil(np.sqrt(n)))
     cols = int(np.ceil(n / rows))
-    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows), squeeze=False)
-    axes = axes.flatten() if len(datasets) > 1 else [axes]
+    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
+    axes = axes.flatten() if rows*cols > 1 else [axes]
     # Common limits
     x_max, x_ticks, y_max, y_ticks = _compute_common_axes_limits()
 
     handles = []
     labels = []
-    for idx, ds in enumerate(datasets):
-        ax = axes[idx]
+    print(axes)
+    for i, ds in enumerate(datasets):
+        ax = axes[i]
         for model_key, model_results in all_model_results.items():
             results = model_results.get('real', {}).get(ds)
             if not results or results.get('MaxCCList') is None:
@@ -318,7 +321,7 @@ def plot_real_overview(all_model_results, eval_config, save_dir, model_configs):
             MaxCCList = np.array(results['MaxCCList'])
             x,y = max_cc_to_xy(MaxCCList)
             model_idx = int(model_key.split('_')[1])
-            mc = model_configs[model_idx]
+            mc = model_configs[model_idx-1]
             label = f"{mc['gnn_model']}_{mc['g_type']}_nrange_{mc['g_params']['nrange']}_m_{mc['g_params']['m']}"
             line, = ax.plot(x, y, linewidth=1.4, marker='o', markersize=2.5, label=label)
             if label not in labels:
@@ -359,20 +362,20 @@ def save_evaluation_results(all_model_results, save_dir, eval_config):
     
     # Save synthetic graph results using synthetic_g_params
     synth_grid = _get_synth_param_grid(eval_config)
-    config_keys = [g['config_key'] for g in synth_grid]
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
 
-    for config_key in config_keys:
-        csv_filename = f"synthetic_{config_key}_model_comparison.csv"
+    for synth_dataset in synth_datasets:
+        csv_filename = f"synthetic_{synth_dataset}_model_comparison.csv"
         csv_path = os.path.join(save_dir, csv_filename)
         
         # Prepare data for CSV
         csv_data = []
         for model_key, model_results in all_model_results.items():
             if (model_results['synthetic'] and 
-                config_key in model_results['synthetic'] and 
-                model_results['synthetic'][config_key]['score'] is not None):
+                synth_dataset in model_results['synthetic'] and 
+                model_results['synthetic'][synth_dataset]['score'] is not None):
                 
-                result = model_results['synthetic'][config_key]
+                result = model_results['synthetic'][synth_dataset]
                 model_idx = int(model_key.split('_')[1])
                 model_config = model_results['config']
                 
@@ -447,19 +450,19 @@ def print_model_comparison_summary(all_model_results, eval_config):
     # Summaries for synthetic using synthetic_g_params
 
     synth_grid = _get_synth_param_grid(eval_config)
-    config_keys = [g['config_key'] for g in synth_grid]
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
 
-    for config_key in config_keys:
-        print(f"\n{config_key}:")
+    for synth_dataset in synth_datasets:
+        print(f"\n{synth_dataset}:")
             
         # Collect scores for this configuration
         scores = []
         for model_key, model_results in all_model_results.items():
             if (model_results['synthetic'] and 
-                config_key in model_results['synthetic'] and 
-                model_results['synthetic'][config_key]['score'] is not None):
+                synth_dataset in model_results['synthetic'] and 
+                model_results['synthetic'][synth_dataset]['score'] is not None):
                 
-                score = model_results['synthetic'][config_key]['score']
+                score = model_results['synthetic'][synth_dataset]['score']
                 model_idx = int(model_key.split('_')[1])
                 model_config = model_results['config']
                 scores.append((score, model_idx, model_config))
@@ -509,9 +512,31 @@ def main():
     eval_config = config['eval_config']
     data_config = config['data_config']
     
-    # Set per_graphs to 1 for synthetic evaluation
-    eval_config['per_graphs'] = 1
-    
+    parser = argparse.ArgumentParser(description='Evaluate all models on synthetic and real datasets')
+    parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
+    parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
+    parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
+    parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
+    parser.add_argument("--per_graphs", type=int, default=2, help="Number of graphs per configuration")
+    parser.add_argument("--eval_iter",type=int)
+    parser.add_argument("--plot", action="store_true")
+    parser.add_argument("--eval_real", action="store_true")
+    parser.add_argument("--eval_synthetic", action="store_true")
+    parser.add_argument("--eval_all_iters", action="store_true", help="plot all iter results in csv from result dir")
+    args = parser.parse_args()
+
+    # Update config with command line arguments
+    eval_config = config['eval_config']
+    eval_config.update({
+        'datasets': ['Crime'],
+        'per_graphs': 2,
+        "synthetic_g_params": {
+            "nranges": ["30_50"],
+            "m_values": [1,2]
+        },
+    })
+
+
     print(f"Model Comparison Evaluation")
     print(f"Number of models to compare: {len(all_model_configs)}")
     print(f"Synthetic graphs per config: {eval_config['per_graphs']}")
@@ -542,18 +567,32 @@ def main():
             
             print(f"  ✓ Loaded model: {best_ckpt_file} (iteration {best_iter})")
             
+            synthetic_results = {}
+            real_results = {}
+            iters_synthetic_results = {}
+            iters_real_results = {} 
             # Evaluate on synthetic graphs
-            synthetic_results = evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config)
+            if args.eval_synthetic:
+                synthetic_results = evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config)
             
             # Evaluate on real graphs
-            real_results = evaluate_model_on_real_graphs(dqn, model_config, eval_config, data_config)
+            if args.eval_real:
+                real_results = evaluate_model_on_real_graphs(dqn, model_config, eval_config, data_config)
+            
+            if args.eval_all_iters:
+                if args.eval_synthetic:
+                    iters_synthetic_results = load_synth_csv(model_config,eval_config)
+                if args.eval_real:    
+                    iters_real_results = load_real_csv(model_config,eval_config)
             
             # Store results
-            model_key = f"model_{i}"
+            model_key = f"model_{i+1}"
             all_model_results[model_key] = {
+                'config': model_config,
                 'synthetic': synthetic_results,
                 'real': real_results,
-                'config': model_config,
+                'iters_synthetic': iters_synthetic_results,
+                'iters_real':iters_real_results,
                 'best_iter': best_iter
             }
             
@@ -561,25 +600,27 @@ def main():
             print(f"  ✗ Error evaluating model {i+1}: {e}")
             continue
     
-    # Create comparison plots
+    # Create plots
     print(f"\n{'='*60}")
-    print("Creating MaxCC comparison plots...")
+    print("Creating MaxCC plots...")
     print(f"{'='*60}")
     
-    # ---------------------Plot per-config figures (e.g., BA_nrange_30_50_m_1_max_cc_plot.png) , one graph one png file------------------------------------------
+
+
+    # ---------------------Plot per-dataset figures (e.g., BA_nrange_30_50_m_1_max_cc_plot.png) , one graph one png file------------------------------------------
     # plot all synthetic graphs 
     synth_grid = _get_synth_param_grid(eval_config)
-    config_keys = [g['config_key'] for g in synth_grid]
-    for config_key in config_keys:
+    synth_datasets = [g['synth_dataset'] for g in synth_grid]
+    for synth_dataset in synth_datasets:
         # Collect results for this configuration across all models
         synthetic_results = {}
         for model_key, model_results in all_model_results.items():
-            if model_results['synthetic'] and config_key in model_results['synthetic']:
-                synthetic_results[model_key] = model_results['synthetic'][config_key]
+            if model_results['synthetic'] and synth_dataset in model_results['synthetic']:
+                synthetic_results[model_key] = model_results['synthetic'][synth_dataset]
         
         if synthetic_results:
-            print(f"\nPlotting MaxCC comparison for {config_key}...")
-            plot_max_cc_comparison(synthetic_results, config_key, save_result_dir, all_model_configs)
+            print(f"\nPlotting MaxCC comparison for {synth_dataset}...")
+            plot_max_cc_comparison(synthetic_results, synth_dataset, save_result_dir, all_model_configs)
     
     # Plot real graph comparisons
     for dataset in eval_config['datasets']:
@@ -596,10 +637,10 @@ def main():
     #---------------------Save evaluation results to CSV--------------------------------
     # save_evaluation_results(all_model_results, save_result_dir, eval_config)
 
-    # Print summary
-    print_model_comparison_summary(all_model_results, eval_config)
+    # # Print summary
+    # print_model_comparison_summary(all_model_results, eval_config)
 
-    # Overview plots
+    # Overview all models on all datasets
     plot_synthetic_overview(all_model_results, eval_config, save_result_dir, all_model_configs)
     plot_real_overview(all_model_results, eval_config, save_result_dir, all_model_configs)
 

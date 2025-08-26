@@ -1850,7 +1850,7 @@ static const char __pyx_k_remove_node[] = "remove_node";
 static const char __pyx_k_result_file[] = "result_file";
 static const char __pyx_k_small_world[] = "small-world";
 static const char __pyx_k_test_graphs[] = "test_graphs";
-static const char __pyx_k_GPU_detected[] = "\342\234\223 GPU detected: ";
+static const char __pyx_k_GPU_detected[] = "GPU detected: ";
 static const char __pyx_k_GraphDQN_Fit[] = "GraphDQN.Fit";
 static const char __pyx_k_GraphDQN_HXA[] = "GraphDQN.HXA";
 static const char __pyx_k_GraphDQN_Max[] = "GraphDQN.Max";
@@ -1913,7 +1913,6 @@ static const char __pyx_k_GraphDQN_GetSol[] = "GraphDQN.GetSol";
 static const char __pyx_k_GraphDQN___init[] = "GraphDQN.__init__";
 static const char __pyx_k_GraphDQN_argMax[] = "GraphDQN.argMax";
 static const char __pyx_k_Training_graphs[] = "Training graphs";
-static const char __pyx_k_barabasi_albert[] = "barabasi_albert";
 static const char __pyx_k_batch_graph_ids[] = "batch_graph_ids";
 static const char __pyx_k_best_model_iter[] = "best_model_iter";
 static const char __pyx_k_checkpoint_path[] = "checkpoint_path";
@@ -2027,8 +2026,8 @@ static const char __pyx_k_Loading_validation_graphs_from[] = "Loading validation
 static const char __pyx_k_connected_watts_strogatz_graph[] = "connected_watts_strogatz_graph";
 static const char __pyx_k_GraphDQN_GetSolution_CurrentEnv[] = "GraphDQN.GetSolution_CurrentEnv";
 static const char __pyx_k_GraphDQN_PredictWithCurrentQNet[] = "GraphDQN.PredictWithCurrentQNet";
-static const char __pyx_k_No_GPU_detected_training_will_u[] = "\342\232\240 No GPU detected - training will use CPU";
 static const char __pyx_k_No_checkpoint_found_starting_fr[] = "\nNo checkpoint found, starting from scratch.";
+static const char __pyx_k_WARNING_No_GPU_detected_trainin[] = "[WARNING] No GPU detected - training will use CPU";
 static const char __pyx_k_device_s_available_Using_device[] = " device(s) available, Using device: ";
 static const char __pyx_k_Finding_best_model_by_validation[] = "Finding best model by validation score: %s";
 static const char __pyx_k_GraphDQN_EvaluateRealData_random[] = "GraphDQN.EvaluateRealData_random";
@@ -2137,7 +2136,6 @@ static PyObject *__pyx_n_s_MaxWccSzList;
 static PyObject *__pyx_n_u_ModelVC;
 static PyObject *__pyx_n_s_N_end;
 static PyObject *__pyx_n_s_N_start;
-static PyObject *__pyx_kp_s_No_GPU_detected_training_will_u;
 static PyObject *__pyx_kp_s_No_checkpoint_found_starting_fr;
 static PyObject *__pyx_n_s_PL;
 static PyObject *__pyx_n_s_PlayGame;
@@ -2175,6 +2173,7 @@ static PyObject *__pyx_n_s_UpdateTargetQNetwork;
 static PyObject *__pyx_n_s_VCFile;
 static PyObject *__pyx_kp_s_Validation_HDA_6f_HBA_6f;
 static PyObject *__pyx_kp_s_Validation_graphs;
+static PyObject *__pyx_kp_s_WARNING_No_GPU_detected_trainin;
 static PyObject *__pyx_kp_s__13;
 static PyObject *__pyx_kp_s__18;
 static PyObject *__pyx_kp_s__19;
@@ -2206,7 +2205,6 @@ static PyObject *__pyx_n_s_aux_input;
 static PyObject *__pyx_n_s_axis;
 static PyObject *__pyx_n_s_b;
 static PyObject *__pyx_n_s_b_idx;
-static PyObject *__pyx_n_s_barabasi_albert;
 static PyObject *__pyx_n_s_barabasi_albert_graph;
 static PyObject *__pyx_n_s_basename;
 static PyObject *__pyx_kp_s_batchSol;
@@ -2754,7 +2752,7 @@ static PyObject *__pyx_codeobj__99;
  * class GraphDQN:
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
- *         g_type = 'barabasi_albert',
+ *         g_type = 'BA',
  *         g_params = {'nrange': '30_50',
  */
 
@@ -2767,9 +2765,9 @@ static PyObject *__pyx_pf_8GraphDQN___defaults__(CYTHON_UNUSED PyObject *__pyx_s
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = PyTuple_New(5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_INCREF(((PyObject*)__pyx_n_s_barabasi_albert));
-  __Pyx_GIVEREF(((PyObject*)__pyx_n_s_barabasi_albert));
-  PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject*)__pyx_n_s_barabasi_albert));
+  __Pyx_INCREF(((PyObject*)__pyx_n_s_BA));
+  __Pyx_GIVEREF(((PyObject*)__pyx_n_s_BA));
+  PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject*)__pyx_n_s_BA));
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults, __pyx_self)->__pyx_arg_g_params);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults, __pyx_self)->__pyx_arg_g_params);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __Pyx_CyFunction_Defaults(__pyx_defaults, __pyx_self)->__pyx_arg_g_params);
@@ -2823,7 +2821,7 @@ static PyObject *__pyx_pw_8GraphDQN_8GraphDQN_1__init__(PyObject *__pyx_self, Py
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_g_type,&__pyx_n_s_g_params,&__pyx_n_s_gnn_model,&__pyx_n_s_target_graph,&__pyx_n_s_save_model_dir,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     __pyx_defaults *__pyx_dynamic_args = __Pyx_CyFunction_Defaults(__pyx_defaults, __pyx_self);
-    values[1] = ((PyObject *)((PyObject*)__pyx_n_s_barabasi_albert));
+    values[1] = ((PyObject *)((PyObject*)__pyx_n_s_BA));
     values[2] = __pyx_dynamic_args->__pyx_arg_g_params;
     values[3] = ((PyObject *)((PyObject*)__pyx_n_s_graphSage));
     values[4] = ((PyObject *)((PyObject*)__pyx_n_s_Digg));
@@ -2970,7 +2968,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         self.embeddingMethod = gnn_model
  *         self.embedding_size = EMBEDDING_SIZE             # <<<<<<<<<<<<<<
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
+ *         self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
  */
   __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_8GraphDQN_EMBEDDING_SIZE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -2981,7 +2979,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         self.embeddingMethod = gnn_model
  *         self.embedding_size = EMBEDDING_SIZE
  *         self.learning_rate = LEARNING_RATE             # <<<<<<<<<<<<<<
- *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
+ *         self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params
  */
   __pyx_t_1 = PyFloat_FromDouble(__pyx_v_8GraphDQN_LEARNING_RATE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
@@ -2992,7 +2990,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":87
  *         self.embedding_size = EMBEDDING_SIZE
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego             # <<<<<<<<<<<<<<
+ *         self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego             # <<<<<<<<<<<<<<
  *         self.g_params = g_params
  *         self.target_graph = target_graph
  */
@@ -3000,7 +2998,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
 
   /* "GraphDQN.pyx":88
  *         self.learning_rate = LEARNING_RATE
- *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
+ *         self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params             # <<<<<<<<<<<<<<
  *         self.target_graph = target_graph
  *         self.num_min = int(g_params['nrange'].split('_')[0])
@@ -3008,7 +3006,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_g_params, __pyx_v_g_params) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
 
   /* "GraphDQN.pyx":89
- *         self.g_type = g_type #BA,ER(),PL(powerlaw), SW(small-world), ego
+ *         self.g_type = g_type #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
  *         self.g_params = g_params
  *         self.target_graph = target_graph             # <<<<<<<<<<<<<<
  *         self.num_min = int(g_params['nrange'].split('_')[0])
@@ -4762,7 +4760,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         # Print GPU information (cleaner version)
  *         gpus = tf1.config.list_physical_devices('GPU')             # <<<<<<<<<<<<<<
  *         if gpus:
- *             print(f" GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+ *             print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_tf1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4794,7 +4792,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         # Print GPU information (cleaner version)
  *         gpus = tf1.config.list_physical_devices('GPU')
  *         if gpus:             # <<<<<<<<<<<<<<
- *             print(f" GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+ *             print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
  */
   __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_gpus); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 187, __pyx_L1_error)
@@ -4803,7 +4801,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
     /* "GraphDQN.pyx":188
  *         gpus = tf1.config.list_physical_devices('GPU')
  *         if gpus:
- *             print(f" GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")             # <<<<<<<<<<<<<<
+ *             print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")             # <<<<<<<<<<<<<<
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
  *         else:
  */
@@ -4812,8 +4810,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
     __pyx_t_4 = 0;
     __pyx_t_5 = 127;
     __Pyx_INCREF(__pyx_kp_u_GPU_detected);
-    __pyx_t_5 = (65535 > __pyx_t_5) ? 65535 : __pyx_t_5;
-    __pyx_t_4 += 16;
+    __pyx_t_4 += 14;
     __Pyx_GIVEREF(__pyx_kp_u_GPU_detected);
     PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_kp_u_GPU_detected);
     __pyx_t_21 = PyObject_Length(__pyx_v_gpus); if (unlikely(__pyx_t_21 == ((Py_ssize_t)-1))) __PYX_ERR(0, 188, __pyx_L1_error)
@@ -4850,10 +4847,10 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
 
     /* "GraphDQN.pyx":189
  *         if gpus:
- *             print(f" GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+ *             print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")             # <<<<<<<<<<<<<<
  *         else:
- *             print(" No GPU detected - training will use CPU")
+ *             print("[WARNING] No GPU detected - training will use CPU")
  */
     __pyx_t_15 = PyTuple_New(3); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 189, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_15);
@@ -4910,7 +4907,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  *         # Print GPU information (cleaner version)
  *         gpus = tf1.config.list_physical_devices('GPU')
  *         if gpus:             # <<<<<<<<<<<<<<
- *             print(f" GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
+ *             print(f"GPU detected: {len(gpus)} device(s) available, Using device: {gpus[0].name}")
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
  */
     goto __pyx_L16;
@@ -4919,7 +4916,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
   /* "GraphDQN.pyx":191
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
  *         else:
- *             print(" No GPU detected - training will use CPU")             # <<<<<<<<<<<<<<
+ *             print("[WARNING] No GPU detected - training will use CPU")             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -4934,7 +4931,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN___init__(CYTHON_UNUSED PyObject *_
  * class GraphDQN:
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
- *         g_type = 'barabasi_albert',
+ *         g_type = 'BA',
  *         g_params = {'nrange': '30_50',
  */
 
@@ -27210,7 +27207,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_ModelVC, __pyx_k_ModelVC, sizeof(__pyx_k_ModelVC), 0, 1, 0, 1},
   {&__pyx_n_s_N_end, __pyx_k_N_end, sizeof(__pyx_k_N_end), 0, 0, 1, 1},
   {&__pyx_n_s_N_start, __pyx_k_N_start, sizeof(__pyx_k_N_start), 0, 0, 1, 1},
-  {&__pyx_kp_s_No_GPU_detected_training_will_u, __pyx_k_No_GPU_detected_training_will_u, sizeof(__pyx_k_No_GPU_detected_training_will_u), 0, 0, 1, 0},
   {&__pyx_kp_s_No_checkpoint_found_starting_fr, __pyx_k_No_checkpoint_found_starting_fr, sizeof(__pyx_k_No_checkpoint_found_starting_fr), 0, 0, 1, 0},
   {&__pyx_n_s_PL, __pyx_k_PL, sizeof(__pyx_k_PL), 0, 0, 1, 1},
   {&__pyx_n_s_PlayGame, __pyx_k_PlayGame, sizeof(__pyx_k_PlayGame), 0, 0, 1, 1},
@@ -27248,6 +27244,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_VCFile, __pyx_k_VCFile, sizeof(__pyx_k_VCFile), 0, 0, 1, 1},
   {&__pyx_kp_s_Validation_HDA_6f_HBA_6f, __pyx_k_Validation_HDA_6f_HBA_6f, sizeof(__pyx_k_Validation_HDA_6f_HBA_6f), 0, 0, 1, 0},
   {&__pyx_kp_s_Validation_graphs, __pyx_k_Validation_graphs, sizeof(__pyx_k_Validation_graphs), 0, 0, 1, 0},
+  {&__pyx_kp_s_WARNING_No_GPU_detected_trainin, __pyx_k_WARNING_No_GPU_detected_trainin, sizeof(__pyx_k_WARNING_No_GPU_detected_trainin), 0, 0, 1, 0},
   {&__pyx_kp_s__13, __pyx_k__13, sizeof(__pyx_k__13), 0, 0, 1, 0},
   {&__pyx_kp_s__18, __pyx_k__18, sizeof(__pyx_k__18), 0, 0, 1, 0},
   {&__pyx_kp_s__19, __pyx_k__19, sizeof(__pyx_k__19), 0, 0, 1, 0},
@@ -27279,7 +27276,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_axis, __pyx_k_axis, sizeof(__pyx_k_axis), 0, 0, 1, 1},
   {&__pyx_n_s_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 1, 1},
   {&__pyx_n_s_b_idx, __pyx_k_b_idx, sizeof(__pyx_k_b_idx), 0, 0, 1, 1},
-  {&__pyx_n_s_barabasi_albert, __pyx_k_barabasi_albert, sizeof(__pyx_k_barabasi_albert), 0, 0, 1, 1},
   {&__pyx_n_s_barabasi_albert_graph, __pyx_k_barabasi_albert_graph, sizeof(__pyx_k_barabasi_albert_graph), 0, 0, 1, 1},
   {&__pyx_n_s_basename, __pyx_k_basename, sizeof(__pyx_k_basename), 0, 0, 1, 1},
   {&__pyx_kp_s_batchSol, __pyx_k_batchSol, sizeof(__pyx_k_batchSol), 0, 0, 1, 0},
@@ -27693,11 +27689,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "GraphDQN.pyx":191
  *             print(f"tf.is_gpu_available() : {tf.test.is_gpu_available()}\n")
  *         else:
- *             print(" No GPU detected - training will use CPU")             # <<<<<<<<<<<<<<
+ *             print("[WARNING] No GPU detected - training will use CPU")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_No_GPU_detected_training_will_u); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_WARNING_No_GPU_detected_trainin); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
@@ -27848,7 +27844,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * class GraphDQN:
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
- *         g_type = 'barabasi_albert',
+ *         g_type = 'BA',
  *         g_params = {'nrange': '30_50',
  */
   __pyx_tuple__23 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_g_type, __pyx_n_s_g_params, __pyx_n_s_gnn_model, __pyx_n_s_target_graph, __pyx_n_s_save_model_dir, __pyx_n_s_i, __pyx_n_s_config, __pyx_n_s_gpus, __pyx_n_s_a, __pyx_n_s_b); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 75, __pyx_L1_error)
@@ -29063,7 +29059,7 @@ if (!__Pyx_RefNanny) {
  * cdef int NUM_MAX = 120
  * cdef int REG_HIDDEN = 32             # <<<<<<<<<<<<<<
  * cdef int BATCH_SIZE = 64
- * cdef double initialization_stddev = 0.01  #
+ * cdef double initialization_stddev = 0.01  # weight initialization standard deviation
  */
   __pyx_v_8GraphDQN_REG_HIDDEN = 32;
 
@@ -29071,7 +29067,7 @@ if (!__Pyx_RefNanny) {
  * cdef int NUM_MAX = 120
  * cdef int REG_HIDDEN = 32
  * cdef int BATCH_SIZE = 64             # <<<<<<<<<<<<<<
- * cdef double initialization_stddev = 0.01  #
+ * cdef double initialization_stddev = 0.01  # weight initialization standard deviation
  * cdef int n_valid = 200
  */
   __pyx_v_8GraphDQN_BATCH_SIZE = 64;
@@ -29079,7 +29075,7 @@ if (!__Pyx_RefNanny) {
   /* "GraphDQN.pyx":61
  * cdef int REG_HIDDEN = 32
  * cdef int BATCH_SIZE = 64
- * cdef double initialization_stddev = 0.01  #             # <<<<<<<<<<<<<<
+ * cdef double initialization_stddev = 0.01  # weight initialization standard deviation             # <<<<<<<<<<<<<<
  * cdef int n_valid = 200
  * cdef int aux_dim = 4
  */
@@ -29087,7 +29083,7 @@ if (!__Pyx_RefNanny) {
 
   /* "GraphDQN.pyx":62
  * cdef int BATCH_SIZE = 64
- * cdef double initialization_stddev = 0.01  #
+ * cdef double initialization_stddev = 0.01  # weight initialization standard deviation
  * cdef int n_valid = 200             # <<<<<<<<<<<<<<
  * cdef int aux_dim = 4
  * cdef int num_env = 1
@@ -29095,7 +29091,7 @@ if (!__Pyx_RefNanny) {
   __pyx_v_8GraphDQN_n_valid = 0xC8;
 
   /* "GraphDQN.pyx":63
- * cdef double initialization_stddev = 0.01  #
+ * cdef double initialization_stddev = 0.01  # weight initialization standard deviation
  * cdef int n_valid = 200
  * cdef int aux_dim = 4             # <<<<<<<<<<<<<<
  * cdef int num_env = 1
@@ -29162,7 +29158,7 @@ if (!__Pyx_RefNanny) {
  * class GraphDQN:
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
- *         g_type = 'barabasi_albert',
+ *         g_type = 'BA',
  *         g_params = {'nrange': '30_50',
  */
   __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8GraphDQN_8GraphDQN_1__init__, 0, __pyx_n_s_GraphDQN___init, NULL, __pyx_n_s_GraphDQN, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
@@ -29171,7 +29167,7 @@ if (!__Pyx_RefNanny) {
 
   /* "GraphDQN.pyx":77
  *     def __init__(self,
- *         g_type = 'barabasi_albert',
+ *         g_type = 'BA',
  *         g_params = {'nrange': '30_50',             # <<<<<<<<<<<<<<
  *                     'm':2},
  *         gnn_model = 'graphSage',

@@ -10,7 +10,7 @@
         "save_model_dir": "./models"
     },
     "eval_config": {
-        "datasets": ["Crime","Digg"],
+        "datasets": ["Crime"],
         "step_ratio": 0.01,
         "strategy_id": 0,
         "save_result_dir": "./result/temp",
@@ -19,8 +19,8 @@
         "iter_step": 300,
         "synthetic_g_type": "BA",
         "synthetic_g_params": {
-            "nranges": ["30_50", "50_100"],
-            "m_values": [1, 2]
+            "nranges": ["30_50", "50_100","100_200","200_300","300_400","400_500"],
+            "m_values": [1, 2,3,4,5,6]
         },
         "per_graphs": 100
     },
