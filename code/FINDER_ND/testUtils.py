@@ -845,4 +845,41 @@ def plot_max_cc_lists(all_MaxCCList, plot_file_path):
     plt.close()
 
 
+def save_real_results(results, model_config, eval_config):
+    """Save evaluation results to individual dataset CSV files
+        results: dict of dicts, {dataset_name: {iter_num: {'score': score, 'time': time}}}
+        model_config: model configuration
+        eval_config: evaluation configuration
+
+        Returns: None
+    """
+    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
+    datasets = eval_config['datasets']
+
+    # Create output directory if it doesn't exist
+    if not os.path.exists(save_result_dir):
+        os.makedirs(save_result_dir, exist_ok=True)
+
+    print(f"\nSaving evaluation results to: {save_result_dir}")
+
+    # Save individual dataset files
+    for dataset in datasets:
+        dataset_file = os.path.join(save_result_dir, f"{dataset}.csv")
+        
+        dataset_data_for_df = []
+        if dataset in results:
+            for iter_num, data in results[dataset].items():
+                dataset_data_for_df.append({'iter': iter_num, 'score': data['score'], 'time': data['time']})
+        
+        if dataset_data_for_df:
+            df = pd.DataFrame(dataset_data_for_df)
+            df = df.sort_values(by='iter').reset_index(drop=True)
+            df.to_csv(dataset_file, index=False)
+            print(f"  ✓ Saved {dataset}.csv with {len(df)} rows.")
+        else:
+            print(f"  ⚠ No valid data for dataset {dataset} to save.")
+            
+    print("✓ All dataset CSV files updated.")
+
+
 
