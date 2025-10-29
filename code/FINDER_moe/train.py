@@ -21,8 +21,8 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 from GraphDQN import GraphDQN
-print(sys.path)
-exit()
+from MoEGraphDQN import MoEGraphDQN
+
 
 def check_gpu_setup():
     """Check GPU setup before training"""
@@ -53,7 +53,8 @@ def main():
             g_params = {'nrange': '50_100',
                         'm':6},
             gnn_model = 'graphSage',
-            target_graph = "Digg"
+            target_graph = "Digg",
+            save_model_dir= "./FINDER_moe/models"
         )
         
         dqn.Train()

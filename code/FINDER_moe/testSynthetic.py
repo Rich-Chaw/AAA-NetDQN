@@ -3,6 +3,7 @@
 import sys,os
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 from GraphDQN import GraphDQN
+from MoEGraphDQN import MoEGraphDQN
 from tqdm import tqdm
 import numpy as np
 import time
@@ -10,7 +11,7 @@ import networkx as nx
 import pandas as pd
 import json
 import argparse
-from testUtils import load_config, create_model, _get_synth_param_grid,load_synthetic_graphs,detailed_result_dir
+from testUtils import load_config, create_model,create_moe_model, _get_synth_param_grid,load_synthetic_graphs,detailed_result_dir
 
 from testUtils import visualize_graph_dismantling,create_dismantling_animation,plot_max_cc_curve,plot_max_cc_lists
 
@@ -373,7 +374,7 @@ def main():
         # Generate target iterations
         target_iters = list(range(eval_config['min_iter'], eval_config['max_iter'] + 1, eval_config['iter_step']))
         # Create model instance
-        dqn = create_model(model_config)
+        dqn = create_moe_model(model_config)
         
         # Load existing results
         existing_results = load_existing_synthetic_results(eval_config, model_config)
@@ -430,13 +431,13 @@ def main():
     if args.eval_iter:
         # --------------------------eval specified iter, draw sol and CC curve ----------------------------------
         if args.eval_iter < 0:
-            dqn = create_model(model_config,iter)
+            dqn = create_moe_model(model_config,iter)
             print("eval_iter = None, find best iter by dqn.findModel")
             best_ckpt_file = dqn.findModel()
             best_iter = int(best_ckpt_file.split('.ckpt')[0].split('_')[-1])
             args.eval_iter = best_iter
         
-        dqn = create_model(model_config,args.eval_iter)
+        dqn = create_moe_model(model_config,args.eval_iter)
 
         synth_grid = _get_synth_param_grid(eval_config)
         for entry in synth_grid:

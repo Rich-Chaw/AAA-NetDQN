@@ -59,7 +59,8 @@ cdef int NUM_MAX = 120
 cdef int REG_HIDDEN = 32
 cdef int BATCH_SIZE = 64  
 cdef double initialization_stddev = 0.01  # weight initialization standard deviation
-cdef int n_valid = 200
+cdef int n_valid = 200      #200
+cdef int n_train = 1000     #1000
 cdef int aux_dim = 4
 cdef int num_env = 1
 cdef double inf = 2147483647/2
@@ -129,7 +130,7 @@ class GraphDQN:
         if self.IsPrioritizedSampling:
             self.nStepReplayMem = nstep_replay_mem_prioritized.py_Memory(epsilon,alpha,beta,beta_increment_per_sampling,TD_err_upper,MEMORY_SIZE)
         else:
-            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE)
+            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE, GAMMA)
 
         for i in range(num_env):
             self.env_list.append(mvc_env.py_MvcEnv(NUM_MAX))
@@ -286,14 +287,14 @@ class GraphDQN:
         sys.stdout.flush()
         self.ClearTrainGraphs()
         if self.g_type in ['ER','PL','SW','BA']:
-            for i in tqdm(range(1000), desc="Training graphs"):
+            for i in tqdm(range(n_train), desc="Training graphs"):
                 g = self.gen_graph(num_min, num_max)
                 self.InsertGraph(g, is_test=False)
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f"{self.train_dir}/{self.target_graph}_ego_train_{self.dataset_id}.pkl", 'rb'))
             print(f"Loading training graphs from {self.train_dir} (id: {self.dataset_id})")
             self.dataset_id += 1
-            for i in tqdm(range(1000), desc="Training graphs"):
+            for i in tqdm(range(n_train), desc="Training graphs"):
                 g = graphs[i]
                 # g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
                 self.InsertGraph(g, is_test=False)
@@ -351,34 +352,61 @@ class GraphDQN:
 
 
     def Run_simulator(self, int n_traj, double eps, TrainSet, int n_step):
+        print("TEMP: start GraphDQN:Run_simulator")
+
         cdef int num_env = len(self.env_list)
         cdef int n = 0
         cdef int i
+        t_sim_start = time.time()
         while n < n_traj: 
             for i in range(num_env):
-                if self.env_list[i].graph.num_nodes == 0 or self.env_list[i].isTerminal():
+                # Check if environment needs reset
+                if self.env_list[i].graph.num_nodes == 0 or self.env_list[i].isTerminal() or self.env_list[i].isTruncated():
+                    if self.env_list[i].graph.num_nodes != 0:
+                        print(f"TEMP: Environment {i} - Terminal: {self.env_list[i].isTerminal()}, Truncated: {self.env_list[i].isTruncated()}")
+                        print(f"TEMP: Environment {i} Graph status: \t {self.env_list[i].printGraph()}")
+
+                    # Add experience to replay memory if episode completed
                     if self.env_list[i].graph.num_nodes > 0 and self.env_list[i].isTerminal():
                         n = n + 1
                         self.nStepReplayMem.Add(self.env_list[i], n_step)
-                        #print ('add experience transition!')
-                    g_sample= TrainSet.Sample()
+                        print(f"TEMP: Added terminal episode to replay memory. Progress: {n}/{n_traj}")
+                    elif self.env_list[i].graph.num_nodes > 0 and self.env_list[i].isTruncated():
+                        print("TEMP: Estimating remaining return for truncated episode")
+                        self.env_list[i].estimateRemainingReturn(0, GAMMA)
+                        print("TEMP: Remaining return estimation completed")
+                        n = n + 1
+                        self.nStepReplayMem.Add(self.env_list[i], n_step)
+                        print(f"TEMP: Added truncated episode to replay memory. Progress: {n}/{n_traj}")
+
+                    # Reset environment with new graph
+                    g_sample = TrainSet.Sample()
                     self.env_list[i].s0(g_sample)
                     self.g_list[i] = self.env_list[i].graph
+                    print(f"TEMP: Environment {i} reset with new graph (nodes: {self.g_list[i].num_nodes})")
+            
+            # Check if we've collected enough trajectories
             if n >= n_traj:
+                t_sim_end = time.time()
+                print(f"TEMP: Collected {n} trajectories, time:{t_sim_end-t_sim_start}")
                 break
 
+            # Select actions for all environments
             Random = False
             if random.uniform(0,1) >= eps:
                 pred = self.PredictWithCurrentQNet(self.g_list, [env.action_list for env in self.env_list])
             else:
                 Random = True
 
+            # Execute actions
             for i in range(num_env):
                 if (Random):
                     a_t = self.env_list[i].randomAction()
                 else:
                     a_t = self.argMax(pred[i])
                 self.env_list[i].step(a_t)
+
+        print("TEMP: end GraphDQN:Run_simulator")
     #pass
     def PlayGame(self,int n_traj, double eps):
         self.Run_simulator(n_traj, eps, self.TrainSet, N_STEP)
@@ -479,7 +507,10 @@ class GraphDQN:
             ISWeights: importance sampling weights, shape [BATCH_SIZE]
         
         '''
+        print("TEMP: start GraphDQN:Fit")
         sample = self.nStepReplayMem.Sampling(BATCH_SIZE)
+        print("TEMP: nStepReplayMem.Sampling(BATCH_SIZE) successfully")
+        # print(f"TEMP: sample = {sample}")
         ness = False
         cdef int i
         for i in range(BATCH_SIZE):
@@ -499,11 +530,12 @@ class GraphDQN:
 
         for i in range(BATCH_SIZE):
             q_rhs = 0
+            gamma_n = GAMMA ** N_STEP  # Use GAMMA^n for n-step
             if (not sample.list_term[i]):
                 if self.IsDoubleDQN:
-                    q_rhs=GAMMA * list_pred[i]
+                    q_rhs=gamma_n * list_pred[i]
                 else:
-                    q_rhs=GAMMA * self.Max(list_pred[i])
+                    q_rhs=gamma_n * self.Max(list_pred[i])
             q_rhs += sample.list_rt[i] # TD target =  R_t + GAMMA * max(Q_pred)
             list_target[i] = q_rhs
         
@@ -611,14 +643,14 @@ class GraphDQN:
             print(f"Resuming from checkpoint: {last_ckpt} at iter {last_iter}")
             self.LoadModel(last_ckpt)
             start_iter = last_iter + 1
-            _,runtime = self.resume_nlines_and_runtime()
+            _,exist_runtime = self.resume_nlines_and_runtime()
             # Open CSV in append mode
             f_out = open(self.VCFile, 'a')
         else:
             print("\nNo checkpoint found, starting from scratch.")
             # Start from scratch, overwrite CSV
             start_iter = 0
-            runtime = 0
+            exist_runtime = 0
             f_out = open(self.VCFile, 'w')
 
 
@@ -640,7 +672,7 @@ class GraphDQN:
                 for idx in range(n_valid):
                     frac += self.Test(idx)
                 test_end = time.time()
-                f_out.write('%d, %.8f, %.4f\n'%(iter,frac/n_valid, test_end-t_train_start+runtime))   #write vc into the file
+                f_out.write('%d, %.8f, %.4f\n'%(iter,frac/n_valid, test_end-t_train_start+exist_runtime))   #write vc into the file
                 f_out.flush()
                 print('iter %d, eps %.4f, average size of vc:%.6f'%(iter, eps, frac/n_valid))
                 print ('testing 200 graphs time: %.2fs'%(test_end-test_start))

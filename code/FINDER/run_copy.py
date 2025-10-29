@@ -10,23 +10,23 @@ with different parameters (nrange and m values).
 import subprocess
 import sys
 import os
-import argparse
 
-def run_synthetic_evaluation(FINDER_TYPE):
+def run_synthetic_evaluation():
     """
     Run synthetic dataset evaluation with example parameters
     """
     
     # Example 1: Evaluate BA model trained on 30-50 nodes with m=3
     # on synthetic datasets with different nrange and m values
-
+    print("=" * 80)
     
+
     # eval model from model path
 
     # for nrange in ['30_50',"50_100"]:
     #     for m in [1,2,3,4,5,6]:
     #         cmd = [
-    #             "python", f"./{FINDER_TYPE}/testSynthetic.py",
+    #             "python", "./FINDER_ND/testSynthetic.py",
     #             "--model_path", f"./models/BA_nrange_{nrange}_m_{m}",
     #             "--min_iter", "3000",
     #             "--max_iter", "90000",
@@ -37,7 +37,7 @@ def run_synthetic_evaluation(FINDER_TYPE):
     #         subprocess.run(cmd)
 
     # cmd = [
-    #         "python", f"./{FINDER_TYPE}/testSynthetic.py",
+    #         "python", "./FINDER_ND/testSynthetic.py",
     #         "--model_path", f"./models/BA_nrange_30_50_m_6",
     #         "--min_iter", "0",
     #         "--max_iter", "50000",
@@ -49,7 +49,7 @@ def run_synthetic_evaluation(FINDER_TYPE):
 
     # # eval iter 900,
     # cmd = [
-    #     "python", f"./{FINDER_TYPE}/testSynthetic.py",
+    #     "python", "./FINDER_ND/testSynthetic.py",
     #     "--model_path", "./models/BA_nrange_30_50_m_2",
     #     "--eval_iter","900",
     #     "--per_graphs", "2"
@@ -58,7 +58,7 @@ def run_synthetic_evaluation(FINDER_TYPE):
 
     # # eval_iter < 0, eval best iter,
     # cmd = [
-    #     "python", f"./{FINDER_TYPE}/testSynthetic.py",
+    #     "python", "./FINDER_ND/testSynthetic.py",
     #     "--model_path", "./models/BA_nrange_30_50_m_2",
     #     "--eval_iter","-1",
     #     "--per_graphs", "2"
@@ -70,18 +70,10 @@ def run_synthetic_evaluation(FINDER_TYPE):
     # !!! nrange and m still need to modify in or config.json by hand
 
 
-    
-
-
-    
-
-def run_real_evaluation(FINDER_TYPE):
     # Real
-    cmd = []
 
-    # eval iters
     # cmd = [
-    #         "python", f"./{FINDER_TYPE}/testReal.py",
+    #         "python", "./FINDER_ND/testReal.py",
     #         "--model_path", f"./models/BA_nrange_30_50_m_4",
     #         "--min_iter", "3000",
     #         "--max_iter", "3300",
@@ -90,70 +82,36 @@ def run_real_evaluation(FINDER_TYPE):
     #     ]
     # subprocess.run(cmd)
 
-    # eval specified iter
     # cmd = [
-    #         "python", f"./{FINDER_TYPE}/testReal.py",
+    #         "python", "./FINDER_ND/testReal.py",
     #         "--eval_iter","108300"
     #     ]
-    # subprocess.run(cmd)
 
-    # eval specified iter,save sol only
+    # find best iter as iter
     # cmd = [
-    #         "python", f"./{FINDER_TYPE}/testReal.py",
+    #         "python", "./FINDER_ND/testReal.py",
+    #         "--eval_iter","-1"
+    #     ]
+
+
+
+    # cmd = [
+    #         "python", "./FINDER_ND/testReal.py",
     #         "--eval_iter","108300",
     #         "--save_sol_only"
     #     ]
+    
     # subprocess.run(cmd)
 
-    # eval best iter in validation
-    # cmd = [
-    #         "python", f"./{FINDER_TYPE}/testReal.py",
-    #         "--eval_iter","-1"
-    #     ]
-    # subprocess.run(cmd)
 
-def run_models_evaluation(FINDER_TYPE):
-    cmd = []
     cmd = [
-            "python", f"./{FINDER_TYPE}/testModels.py",
-            "--eval_synthetic",
+            "python", "./FINDER_ND/testModels.py",
+            "--eval_synth",
             "--eval_real",
             "--eval_all_iters"
         ]
-    subprocess.run(cmd)
-
-def run_router_evaluation(FINDER_TYPE):
-    cmd = [
-            "python", f"./{FINDER_TYPE}/run_router_analysis.py",
-            "--model_path","MoE_BA_nrange_50_100_m_5",
-            "--analysis_dir","./router_analysis_results",
-            "--n_synthetic","1",
-            "--real_datasets","Crime","Digg"
-        ]
+    
     subprocess.run(cmd)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Complete evaluation Pipeline')
-    # parser.add_argument("--model_path", type=str, required=True,
-    #                    help="Path to trained MoE model directory")
-    parser.add_argument("--testReal", action="store_true")
-    parser.add_argument("--testSynthetic", action="store_true")
-    parser.add_argument("--testModels", action="store_true")
-    parser.add_argument("--testRouter", action="store_true")
-    parser.add_argument("--ftype", type=str, default="FINDER_moe",
-                       help="FINDER type")
-
-    args = parser.parse_args()
-    finder_type = args.ftype
-
-    if args.testSynthetic:
-        run_synthetic_evaluation(finder_type)
-
-    if args.testReal:
-        run_real_evaluation(finder_type)
-    
-    if args.testModels:
-        run_models_evaluation(finder_type)
-
-    if args.testRouter:
-        run_router_evaluation(finder_type)
+    run_synthetic_evaluation() 

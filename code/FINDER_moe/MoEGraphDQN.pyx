@@ -165,14 +165,19 @@ class MoEGraphDQN:
         self.expert_utilization = tf1.placeholder(tf.float32, [None, self.num_experts], name="expert_utilization")
 
         # Build the MoE network
-        self.loss, self.trainStep, self.q_pred, self.q_on_all, self.trainable_vars = self.BuildMoENet()
-        
+        self.loss, self.trainStep, self.q_pred, self.q_on_all, self.Q_param_list = self.BuildMoENet()
+        # init Target Q Network
+        self.lossT,self.trainStepT,self.q_predT, self.q_on_allT,self.Q_param_listT = self.BuildMoENet()
+        #takesnapsnot
+        self.copyTargetQNetworkOperation = [a.assign(b) for a,b in zip(self.Q_param_listT,self.Q_param_list)]
+        self.UpdateTargetQNetwork = tf.group(*self.copyTargetQNetworkOperation)
+
         # Initialize session
         self.sess = tf1.Session()
         self.sess.run(tf1.global_variables_initializer())
         
         # Saver for model checkpointing
-        self.saver = tf1.train.Saver(max_to_keep=10)
+        self.saver = tf1.train.Saver(max_to_keep=None)
 
     def BuildMoENet(self):
         """Build the MoE network architecture"""
@@ -189,7 +194,7 @@ class MoEGraphDQN:
         y_node_input = tf.cast(tf.ones((y_nodes_size,feature_size)),tf.float32)
 
         # MoE Encoder
-        encoder = MoEGraphEncoder(
+        self.encoder = MoEGraphEncoder(
             embedding_size=self.embedding_size,
             feature_size=feature_size,
             initialization_stddev=initialization_stddev,
@@ -197,7 +202,7 @@ class MoEGraphDQN:
         )
         
         # MoE Decoder
-        decoder = MoEMLPDecoder(
+        self.decoder = MoEMLPDecoder(
             embedding_size=self.embedding_size,
             reg_hidden=self.reg_hidden,
             aux_dim=aux_dim,
@@ -205,7 +210,7 @@ class MoEGraphDQN:
         )
 
         # Encoder: get node and graph embeddings with expert weights
-        cur_message_layer, y_cur_message_layer, expert_weights = encoder.encode(
+        cur_message_layer, y_cur_message_layer, expert_weights = self.encoder.encode(
             node_input,
             y_node_input,
             self.n2nsum_param, 
@@ -214,7 +219,7 @@ class MoEGraphDQN:
         )
         
         # Decoder: get Q(s,a) [B, 1]
-        q_pred = decoder.decode_q(
+        q_pred = self.decoder.decode_q(
             cur_message_layer,
             self.action_select,
             y_cur_message_layer, 
@@ -222,7 +227,7 @@ class MoEGraphDQN:
         )
 
         # Decoder: get Q(s,a) for all nodes of all graphs [N, 1]
-        q_on_all = decoder.decode_q_all(
+        q_on_all = self.decoder.decode_q_all(
             cur_message_layer,
             y_cur_message_layer, 
             self.aux_input,
@@ -240,7 +245,7 @@ class MoEGraphDQN:
             if self.IsHuberloss:
                 loss_rl = tf.losses.huber_loss(self.ISWeights * self.target, self.ISWeights * q_pred)
             else:
-                loss_rl = tf.reduce_mean(self.ISWeights * tf.squared_difference(self.target, q_pred))
+                loss_rl = tf.reduce_mean(self.ISWeights * tf1.squared_difference(self.target, q_pred))
         else:
             if self.IsHuberloss:
                 loss_rl = tf.losses.huber_loss(self.target, q_pred)
@@ -251,7 +256,7 @@ class MoEGraphDQN:
         # Encourage equal utilization of experts
         expert_utilization_mean = tf.reduce_mean(expert_weights, axis=0)  # [num_experts]
         target_utilization = 1.0 / tf.cast(self.num_experts, tf.float32)
-        load_balance_loss = tf.reduce_mean(tf.squared_difference(expert_utilization_mean, target_utilization))
+        load_balance_loss = tf.reduce_mean(tf1.squared_difference(expert_utilization_mean, target_utilization))
         
         # Total loss
         loss = loss_rl + Alpha * loss_recons + self.moe_config['load_balance_loss_weight'] * load_balance_loss
@@ -302,11 +307,14 @@ class MoEGraphDQN:
 
     def InsertGraph(self, g, is_test=False):
         """Insert a graph into the dataset (same as original)"""
+        cdef int t
         if is_test:
-            self.TestSet.InsertGraph(g)
+            t = self.ngraph_test
+            self.TestSet.InsertGraph(t,self.GenNetwork(g))
             self.ngraph_test += 1
         else:
-            self.TrainSet.InsertGraph(g)
+            t = self.ngraph_train
+            self.TrainSet.InsertGraph(t,self.GenNetwork(g))
             self.ngraph_train += 1
 
     def PrepareValidData(self):
@@ -329,40 +337,143 @@ class MoEGraphDQN:
         self.TestSet.Clear()
         self.ngraph_test = 0
 
-    def PlayGame(self, int n_traj, double eps):
-        """Play games to collect experience (same as original)"""
-        cdef int i, j
-        for i in range(n_traj):
-            self.env_list[0].s0(self.TrainSet.Get(i % self.ngraph_train))
-            self.g_list[0] = self.env_list[0].graph
-            while (not self.env_list[0].isTerminal()):
-                list_pred = self.PredictWithCurrentQNet([self.g_list[0]], [self.env_list[0].action_list])
-                if random.random() < eps:
-                    action = random.choice(self.env_list[0].action_list)
-                else:
-                    action = self.argMax(list_pred[0])
-                self.env_list[0].step(action)
+    def Run_simulator(self, int n_traj, double eps, TrainSet, int n_step):
+        cdef int num_env = len(self.env_list)
+        cdef int n = 0
+        cdef int i
+        while n < n_traj: 
+            for i in range(num_env):
+                if self.env_list[i].graph.num_nodes == 0 or self.env_list[i].isTerminal():
+                    if self.env_list[i].graph.num_nodes > 0 and self.env_list[i].isTerminal():
+                        n = n + 1
+                        self.nStepReplayMem.Add(self.env_list[i], n_step)
+                        #print ('add experience transition!')
+                    g_sample= TrainSet.Sample()
+                    self.env_list[i].s0(g_sample)
+                    self.g_list[i] = self.env_list[i].graph
+            if n >= n_traj:
+                break
 
-    def PredictWithCurrentQNet(self, g_list, action_list):
-        """Predict Q-values with current network (adapted for MoE)"""
-        # Prepare batch data
-        batch_data = PrepareBatchGraph.py_PrepareBatchGraph(g_list, action_list)
+            Random = False
+            if random.uniform(0,1) >= eps:
+                pred = self.PredictWithCurrentQNet(self.g_list, [env.action_list for env in self.env_list])
+            else:
+                Random = True
+
+            for i in range(num_env):
+                if (Random):
+                    a_t = self.env_list[i].randomAction()
+                else:
+                    a_t = self.argMax(pred[i])
+                self.env_list[i].step(a_t)
+    #pass
+    def PlayGame(self,int n_traj, double eps):
+        self.Run_simulator(n_traj, eps, self.TrainSet, N_STEP)
+
+    # def PlayGame(self, int n_traj, double eps):
+    #     """Play games to collect experience (same as original)"""
+    #     cdef int i, j
+    #     for i in range(n_traj):
+    #         self.env_list[0].s0(self.TrainSet.Get(i % self.ngraph_train))
+    #         self.g_list[0] = self.env_list[0].graph
+    #         while (not self.env_list[0].isTerminal()):
+    #             list_pred = self.PredictWithCurrentQNet(self.g_list, [self.env_list[0].action_list])
+    #             if random.random() < eps:
+    #                 action = random.choice(self.env_list[0].action_list)
+    #             else:
+    #                 action = self.argMax(list_pred[0])
+    #             self.env_list[0].step(action)
+
+    def SetupPredAll(self, idxes, g_list, covered):
+        prepareBatchGraph = PrepareBatchGraph.py_PrepareBatchGraph(aggregatorID)
+        prepareBatchGraph.SetupPredAll(idxes, g_list, covered)
+        self.inputs['rep_global'] = prepareBatchGraph.rep_global
+        self.inputs['n2nsum_param'] = prepareBatchGraph.n2nsum_param
+        # self.inputs['laplacian_param'] = prepareBatchGraph.laplacian_param
+        self.inputs['subgsum_param'] = prepareBatchGraph.subgsum_param
+        self.inputs['aux_input'] = prepareBatchGraph.aux_feat
+        self.inputs['batch_graph_ids'] = prepareBatchGraph.batch_graph_ids
+        return prepareBatchGraph.idx_map_list
+
+    def Predict(self,g_list,covered,isSnapSnot):
+        cdef int n_graphs = len(g_list)
+        cdef int i, j, k, bsize
+        for i in range(0, n_graphs, BATCH_SIZE):
+            bsize = BATCH_SIZE
+            if (i + BATCH_SIZE) > n_graphs:
+                bsize = n_graphs - i
+            batch_idxes = np.zeros(bsize)
+            for j in range(i, i + bsize):
+                batch_idxes[j-i] = j
+            batch_idxes = np.int32(batch_idxes)
+
+            idx_map_list = self.SetupPredAll(batch_idxes, g_list, covered)
+            
+            # Get expert utilization (initialize with uniform distribution)
+            # batch_size = len(g_list)
+            expert_util = np.ones((bsize, self.num_experts)) / self.num_experts
+
+            # Use sparse tensors directly - conversion handled in encoder/decoder
+            my_dict = {}
+            my_dict[self.rep_global] = self.inputs['rep_global']
+            my_dict[self.n2nsum_param] = self.inputs['n2nsum_param']
+            my_dict[self.subgsum_param] = self.inputs['subgsum_param']
+            my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
+            # add expert_utilization
+            my_dict[self.expert_utilization] = expert_util
+
+            if isSnapSnot:
+                result = self.sess.run([self.q_on_allT], feed_dict = my_dict)
+            else:
+                result = self.sess.run([self.q_on_all], feed_dict = my_dict)
+            raw_output = result[0]
+            pos = 0
+            pred = []
+            for j in range(i, i + bsize):
+                idx_map = idx_map_list[j-i]
+                cur_pred = np.zeros(len(idx_map))
+                for k in range(len(idx_map)):
+                    if idx_map[k] < 0:
+                        cur_pred[k] = -inf
+                    else:
+                        cur_pred[k] = raw_output[pos]
+                        pos += 1
+                for k in covered[j]:
+                    cur_pred[k] = -inf
+                pred.append(cur_pred)
+            assert (pos == len(raw_output))
+        return pred
+
+    def PredictWithCurrentQNet(self,g_list,covered):
+        result = self.Predict(g_list,covered,False)
+        return result
+
+    def PredictWithSnapshot(self,g_list,covered):
+        result = self.Predict(g_list,covered,True)
+        return result
+
+    # def PredictWithCurrentQNet(self, g_list, action_list):
+    #     """Predict Q-values with current network (adapted for MoE)"""
+    #     # # Prepare batch data
+    #     # batch_data = PrepareBatchGraph.py_PrepareBatchGraph(g_list, action_list)
         
-        # Get expert utilization (initialize with uniform distribution)
-        batch_size = len(g_list)
-        expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
+    #     # # Get expert utilization (initialize with uniform distribution)
+    #     # batch_size = len(g_list)
+    #     # expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
         
-        # Run prediction
-        q_values = self.sess.run(self.q_on_all, feed_dict={
-            self.n2nsum_param: batch_data['n2nsum_param'],
-            self.subgsum_param: batch_data['subgsum_param'],
-            self.rep_global: batch_data['rep_global'],
-            self.aux_input: batch_data['aux_input'],
-            self.batch_graph_ids: batch_data['batch_graph_ids'],
-            self.expert_utilization: expert_util
-        })
+    #     # # Run prediction
+    #     # q_values = self.sess.run(self.q_on_all, feed_dict={
+    #     #     self.n2nsum_param: batch_data['n2nsum_param'],
+    #     #     self.subgsum_param: batch_data['subgsum_param'],
+    #     #     self.rep_global: batch_data['rep_global'],
+    #     #     self.aux_input: batch_data['aux_input'],
+    #     #     self.batch_graph_ids: batch_data['batch_graph_ids'],
+    #     #     self.expert_utilization: expert_util
+    #     # })
         
-        return q_values
+    #     # return q_values
+
 
     def argMax(self, list_pred):
         """Get action with maximum Q-value (same as original)"""
@@ -376,36 +487,187 @@ class MoEGraphDQN:
         return max_idx
 
     def Fit(self):
-        """Fit the model (adapted for MoE)"""
-        if self.nStepReplayMem.size() < BATCH_SIZE:
-            return
+        '''
+        the sample contains:
+        g_list: [BATCH_SIZE] (each element is a graph object)
+        list_st: [BATCH_SIZE] (each element is a list of covered node indices, variable length)
+        list_at: [BATCH_SIZE] (each element is an int, the action taken)
+        list_rt: [BATCH_SIZE] (each element is a float, the reward)
+        list_s_primes: [BATCH_SIZE] (each element is a list, the next state)
+        list_term: [BATCH_SIZE] (each element is a bool, whether the episode ended)
         
-        # Sample batch
+        If using prioritized replay, you may also have:
+            b_idx: batch indices in the replay buffer
+            ISWeights: importance sampling weights, shape [BATCH_SIZE]
+        
+        '''
+        sample = self.nStepReplayMem.Sampling(BATCH_SIZE)
+        ness = False
+        cdef int i
+        for i in range(BATCH_SIZE):
+            if (not sample.list_term[i]):
+                ness = True
+                break
+        if ness:
+            if self.IsDoubleDQN:
+                double_list_pred = self.PredictWithCurrentQNet(sample.g_list, sample.list_s_primes)
+                double_list_predT = self.PredictWithSnapshot(sample.g_list, sample.list_s_primes)
+                list_pred = [a[self.argMax(b)] for a, b in zip(double_list_predT, double_list_pred)]
+            else:
+                list_pred = self.PredictWithSnapshot(sample.g_list, sample.list_s_primes)
+        
+        # [BATCH_SIZE, 1], TD target for each sample
+        list_target = np.zeros([BATCH_SIZE, 1])
+
+        for i in range(BATCH_SIZE):
+            q_rhs = 0
+            if (not sample.list_term[i]):
+                if self.IsDoubleDQN:
+                    q_rhs=GAMMA * list_pred[i]
+                else:
+                    q_rhs=GAMMA * self.Max(list_pred[i])
+            q_rhs += sample.list_rt[i] # TD target =  R_t + GAMMA * max(Q_pred)
+            list_target[i] = q_rhs
+        
         if self.IsPrioritizedSampling:
-            batch_data, batch_ISWeights = self.nStepReplayMem.sample(BATCH_SIZE)
-            self.ISWeights = batch_ISWeights
+            return self.fit_with_prioritized(
+                tree_idx = sample.b_idx,
+                ISWeights = sample.ISWeights,
+                g_list=sample.g_list, 
+                covered=sample.list_st, 
+                actions=sample.list_at,
+                list_target=list_target
+                )
         else:
-            batch_data = self.nStepReplayMem.sample(BATCH_SIZE)
+            return self.fit(
+                g_list = sample.g_list, 
+                covered = sample.list_st, 
+                actions = sample.list_at,
+                list_target = list_target
+                )
+
+    def fit_with_prioritized(self,tree_idx,ISWeights,g_list,covered,actions,list_target):
+        cdef double loss = 0.0
+        cdef int n_graphs = len(g_list)
+        cdef int i, j, bsize
+        for i in range(0,n_graphs,BATCH_SIZE):
+            # batch_idxes is an array of indices for the current mini-batch, 
+            # e.g., [0, 1, 2, ..., bsize-1] for each sub-batch within the full batch
+            # For batch_size 64, the first batch_idxes would be [0, 1, ..., 63]
+            bsize = BATCH_SIZE
+            if (i + BATCH_SIZE) > n_graphs:
+                bsize = n_graphs - i
+            batch_idxes = np.zeros(bsize)
+            for j in range(i, i + bsize):
+                batch_idxes[j-i] = j
+            batch_idxes = np.int32(batch_idxes)
+
+            self.SetupTrain(batch_idxes, g_list, covered, actions,list_target)
+            my_dict = {}
+            my_dict[self.action_select] = self.inputs['action_select']
+            my_dict[self.rep_global] = self.inputs['rep_global']
+            my_dict[self.n2nsum_param] = self.inputs['n2nsum_param']
+            my_dict[self.laplacian_param] = self.inputs['laplacian_param']
+            my_dict[self.subgsum_param] = self.inputs['subgsum_param']
+            my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
+            my_dict[self.ISWeights] = np.mat(ISWeights).T
+            my_dict[self.target] = self.inputs['target']
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
+
+            # Get expert utilization for load balancing
+            # batch_size = len(batch_data['g_list'])
+            # expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
+            # my_dict[self.expert_utilization] = expert_util
+
+            result = self.sess.run([self.trainStep,self.TD_errors,self.loss],feed_dict=my_dict)
+            self.nStepReplayMem.batch_update(tree_idx, result[1])
+            loss += result[2]*bsize
+        return loss / len(g_list)
+
+
+    
+    def fit(self,g_list,covered,actions,list_target):
+        cdef double loss = 0.0
+        cdef int n_graphs = len(g_list)
+        cdef int i, j, bsize
         
-        # Get expert utilization for load balancing
-        batch_size = len(batch_data['g_list'])
-        expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
+        for i in range(0,n_graphs,BATCH_SIZE):
+            bsize = BATCH_SIZE
+            if (i + BATCH_SIZE) > n_graphs:
+                bsize = n_graphs - i
+            batch_idxes = np.zeros(bsize)
+            for j in range(i, i + bsize):
+                batch_idxes[j-i] = j
+            batch_idxes = np.int32(batch_idxes)
+
+            self.SetupTrain(batch_idxes, g_list, covered, actions,list_target)
+            
+            # Use sparse tensors directly - conversion handled in encoder/decoder
+            my_dict = {}
+            my_dict[self.action_select] = self.inputs['action_select']
+            my_dict[self.rep_global] = self.inputs['rep_global']
+            my_dict[self.n2nsum_param] = self.inputs['n2nsum_param']
+            my_dict[self.laplacian_param] = self.inputs['laplacian_param']
+            my_dict[self.subgsum_param] = self.inputs['subgsum_param']
+            my_dict[self.aux_input] = np.array(self.inputs['aux_input'])
+            my_dict[self.target] = self.inputs['target']
+            my_dict[self.batch_graph_ids] = self.inputs['batch_graph_ids']
+
+            # # Get expert utilization for load balancing
+            # batch_size = len(batch_data['g_list'])
+            # expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
+            # my_dict[self.expert_utilization] = expert_util
+
+            result = self.sess.run([self.loss,self.trainStep],feed_dict=my_dict)
+            # print(result[0],bsize)
+            loss += result[0].mean()*bsize
+        return loss / len(g_list)
+
+    def SetupTrain(self, idxes, g_list, covered, actions, target):
+        self.m_y = target
+        self.inputs['target'] = self.m_y
+        prepareBatchGraph = PrepareBatchGraph.py_PrepareBatchGraph(aggregatorID)
+        prepareBatchGraph.SetupTrain(idxes, g_list, covered, actions)
+        self.inputs['action_select'] = prepareBatchGraph.act_select
+        self.inputs['rep_global'] = prepareBatchGraph.rep_global
+        self.inputs['n2nsum_param'] = prepareBatchGraph.n2nsum_param
+        self.inputs['laplacian_param'] = prepareBatchGraph.laplacian_param
+        self.inputs['subgsum_param'] = prepareBatchGraph.subgsum_param
+        self.inputs['aux_input'] = prepareBatchGraph.aux_feat
+        self.inputs['batch_graph_ids'] = prepareBatchGraph.batch_graph_ids
+
+    # def Fit(self):
+    #     """Fit the model (adapted for MoE)"""
+    #     if self.nStepReplayMem.size() < BATCH_SIZE:
+    #         return
         
-        # Train
-        self.sess.run(self.trainStep, feed_dict={
-            self.n2nsum_param: batch_data['n2nsum_param'],
-            self.subgsum_param: batch_data['subgsum_param'],
-            self.action_select: batch_data['action_select'],
-            self.rep_global: batch_data['rep_global'],
-            self.target: batch_data['target'],
-            self.aux_input: batch_data['aux_input'],
-            self.batch_graph_ids: batch_data['batch_graph_ids'],
-            self.expert_utilization: expert_util
-        })
+    #     # Sample batch
+    #     if self.IsPrioritizedSampling:
+    #         batch_data, batch_ISWeights = self.nStepReplayMem.sample(BATCH_SIZE)
+    #         self.ISWeights = batch_ISWeights
+    #     else:
+    #         batch_data = self.nStepReplayMem.sample(BATCH_SIZE)
+        
+    #     # Get expert utilization for load balancing
+    #     batch_size = len(batch_data['g_list'])
+    #     expert_util = np.ones((batch_size, self.num_experts)) / self.num_experts
+        
+    #     # Train
+    #     self.sess.run(self.trainStep, feed_dict={
+    #         self.n2nsum_param: batch_data['n2nsum_param'],
+    #         self.subgsum_param: batch_data['subgsum_param'],
+    #         self.action_select: batch_data['action_select'],
+    #         self.rep_global: batch_data['rep_global'],
+    #         self.target: batch_data['target'],
+    #         self.aux_input: batch_data['aux_input'],
+    #         self.batch_graph_ids: batch_data['batch_graph_ids'],
+    #         self.expert_utilization: expert_util
+    #     })
 
     def TakeSnapShot(self):
         """Take snapshot of target network (same as original)"""
         # This would be implemented if using target networks
+        self.sess.run(self.UpdateTargetQNetwork)
         pass
 
     def SaveModel(self, filename):
@@ -419,6 +681,41 @@ class MoEGraphDQN:
         load_path = os.path.join(self.save_model_dir, filename)
         self.saver.restore(self.sess, load_path)
         print(f"Model loaded from {load_path}")
+
+    def Max(self, scores):
+        cdef int n = len(scores)
+        cdef int pos = -1
+        cdef double best = -10000000
+        cdef int i
+        for i in range(n):
+            if pos == -1 or scores[i] > best:
+                pos = i
+                best = scores[i]
+        return best
+
+    def HXA(self, g, method):
+        # 'HDA', 'HBA', 'HPRA', ''
+        sol = []
+        G = g.copy()
+        while (nx.number_of_edges(G)>0):
+            if method == 'HDA':
+                dc = nx.degree_centrality(G)
+            elif method == 'HBA':
+                dc = nx.betweenness_centrality(G)
+            elif method == 'HCA':
+                dc = nx.closeness_centrality(G)
+            elif method == 'HPRA':
+                dc = nx.pagerank(G)
+            keys = list(dc.keys())
+            values = list(dc.values())
+            maxTag = np.argmax(values)
+            node = keys[maxTag]
+            sol.append(int(node))
+            G.remove_node(node)
+        solution = sol + list(set(g.nodes())^set(sol))
+        solutions = [int(i) for i in solution]
+        Robustness = self.utils.getRobustness(self.GenNetwork(g), solutions)
+        return Robustness, sol
 
     def resume_checkpoint_and_iter(self):
         """Resume from latest checkpoint"""
@@ -479,20 +776,20 @@ class MoEGraphDQN:
         cdef double frac, start, end
         
         start_iter = 0
-        last_ckpt, last_iter = self.resume_checkpoint_and_iter()
-        if last_ckpt != None:
-            print(f"Resuming from checkpoint: {last_ckpt} at iter {last_iter}")
-            self.LoadModel(last_ckpt)
-            start_iter = last_iter + 1
-            _,runtime = self.resume_nlines_and_runtime()
-            # Open CSV in append mode
-            f_out = open(self.VCFile, 'a')
-        else:
-            print("\nNo checkpoint found, starting from scratch.")
-            # Start from scratch, overwrite CSV
-            start_iter = 0
-            runtime = 0
-            f_out = open(self.VCFile, 'w')
+        # last_ckpt, last_iter = self.resume_checkpoint_and_iter()
+        # if last_ckpt != None:
+        #     print(f"Resuming from checkpoint: {last_ckpt} at iter {last_iter}")
+        #     self.LoadModel(last_ckpt)
+        #     start_iter = last_iter + 1
+        #     _,runtime = self.resume_nlines_and_runtime()
+        #     # Open CSV in append mode
+        #     f_out = open(self.VCFile, 'a')
+        # else:
+        print("\nNo checkpoint found, starting from scratch.")
+        # Start from scratch, overwrite CSV
+        start_iter = 0
+        runtime = 0
+        f_out = open(self.VCFile, 'w')
 
         t_train_start = time.time()
         for iter in range(start_iter, MAX_ITERATION):
@@ -560,8 +857,126 @@ class MoEGraphDQN:
         return best_model
 
     def Evaluate(self, test_graphs):
-        """Evaluate on a number of graphs (same as original)"""
+        # evaluate on a number of graphs
         sys.stdout.flush()
+
         g_num = len(test_graphs)
-        # Implementation would be similar to original
-        pass
+        cdef int n_test = g_num
+        cdef int i
+        result_list_score = []
+        result_list_time = []
+        sys.stdout.flush()
+        for i in tqdm(range(n_test)):
+            g = test_graphs[i]
+            self.InsertGraph(g, is_test=True)
+            t1 = time.time()
+            val, sol = self.GetSol(i)
+            t2 = time.time()
+            result_list_score.append(val)
+            result_list_time.append(t2-t1)
+        self.ClearTestGraphs()
+        score_mean = np.mean(result_list_score)
+        score_std = np.std(result_list_score)
+        time_mean = np.mean(result_list_time)
+        time_std = np.std(result_list_time)
+        return  score_mean, score_std, time_mean, time_std
+
+
+    def EvaluateRealData(self, test_graph, result_file=None, stepRatio=0.0025):  
+        # evaluate on a graph, mostly used when eval real graph
+        # save sol in result_file
+        sys.stdout.flush()
+
+        cdef double solution_time = 0.0
+        g = test_graph
+        
+        print ('testing')
+        sys.stdout.flush()
+        print ('number of nodes:%d'%(nx.number_of_nodes(g)))
+        print ('number of edges:%d'%(nx.number_of_edges(g)))
+        if stepRatio > 0:
+            step = np.max([int(stepRatio*nx.number_of_nodes(g)),1]) #step size
+        else:
+            step = 1
+        self.InsertGraph(g, is_test=True)
+        t1 = time.time()
+        solution = self.GetSolution(0,step)
+        t2 = time.time()
+        solution_time = (t2 - t1)
+
+        if result_file:
+            with open(result_file, 'w') as f_out:
+                for i in range(len(solution)):
+                    f_out.write('%d\n' % solution[i])
+        
+        self.ClearTestGraphs()
+        return solution, solution_time
+
+
+    def GetSolution(self, int gid, int step=1):
+        # inner function, used inside the class
+        # use TestSet to initialize testEnv
+        g_list = []
+        self.test_env.s0(self.TestSet.Get(gid))
+        g_list.append(self.test_env.graph)
+        sol = []
+        start = time.time()
+        cdef int iter = 0
+        cdef int new_action
+        sum_sort_time = 0
+        while (not self.test_env.isTerminal()):
+            print ('Iteration:%d'%iter)
+            iter += 1
+            list_pred = self.PredictWithCurrentQNet(g_list, [self.test_env.action_list])
+            start_time = time.time()
+            batchSol = np.argsort(-list_pred[0])[:step]
+            end_time = time.time()
+            sum_sort_time += (end_time-start_time)
+            for new_action in batchSol:
+                if not self.test_env.isTerminal():
+                    self.test_env.stepWithoutReward(new_action)
+                    sol.append(new_action)
+                else:
+                    continue
+        return sol
+    
+    def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20):
+        #evaluate the robust given the solution and dataset, strategyID:0,count;2:rank;3:multipy
+        sys.stdout.flush()
+        g = test_graph
+        g_inner = self.GenNetwork(g)
+        print ('number of nodes:%d'%nx.number_of_nodes(g))
+        print ('number of edges:%d'%nx.number_of_edges(g))
+        nodes = list(range(nx.number_of_nodes(g)))
+        sol = []
+        for line in open(sol_file):
+            sol.append(int(line))
+        print ('number of sol nodes:%d'%len(sol))
+        sol_left = list(set(nodes)^set(sol))
+        if strategyID > 0:
+            start = time.time()
+            if reInsertStep > 0 and reInsertStep < 1:
+                step = np.max([int(reInsertStep*nx.number_of_nodes(g)),1]) #step size
+            else:
+                step = reInsertStep
+            sol_reinsert = self.utils.reInsert(g_inner, sol, sol_left, strategyID, step)
+            end = time.time()
+            print ('reInsert time:%.6f'%(end-start))
+        else:
+            sol_reinsert = sol
+        solution = sol_reinsert + sol_left
+        print ('number of solution nodes:%d'%len(solution))
+        Robustness = self.utils.getRobustness(g_inner, solution)
+        MaxCCList = self.utils.MaxWccSzList
+        return Robustness, MaxCCList
+
+    def GenNetwork(self, g):    #networkx2four
+        edges = g.edges()
+        if len(edges) > 0:
+            a, b = zip(*edges)
+            A = np.array(a)
+            B = np.array(b)
+        else:
+            A = np.array([0])
+            B = np.array([0])
+        return graph.py_Graph(len(g.nodes()), len(edges), A, B)

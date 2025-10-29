@@ -13,12 +13,18 @@ cdef extern from "./src/lib/mvc_env.h":
         void stepWithoutReward(int a)except+
         void stepDelete(int a)except+
         int randomAction()except+
+        int degreeAction()except+
         int betweenAction()except+
         bool isTerminal()except+
+        bool isTruncated()except+
         bool isNoNodes()except+
+        double estimateRemainingReturn(int rollout,double gamma)except+
+        double HeuristicRollout(double gamma)except+
+        double componentRollout(double gamma)except+
         # double getReward(double oldCcNum)except+
         double getReward()except+
         double getMaxConnectedNodesNum()except+
+        void printGraph()except+
         double norm
         double CcNum
         shared_ptr[Graph] graph
@@ -28,5 +34,7 @@ cdef extern from "./src/lib/mvc_env.h":
         vector[double] reward_seq
         vector[double] sum_rewards
         int numCoveredEdges
+        double trunc_threshold
+        double rollout_return
         set[int] covered_set
         vector[int] avail_list

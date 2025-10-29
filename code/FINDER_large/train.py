@@ -22,7 +22,7 @@ logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 from GraphDQN import GraphDQN
 print(sys.path)
-exit()
+
 
 def check_gpu_setup():
     """Check GPU setup before training"""
@@ -50,10 +50,11 @@ def main():
     try:
         dqn = GraphDQN(
             g_type = 'BA',
-            g_params = {'nrange': '50_100',
-                        'm':6},
+            g_params = {'nrange': '50_150',
+                        'm':4},
             gnn_model = 'graphSage',
-            target_graph = "Digg"
+            target_graph = "Digg",
+            save_model_dir = './FINDER_large/models'
         )
         
         dqn.Train()

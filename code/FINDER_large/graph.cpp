@@ -829,7 +829,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "FINDER_ND\\graph.pyx",
+  "FINDER_large\\graph.pyx",
   "stringsource",
   "type.pxd",
 };

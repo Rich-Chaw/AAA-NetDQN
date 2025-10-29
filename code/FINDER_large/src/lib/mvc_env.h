@@ -23,26 +23,43 @@ public:
 
     void stepDelete(int a);
 
+    double stepRollout(int a);
+
     std::vector<double> Betweenness(std::vector< std::vector <int> > adj_list);
 
+    // action strategy
     int randomAction();
-
+    int degreeAction();
     int betweenAction();
 
     bool isTerminal();
+    // Episode Truncation with Early Termination
+    bool isTruncated();
 
     bool isNoNodes();
+
+    // Reward Reshaping via Heuristic Rollout
+    double HeuristicRollout(double gamma);
+    // Reward Reshaping via estimating with connected components
+    double componentRollout(double gamma);
 
 //    double getReward(double oldCcNum);
     double getReward();
 
+    double estimateRemainingReturn(int rollout,double gamma);
+
+    // Get the size of the largest connected component
     double getMaxConnectedNodesNum();
 
     double getNumofConnectedComponents();
-
+    std::vector<int> getCcSizesDescending();
+    //std:: vector<std::vector<int>> getCcDescending();
+    // check env status
+    void printGraph();
+    
     double CcNum;
 
-    void printGraph();
+    
 
     double norm;
 
@@ -62,7 +79,9 @@ public:
 
     std::vector<int > node_degrees;
 
-    int total_degrees;
+    // Episode Truncation parameters
+    double trunc_threshold;  // N_trunc = 50% of original graph size
+    double rollout_return;
 };
 
 #endif

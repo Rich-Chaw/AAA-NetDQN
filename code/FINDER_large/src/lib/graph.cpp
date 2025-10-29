@@ -5,6 +5,9 @@
 #include <iterator>
 #include "stdio.h"
 #include <algorithm>
+#include <set>
+#include <map>
+#include "disjoint_set.h"
 
 Graph::Graph() : num_nodes(0), num_edges(0)
 {
@@ -58,6 +61,92 @@ double Graph::getTwoRankNeighborsRatio(std::vector<int> covered)
         }
     }
     return sum;
+}
+
+std::vector<std::vector<int>> Graph::getCcDescending(const std::set<int> covered) const
+{
+    // Use Union-Find for better performance on large graphs
+    Disjoint_Set disjoint_set(num_nodes);
+    
+    // Build connected components by merging adjacent uncovered nodes
+    for (int i = 0; i < num_nodes; i++) {
+        if (covered.count(i) == 0) {  // Skip covered nodes
+            for (auto neigh : adj_list[i]) {
+                if (covered.count(neigh) == 0) {  // Skip covered neighbors
+                    disjoint_set.merge(i, neigh);  // Union adjacent uncovered nodes
+                }
+            }
+        }
+    }
+    
+    // Group nodes by their root representative
+    std::map<int, std::vector<int>> component_map;
+    for (int i = 0; i < num_nodes; i++) {
+        if (covered.count(i) == 0) {  // Only process uncovered nodes
+            int root = disjoint_set.findRoot(i);
+            component_map[root].push_back(i);
+        }
+    }
+    
+    // Convert map to vector and sort components by size (descending)
+    std::vector<std::vector<int>> components;
+    components.reserve(component_map.size());
+    
+    for (auto& pair : component_map) {
+        if (!pair.second.empty()) {
+            // Sort nodes within component for consistency
+            std::sort(pair.second.begin(), pair.second.end());
+            components.push_back(std::move(pair.second));
+        }
+    }
+    
+    // Sort components by size in descending order
+    std::sort(components.begin(), components.end(), 
+              [](const std::vector<int>& a, const std::vector<int>& b) {
+                  return a.size() > b.size();
+              });
+    
+    return components;
+}
+
+std::vector<int> Graph::getCcSizesDescending(const std::set<int> covered) const
+{
+    // Ultra-fast version that only returns component sizes, not node lists
+    // Perfect for cases where we only need sizes (like componentRollout)
+    
+    Disjoint_Set disjoint_set(num_nodes);
+    
+    // Build connected components by merging adjacent uncovered nodes
+    for (int i = 0; i < num_nodes; i++) {
+        if (covered.count(i) == 0) {  // Skip covered nodes
+            for (auto neigh : adj_list[i]) {
+                if (covered.count(neigh) == 0) {  // Skip covered neighbors
+                    disjoint_set.merge(i, neigh);  // Union adjacent uncovered nodes
+                }
+            }
+        }
+    }
+    
+    // Collect component sizes using a map to avoid duplicates
+    std::map<int, int> size_map;
+    for (int i = 0; i < num_nodes; i++) {
+        if (covered.count(i) == 0) {  // Only process uncovered nodes
+            int root = disjoint_set.findRoot(i);
+            size_map[root] = disjoint_set.getRank(root);
+        }
+    }
+    
+    // Convert to vector and sort by size (descending)
+    std::vector<int> sizes;
+    sizes.reserve(size_map.size());
+    
+    for (const auto& pair : size_map) {
+        sizes.push_back(pair.second);
+    }
+    
+    std::sort(sizes.begin(), sizes.end(), std::greater<int>());
+    
+    return sizes;
 }
 
 GSet::GSet()

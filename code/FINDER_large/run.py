@@ -11,7 +11,7 @@ import subprocess
 import sys
 import os
 
-def run_synthetic_evaluation():
+def run_synthetic_evaluation(FINDER_type):
     """
     Run synthetic dataset evaluation with example parameters
     """
@@ -105,7 +105,7 @@ def run_synthetic_evaluation():
 
 
     cmd = [
-            "python", "./FINDER_ND/testModels.py",
+            "python", f"./{FINDER_type}/testModels.py",
             "--eval_synth",
             "--eval_real",
             "--eval_all_iters"
@@ -114,4 +114,5 @@ def run_synthetic_evaluation():
     subprocess.run(cmd)
 
 if __name__ == "__main__":
-    run_synthetic_evaluation() 
+    FINDER_type = "FINDER_large"
+    run_synthetic_evaluation(FINDER_type) 

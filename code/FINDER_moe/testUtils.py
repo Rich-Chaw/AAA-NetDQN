@@ -6,6 +6,7 @@ import itertools
 from tensorflow.python.keras.models import model_config
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 from GraphDQN import GraphDQN
+from MoEGraphDQN import MoEGraphDQN
 import numpy as np
 import math
 from tqdm import tqdm
@@ -20,11 +21,52 @@ import matplotlib.animation as animation
 from matplotlib.patches import FancyBboxPatch
 import matplotlib.patches as mpatches
 
-def load_config(config_file='config.json'):
+def load_config(config_file=f'{os.path.dirname(__file__)}/config.json'):
     """Load configuration from JSON file"""
     with open(config_file, 'r') as f:
         config = json.load(f)
     return config
+
+def create_moe_model(model_config,iter = None):
+    """Create MoEGraphDQN model from configuration"""
+    gnn_model = model_config['gnn_model']
+    train_g_type=model_config['g_type']
+    g_params = model_config['g_params']
+    target_graph=model_config['target_graph']   
+    save_model_dir=model_config['save_model_dir']
+
+    # Reset TensorFlow graph/session before creating a new model
+    try:
+        import tensorflow as tf
+        try:
+            tf.compat.v1.reset_default_graph()
+        except AttributeError:
+            tf.keras.backend.clear_session()  # For TF 2.x
+    except ImportError:
+        pass  # If tensorflow is not available, skip
+    
+    moe_config = {
+        'num_experts': 4,
+        'top_k': 2,
+        'router_dropout': 0.1,
+        'load_balance_loss_weight': 0.01
+    }
+    
+    moe_dqn = MoEGraphDQN(
+        g_type = train_g_type,
+        g_params = g_params,
+        target_graph = target_graph,
+        save_model_dir= save_model_dir,
+        moe_config = moe_config
+    )
+
+    if iter is None:
+        return moe_dqn
+    else:
+        # e.g. GIN_iter_2700.ckpt
+        ckpt_file = f"{gnn_model}_iter_{iter}.ckpt"
+        moe_dqn.LoadModel(ckpt_file)
+        return moe_dqn
 
 def create_model(model_config,iter = None):
     """Create GraphDQN model from configuration"""

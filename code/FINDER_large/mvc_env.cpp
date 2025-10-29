@@ -828,7 +828,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "FINDER_ND\\mvc_env.pyx",
+  "FINDER_large\\mvc_env.pyx",
   "stringsource",
 };
 
@@ -1279,12 +1279,14 @@ static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_norm[] = "_norm";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_dtype[] = "dtype";
+static const char __pyx_k_gamma[] = "gamma";
 static const char __pyx_k_graph[] = "graph";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_reduce[] = "__reduce__";
+static const char __pyx_k_rollout[] = "rollout";
 static const char __pyx_k_adj_list[] = "adj_list";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_py_Graph[] = "py_Graph";
@@ -1305,6 +1307,7 @@ static PyObject *__pyx_n_s_adj_list;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_edge_list;
+static PyObject *__pyx_n_s_gamma;
 static PyObject *__pyx_n_s_gc;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_n_s_graph;
@@ -1325,6 +1328,7 @@ static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
+static PyObject *__pyx_n_s_rollout;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_test;
@@ -1335,11 +1339,17 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_4step(struct __pyx_obj_7mvc_env_py
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_6stepWithoutReward(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, int __pyx_v_a); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_8stepDelete(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, int __pyx_v_a); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10randomAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isNoNodes(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18getReward(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_20getMaxConnectedNodesNum(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12degreeAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14betweenAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isTerminal(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18isNoNodes(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_20isTruncated(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_22estimateRemainingReturn(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, int __pyx_v_rollout, double __pyx_v_gamma); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_24componentRollout(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, double __pyx_v_gamma); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_26HeuristicRollout(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, double __pyx_v_gamma); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_28getReward(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_30getMaxConnectedNodesNum(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_32printGraph(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_4norm___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_5graph___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_9state_seq___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
@@ -1350,8 +1360,10 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11sum_rewards___get__(struct __pyx
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15numCoveredEdges___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11covered_set___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10avail_list___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_22__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_24__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15trunc_threshold___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14rollout_return___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_34__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_36__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_7mvc_env_py_MvcEnv(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
@@ -1847,7 +1859,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10randomAction(struct __pyx_obj_7m
  *     def randomAction(self):
  *         return deref(self.inner_MvcEnv).randomAction()             # <<<<<<<<<<<<<<
  * 
- *     def betweenAction(self):
+ *     def degreeAction(self):
  */
   __Pyx_XDECREF(__pyx_r);
   try {
@@ -1884,41 +1896,41 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10randomAction(struct __pyx_obj_7m
 /* "mvc_env.pyx":43
  *         return deref(self.inner_MvcEnv).randomAction()
  * 
- *     def betweenAction(self):             # <<<<<<<<<<<<<<
- *         return deref(self.inner_MvcEnv).betweenAction()
+ *     def degreeAction(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).degreeAction()
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_13betweenAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_13betweenAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_13degreeAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_13degreeAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("betweenAction (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("degreeAction (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_12degreeAction(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12degreeAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
-  __Pyx_RefNannySetupContext("betweenAction", 0);
+  __Pyx_RefNannySetupContext("degreeAction", 0);
 
   /* "mvc_env.pyx":44
  * 
- *     def betweenAction(self):
- *         return deref(self.inner_MvcEnv).betweenAction()             # <<<<<<<<<<<<<<
+ *     def degreeAction(self):
+ *         return deref(self.inner_MvcEnv).degreeAction()             # <<<<<<<<<<<<<<
  * 
- *     def isTerminal(self):
+ *     def betweenAction(self):
  */
   __Pyx_XDECREF(__pyx_r);
   try {
-    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).betweenAction();
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).degreeAction();
   } catch(...) {
     __Pyx_CppExn2PyErr();
     __PYX_ERR(0, 44, __pyx_L1_error)
@@ -1931,6 +1943,73 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(struct __pyx_obj_7
 
   /* "mvc_env.pyx":43
  *         return deref(self.inner_MvcEnv).randomAction()
+ * 
+ *     def degreeAction(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).degreeAction()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.degreeAction", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":46
+ *         return deref(self.inner_MvcEnv).degreeAction()
+ * 
+ *     def betweenAction(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).betweenAction()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15betweenAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15betweenAction(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("betweenAction (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_14betweenAction(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14betweenAction(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("betweenAction", 0);
+
+  /* "mvc_env.pyx":47
+ * 
+ *     def betweenAction(self):
+ *         return deref(self.inner_MvcEnv).betweenAction()             # <<<<<<<<<<<<<<
+ * 
+ *     def isTerminal(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  try {
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).betweenAction();
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 47, __pyx_L1_error)
+  }
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":46
+ *         return deref(self.inner_MvcEnv).degreeAction()
  * 
  *     def betweenAction(self):             # <<<<<<<<<<<<<<
  *         return deref(self.inner_MvcEnv).betweenAction()
@@ -1948,7 +2027,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(struct __pyx_obj_7
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":46
+/* "mvc_env.pyx":49
  *         return deref(self.inner_MvcEnv).betweenAction()
  * 
  *     def isTerminal(self):             # <<<<<<<<<<<<<<
@@ -1957,26 +2036,26 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_12betweenAction(struct __pyx_obj_7
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15isTerminal(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15isTerminal(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_17isTerminal(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_17isTerminal(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("isTerminal (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_16isTerminal(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isTerminal(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   bool __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("isTerminal", 0);
 
-  /* "mvc_env.pyx":47
+  /* "mvc_env.pyx":50
  * 
  *     def isTerminal(self):
  *         return deref(self.inner_MvcEnv).isTerminal()             # <<<<<<<<<<<<<<
@@ -1988,15 +2067,15 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(struct __pyx_obj_7mvc
     __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).isTerminal();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 47, __pyx_L1_error)
+    __PYX_ERR(0, 50, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":46
+  /* "mvc_env.pyx":49
  *         return deref(self.inner_MvcEnv).betweenAction()
  * 
  *     def isTerminal(self):             # <<<<<<<<<<<<<<
@@ -2015,7 +2094,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(struct __pyx_obj_7mvc
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":49
+/* "mvc_env.pyx":52
  *         return deref(self.inner_MvcEnv).isTerminal()
  * 
  *     def isNoNodes(self):             # <<<<<<<<<<<<<<
@@ -2024,46 +2103,46 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14isTerminal(struct __pyx_obj_7mvc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_17isNoNodes(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_17isNoNodes(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_19isNoNodes(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_19isNoNodes(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("isNoNodes (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_16isNoNodes(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_18isNoNodes(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isNoNodes(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18isNoNodes(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   bool __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("isNoNodes", 0);
 
-  /* "mvc_env.pyx":50
+  /* "mvc_env.pyx":53
  * 
  *     def isNoNodes(self):
  *         return deref(self.inner_MvcEnv).isNoNodes()             # <<<<<<<<<<<<<<
  * 
- *     def getReward(self):
+ *     def isTruncated(self):
  */
   __Pyx_XDECREF(__pyx_r);
   try {
     __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).isNoNodes();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 50, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":49
+  /* "mvc_env.pyx":52
  *         return deref(self.inner_MvcEnv).isTerminal()
  * 
  *     def isNoNodes(self):             # <<<<<<<<<<<<<<
@@ -2082,8 +2161,344 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isNoNodes(struct __pyx_obj_7mvc_
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":52
+/* "mvc_env.pyx":55
  *         return deref(self.inner_MvcEnv).isNoNodes()
+ * 
+ *     def isTruncated(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).isTruncated()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_21isTruncated(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_21isTruncated(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("isTruncated (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_20isTruncated(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_20isTruncated(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  bool __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("isTruncated", 0);
+
+  /* "mvc_env.pyx":56
+ * 
+ *     def isTruncated(self):
+ *         return deref(self.inner_MvcEnv).isTruncated()             # <<<<<<<<<<<<<<
+ * 
+ *     def estimateRemainingReturn(self,int rollout,double gamma):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  try {
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).isTruncated();
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 56, __pyx_L1_error)
+  }
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":55
+ *         return deref(self.inner_MvcEnv).isNoNodes()
+ * 
+ *     def isTruncated(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).isTruncated()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.isTruncated", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":58
+ *         return deref(self.inner_MvcEnv).isTruncated()
+ * 
+ *     def estimateRemainingReturn(self,int rollout,double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_23estimateRemainingReturn(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_23estimateRemainingReturn(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  int __pyx_v_rollout;
+  double __pyx_v_gamma;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("estimateRemainingReturn (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rollout,&__pyx_n_s_gamma,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rollout)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_gamma)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("estimateRemainingReturn", 1, 2, 2, 1); __PYX_ERR(0, 58, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "estimateRemainingReturn") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+    }
+    __pyx_v_rollout = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_rollout == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_gamma = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_gamma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("estimateRemainingReturn", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 58, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.estimateRemainingReturn", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_22estimateRemainingReturn(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self), __pyx_v_rollout, __pyx_v_gamma);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_22estimateRemainingReturn(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, int __pyx_v_rollout, double __pyx_v_gamma) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  double __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("estimateRemainingReturn", 0);
+
+  /* "mvc_env.pyx":59
+ * 
+ *     def estimateRemainingReturn(self,int rollout,double gamma):
+ *         return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)             # <<<<<<<<<<<<<<
+ * 
+ *     def componentRollout(self, double gamma):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  try {
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).estimateRemainingReturn(__pyx_v_rollout, __pyx_v_gamma);
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 59, __pyx_L1_error)
+  }
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":58
+ *         return deref(self.inner_MvcEnv).isTruncated()
+ * 
+ *     def estimateRemainingReturn(self,int rollout,double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.estimateRemainingReturn", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":61
+ *         return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)
+ * 
+ *     def componentRollout(self, double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).componentRollout(gamma)
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_25componentRollout(PyObject *__pyx_v_self, PyObject *__pyx_arg_gamma); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_25componentRollout(PyObject *__pyx_v_self, PyObject *__pyx_arg_gamma) {
+  double __pyx_v_gamma;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("componentRollout (wrapper)", 0);
+  assert(__pyx_arg_gamma); {
+    __pyx_v_gamma = __pyx_PyFloat_AsDouble(__pyx_arg_gamma); if (unlikely((__pyx_v_gamma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 61, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.componentRollout", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_24componentRollout(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self), ((double)__pyx_v_gamma));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_24componentRollout(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, double __pyx_v_gamma) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  double __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("componentRollout", 0);
+
+  /* "mvc_env.pyx":62
+ * 
+ *     def componentRollout(self, double gamma):
+ *         return deref(self.inner_MvcEnv).componentRollout(gamma)             # <<<<<<<<<<<<<<
+ * 
+ *     def HeuristicRollout(self, double gamma):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  try {
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).componentRollout(__pyx_v_gamma);
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 62, __pyx_L1_error)
+  }
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":61
+ *         return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)
+ * 
+ *     def componentRollout(self, double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).componentRollout(gamma)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.componentRollout", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":64
+ *         return deref(self.inner_MvcEnv).componentRollout(gamma)
+ * 
+ *     def HeuristicRollout(self, double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).HeuristicRollout(gamma)
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_27HeuristicRollout(PyObject *__pyx_v_self, PyObject *__pyx_arg_gamma); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_27HeuristicRollout(PyObject *__pyx_v_self, PyObject *__pyx_arg_gamma) {
+  double __pyx_v_gamma;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("HeuristicRollout (wrapper)", 0);
+  assert(__pyx_arg_gamma); {
+    __pyx_v_gamma = __pyx_PyFloat_AsDouble(__pyx_arg_gamma); if (unlikely((__pyx_v_gamma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.HeuristicRollout", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_26HeuristicRollout(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self), ((double)__pyx_v_gamma));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_26HeuristicRollout(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, double __pyx_v_gamma) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  double __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("HeuristicRollout", 0);
+
+  /* "mvc_env.pyx":65
+ * 
+ *     def HeuristicRollout(self, double gamma):
+ *         return deref(self.inner_MvcEnv).HeuristicRollout(gamma)             # <<<<<<<<<<<<<<
+ * 
+ *     def getReward(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  try {
+    __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).HeuristicRollout(__pyx_v_gamma);
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 65, __pyx_L1_error)
+  }
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":64
+ *         return deref(self.inner_MvcEnv).componentRollout(gamma)
+ * 
+ *     def HeuristicRollout(self, double gamma):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).HeuristicRollout(gamma)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.HeuristicRollout", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":67
+ *         return deref(self.inner_MvcEnv).HeuristicRollout(gamma)
  * 
  *     def getReward(self):             # <<<<<<<<<<<<<<
  *         return deref(self.inner_MvcEnv).getReward()
@@ -2091,26 +2506,26 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_16isNoNodes(struct __pyx_obj_7mvc_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_19getReward(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_19getReward(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_29getReward(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_29getReward(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getReward (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_18getReward(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_28getReward(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18getReward(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_28getReward(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   double __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("getReward", 0);
 
-  /* "mvc_env.pyx":53
+  /* "mvc_env.pyx":68
  * 
  *     def getReward(self):
  *         return deref(self.inner_MvcEnv).getReward()             # <<<<<<<<<<<<<<
@@ -2122,16 +2537,16 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18getReward(struct __pyx_obj_7mvc_
     __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).getReward();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 53, __pyx_L1_error)
+    __PYX_ERR(0, 68, __pyx_L1_error)
   }
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":52
- *         return deref(self.inner_MvcEnv).isNoNodes()
+  /* "mvc_env.pyx":67
+ *         return deref(self.inner_MvcEnv).HeuristicRollout(gamma)
  * 
  *     def getReward(self):             # <<<<<<<<<<<<<<
  *         return deref(self.inner_MvcEnv).getReward()
@@ -2149,7 +2564,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18getReward(struct __pyx_obj_7mvc_
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":55
+/* "mvc_env.pyx":70
  *         return deref(self.inner_MvcEnv).getReward()
  * 
  *     def getMaxConnectedNodesNum(self):             # <<<<<<<<<<<<<<
@@ -2158,46 +2573,46 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_18getReward(struct __pyx_obj_7mvc_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_21getMaxConnectedNodesNum(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_21getMaxConnectedNodesNum(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_31getMaxConnectedNodesNum(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_31getMaxConnectedNodesNum(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getMaxConnectedNodesNum (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_20getMaxConnectedNodesNum(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_30getMaxConnectedNodesNum(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_20getMaxConnectedNodesNum(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_30getMaxConnectedNodesNum(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   double __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("getMaxConnectedNodesNum", 0);
 
-  /* "mvc_env.pyx":56
+  /* "mvc_env.pyx":71
  * 
  *     def getMaxConnectedNodesNum(self):
  *         return deref(self.inner_MvcEnv).getMaxConnectedNodesNum()             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def printGraph(self):
  */
   __Pyx_XDECREF(__pyx_r);
   try {
     __pyx_t_1 = (*__pyx_v_self->inner_MvcEnv).getMaxConnectedNodesNum();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 56, __pyx_L1_error)
+    __PYX_ERR(0, 71, __pyx_L1_error)
   }
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":55
+  /* "mvc_env.pyx":70
  *         return deref(self.inner_MvcEnv).getReward()
  * 
  *     def getMaxConnectedNodesNum(self):             # <<<<<<<<<<<<<<
@@ -2216,7 +2631,67 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_20getMaxConnectedNodesNum(struct _
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":59
+/* "mvc_env.pyx":73
+ *         return deref(self.inner_MvcEnv).getMaxConnectedNodesNum()
+ * 
+ *     def printGraph(self):             # <<<<<<<<<<<<<<
+ *         deref(self.inner_MvcEnv).printGraph()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_33printGraph(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_33printGraph(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("printGraph (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_32printGraph(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_32printGraph(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("printGraph", 0);
+
+  /* "mvc_env.pyx":74
+ * 
+ *     def printGraph(self):
+ *         deref(self.inner_MvcEnv).printGraph()             # <<<<<<<<<<<<<<
+ * 
+ *     @property
+ */
+  try {
+    (*__pyx_v_self->inner_MvcEnv).printGraph();
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 74, __pyx_L1_error)
+  }
+
+  /* "mvc_env.pyx":73
+ *         return deref(self.inner_MvcEnv).getMaxConnectedNodesNum()
+ * 
+ *     def printGraph(self):             # <<<<<<<<<<<<<<
+ *         deref(self.inner_MvcEnv).printGraph()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.printGraph", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":77
  * 
  *     @property
  *     def norm(self):             # <<<<<<<<<<<<<<
@@ -2243,7 +2718,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_4norm___get__(struct __pyx_obj_7mv
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":60
+  /* "mvc_env.pyx":78
  *     @property
  *     def norm(self):
  *         return deref(self.inner_MvcEnv).norm             # <<<<<<<<<<<<<<
@@ -2251,13 +2726,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_4norm___get__(struct __pyx_obj_7mv
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((*__pyx_v_self->inner_MvcEnv).norm); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((*__pyx_v_self->inner_MvcEnv).norm); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":59
+  /* "mvc_env.pyx":77
  * 
  *     @property
  *     def norm(self):             # <<<<<<<<<<<<<<
@@ -2276,7 +2751,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_4norm___get__(struct __pyx_obj_7mv
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":63
+/* "mvc_env.pyx":81
  * 
  *     @property
  *     def graph(self):             # <<<<<<<<<<<<<<
@@ -2303,7 +2778,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_5graph___get__(struct __pyx_obj_7m
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":65
+  /* "mvc_env.pyx":83
  *     def graph(self):
  *         # temp_innerGraph=deref(self.inner_Graph)   #Graph
  *         return self.G2P(deref(self.inner_Graph))             # <<<<<<<<<<<<<<
@@ -2311,13 +2786,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_5graph___get__(struct __pyx_obj_7m
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_7mvc_env_py_MvcEnv *)__pyx_v_self->__pyx_vtab)->G2P(__pyx_v_self, (*__pyx_v_self->inner_Graph)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_7mvc_env_py_MvcEnv *)__pyx_v_self->__pyx_vtab)->G2P(__pyx_v_self, (*__pyx_v_self->inner_Graph)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":63
+  /* "mvc_env.pyx":81
  * 
  *     @property
  *     def graph(self):             # <<<<<<<<<<<<<<
@@ -2336,7 +2811,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_5graph___get__(struct __pyx_obj_7m
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":68
+/* "mvc_env.pyx":86
  * 
  *     @property
  *     def state_seq(self):             # <<<<<<<<<<<<<<
@@ -2363,7 +2838,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_9state_seq___get__(struct __pyx_ob
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":69
+  /* "mvc_env.pyx":87
  *     @property
  *     def state_seq(self):
  *         return deref(self.inner_MvcEnv).state_seq             # <<<<<<<<<<<<<<
@@ -2371,13 +2846,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_9state_seq___get__(struct __pyx_ob
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_int_3e___((*__pyx_v_self->inner_MvcEnv).state_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_int_3e___((*__pyx_v_self->inner_MvcEnv).state_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":68
+  /* "mvc_env.pyx":86
  * 
  *     @property
  *     def state_seq(self):             # <<<<<<<<<<<<<<
@@ -2396,7 +2871,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_9state_seq___get__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":72
+/* "mvc_env.pyx":90
  * 
  *     @property
  *     def act_seq(self):             # <<<<<<<<<<<<<<
@@ -2423,7 +2898,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_7act_seq___get__(struct __pyx_obj_
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":73
+  /* "mvc_env.pyx":91
  *     @property
  *     def act_seq(self):
  *         return deref(self.inner_MvcEnv).act_seq             # <<<<<<<<<<<<<<
@@ -2431,13 +2906,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_7act_seq___get__(struct __pyx_obj_
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).act_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).act_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":72
+  /* "mvc_env.pyx":90
  * 
  *     @property
  *     def act_seq(self):             # <<<<<<<<<<<<<<
@@ -2456,7 +2931,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_7act_seq___get__(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":76
+/* "mvc_env.pyx":94
  * 
  *     @property
  *     def action_list(self):             # <<<<<<<<<<<<<<
@@ -2483,7 +2958,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11action_list___get__(struct __pyx
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":77
+  /* "mvc_env.pyx":95
  *     @property
  *     def action_list(self):
  *         return deref(self.inner_MvcEnv).action_list             # <<<<<<<<<<<<<<
@@ -2491,13 +2966,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11action_list___get__(struct __pyx
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).action_list); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).action_list); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":76
+  /* "mvc_env.pyx":94
  * 
  *     @property
  *     def action_list(self):             # <<<<<<<<<<<<<<
@@ -2516,7 +2991,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11action_list___get__(struct __pyx
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":80
+/* "mvc_env.pyx":98
  * 
  *     @property
  *     def reward_seq(self):             # <<<<<<<<<<<<<<
@@ -2543,7 +3018,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10reward_seq___get__(struct __pyx_
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":81
+  /* "mvc_env.pyx":99
  *     @property
  *     def reward_seq(self):
  *         return deref(self.inner_MvcEnv).reward_seq             # <<<<<<<<<<<<<<
@@ -2551,13 +3026,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10reward_seq___get__(struct __pyx_
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_double((*__pyx_v_self->inner_MvcEnv).reward_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_double((*__pyx_v_self->inner_MvcEnv).reward_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":80
+  /* "mvc_env.pyx":98
  * 
  *     @property
  *     def reward_seq(self):             # <<<<<<<<<<<<<<
@@ -2576,7 +3051,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10reward_seq___get__(struct __pyx_
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":84
+/* "mvc_env.pyx":102
  * 
  *     @property
  *     def sum_rewards(self):             # <<<<<<<<<<<<<<
@@ -2603,7 +3078,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11sum_rewards___get__(struct __pyx
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":85
+  /* "mvc_env.pyx":103
  *     @property
  *     def sum_rewards(self):
  *         return deref(self.inner_MvcEnv).sum_rewards             # <<<<<<<<<<<<<<
@@ -2611,13 +3086,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11sum_rewards___get__(struct __pyx
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_double((*__pyx_v_self->inner_MvcEnv).sum_rewards); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_double((*__pyx_v_self->inner_MvcEnv).sum_rewards); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":84
+  /* "mvc_env.pyx":102
  * 
  *     @property
  *     def sum_rewards(self):             # <<<<<<<<<<<<<<
@@ -2636,7 +3111,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11sum_rewards___get__(struct __pyx
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":88
+/* "mvc_env.pyx":106
  * 
  *     @property
  *     def numCoveredEdges(self):             # <<<<<<<<<<<<<<
@@ -2663,7 +3138,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15numCoveredEdges___get__(struct _
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":89
+  /* "mvc_env.pyx":107
  *     @property
  *     def numCoveredEdges(self):
  *         return deref(self.inner_MvcEnv).numCoveredEdges             # <<<<<<<<<<<<<<
@@ -2671,13 +3146,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15numCoveredEdges___get__(struct _
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int((*__pyx_v_self->inner_MvcEnv).numCoveredEdges); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((*__pyx_v_self->inner_MvcEnv).numCoveredEdges); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":88
+  /* "mvc_env.pyx":106
  * 
  *     @property
  *     def numCoveredEdges(self):             # <<<<<<<<<<<<<<
@@ -2696,7 +3171,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15numCoveredEdges___get__(struct _
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":92
+/* "mvc_env.pyx":110
  * 
  *     @property
  *     def covered_set(self):             # <<<<<<<<<<<<<<
@@ -2723,7 +3198,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11covered_set___get__(struct __pyx
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":93
+  /* "mvc_env.pyx":111
  *     @property
  *     def covered_set(self):
  *         return deref(self.inner_MvcEnv).covered_set             # <<<<<<<<<<<<<<
@@ -2731,13 +3206,13 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11covered_set___get__(struct __pyx
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_set_to_py_int((*__pyx_v_self->inner_MvcEnv).covered_set); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_set_to_py_int((*__pyx_v_self->inner_MvcEnv).covered_set); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":92
+  /* "mvc_env.pyx":110
  * 
  *     @property
  *     def covered_set(self):             # <<<<<<<<<<<<<<
@@ -2756,7 +3231,7 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_11covered_set___get__(struct __pyx
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":96
+/* "mvc_env.pyx":114
  * 
  *     @property
  *     def avail_list(self):             # <<<<<<<<<<<<<<
@@ -2783,21 +3258,21 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10avail_list___get__(struct __pyx_
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mvc_env.pyx":97
+  /* "mvc_env.pyx":115
  *     @property
  *     def avail_list(self):
  *         return deref(self.inner_MvcEnv).avail_list             # <<<<<<<<<<<<<<
  * 
- * 
+ *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).avail_list); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_int((*__pyx_v_self->inner_MvcEnv).avail_list); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":96
+  /* "mvc_env.pyx":114
  * 
  *     @property
  *     def avail_list(self):             # <<<<<<<<<<<<<<
@@ -2816,8 +3291,128 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_10avail_list___get__(struct __pyx_
   return __pyx_r;
 }
 
-/* "mvc_env.pyx":100
+/* "mvc_env.pyx":118
  * 
+ *     @property
+ *     def trunc_threshold(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).trunc_threshold
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15trunc_threshold_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_15trunc_threshold_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_15trunc_threshold___get__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_15trunc_threshold___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__get__", 0);
+
+  /* "mvc_env.pyx":119
+ *     @property
+ *     def trunc_threshold(self):
+ *         return deref(self.inner_MvcEnv).trunc_threshold             # <<<<<<<<<<<<<<
+ * 
+ *     @property
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyFloat_FromDouble((*__pyx_v_self->inner_MvcEnv).trunc_threshold); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":118
+ * 
+ *     @property
+ *     def trunc_threshold(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).trunc_threshold
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.trunc_threshold.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":122
+ * 
+ *     @property
+ *     def rollout_return(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).rollout_return
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_14rollout_return_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_14rollout_return_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_14rollout_return___get__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_14rollout_return___get__(struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__get__", 0);
+
+  /* "mvc_env.pyx":123
+ *     @property
+ *     def rollout_return(self):
+ *         return deref(self.inner_MvcEnv).rollout_return             # <<<<<<<<<<<<<<
+ * 
+ *     cdef G2P(self,Graph graph1):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyFloat_FromDouble((*__pyx_v_self->inner_MvcEnv).rollout_return); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "mvc_env.pyx":122
+ * 
+ *     @property
+ *     def rollout_return(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_MvcEnv).rollout_return
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("mvc_env.py_MvcEnv.rollout_return.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mvc_env.pyx":125
+ *         return deref(self.inner_MvcEnv).rollout_return
  * 
  *     cdef G2P(self,Graph graph1):             # <<<<<<<<<<<<<<
  *         num_nodes = graph1.num_nodes     #Graph
@@ -2845,7 +3440,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   PyObject *__pyx_t_10 = NULL;
   __Pyx_RefNannySetupContext("G2P", 0);
 
-  /* "mvc_env.pyx":101
+  /* "mvc_env.pyx":126
  * 
  *     cdef G2P(self,Graph graph1):
  *         num_nodes = graph1.num_nodes     #Graph             # <<<<<<<<<<<<<<
@@ -2855,7 +3450,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_t_1 = __pyx_v_graph1.num_nodes;
   __pyx_v_num_nodes = __pyx_t_1;
 
-  /* "mvc_env.pyx":102
+  /* "mvc_env.pyx":127
  *     cdef G2P(self,Graph graph1):
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph             # <<<<<<<<<<<<<<
@@ -2865,7 +3460,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_t_1 = __pyx_v_graph1.num_edges;
   __pyx_v_num_edges = __pyx_t_1;
 
-  /* "mvc_env.pyx":103
+  /* "mvc_env.pyx":128
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph
  *         edge_list = graph1.edge_list             # <<<<<<<<<<<<<<
@@ -2875,40 +3470,40 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_t_2 = __pyx_v_graph1.edge_list;
   __pyx_v_edge_list = __pyx_t_2;
 
-  /* "mvc_env.pyx":104
+  /* "mvc_env.pyx":129
  *         num_edges = graph1.num_edges    #Graph
  *         edge_list = graph1.edge_list
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)             # <<<<<<<<<<<<<<
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 104, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2916,40 +3511,40 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_v_cint_edges_from = __pyx_t_7;
   __pyx_t_7 = 0;
 
-  /* "mvc_env.pyx":105
+  /* "mvc_env.pyx":130
  *         edge_list = graph1.edge_list
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)             # <<<<<<<<<<<<<<
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_7);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_7);
   __pyx_t_7 = 0;
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 105, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -2957,7 +3552,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_v_cint_edges_to = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "mvc_env.pyx":106
+  /* "mvc_env.pyx":131
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):             # <<<<<<<<<<<<<<
@@ -2969,46 +3564,46 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "mvc_env.pyx":107
+    /* "mvc_env.pyx":132
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first             # <<<<<<<<<<<<<<
  *             cint_edges_to[i] =edge_list[i].second
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  */
-    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).first); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 107, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).first); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_from, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_from, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-    /* "mvc_env.pyx":108
+    /* "mvc_env.pyx":133
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first
  *             cint_edges_to[i] =edge_list[i].second             # <<<<<<<<<<<<<<
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  * 
  */
-    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).second); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).second); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 133, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_to, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 108, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_to, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 133, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
 
-  /* "mvc_env.pyx":109
+  /* "mvc_env.pyx":134
  *             cint_edges_from[i]=edge_list[i].first
  *             cint_edges_to[i] =edge_list[i].second
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)             # <<<<<<<<<<<<<<
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_nodes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_nodes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = NULL;
   __pyx_t_1 = 0;
@@ -3025,7 +3620,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_t_3, __pyx_t_5, __pyx_v_cint_edges_from, __pyx_v_cint_edges_to};
-    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3035,7 +3630,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_t_3, __pyx_t_5, __pyx_v_cint_edges_from, __pyx_v_cint_edges_to};
-    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3043,7 +3638,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   } else
   #endif
   {
-    __pyx_t_10 = PyTuple_New(4+__pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(4+__pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -3060,7 +3655,7 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
     PyTuple_SET_ITEM(__pyx_t_10, 3+__pyx_t_1, __pyx_v_cint_edges_to);
     __pyx_t_3 = 0;
     __pyx_t_5 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
@@ -3069,8 +3664,8 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "mvc_env.pyx":100
- * 
+  /* "mvc_env.pyx":125
+ *         return deref(self.inner_MvcEnv).rollout_return
  * 
  *     cdef G2P(self,Graph graph1):             # <<<<<<<<<<<<<<
  *         num_nodes = graph1.num_nodes     #Graph
@@ -3102,19 +3697,19 @@ static PyObject *__pyx_f_7mvc_env_9py_MvcEnv_G2P(CYTHON_UNUSED struct __pyx_obj_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_23__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_23__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_35__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_35__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_22__reduce_cython__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_34__reduce_cython__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_22__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_34__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3156,19 +3751,19 @@ static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_22__reduce_cython__(CYTHON_UNUSED 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_25__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_25__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_37__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_7mvc_env_9py_MvcEnv_37__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_24__setstate_cython__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_7mvc_env_9py_MvcEnv_36__setstate_cython__(((struct __pyx_obj_7mvc_env_py_MvcEnv *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_24__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_7mvc_env_9py_MvcEnv_36__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7mvc_env_py_MvcEnv *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4000,19 +4595,33 @@ static PyObject *__pyx_getprop_7mvc_env_9py_MvcEnv_avail_list(PyObject *o, CYTHO
   return __pyx_pw_7mvc_env_9py_MvcEnv_10avail_list_1__get__(o);
 }
 
+static PyObject *__pyx_getprop_7mvc_env_9py_MvcEnv_trunc_threshold(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_7mvc_env_9py_MvcEnv_15trunc_threshold_1__get__(o);
+}
+
+static PyObject *__pyx_getprop_7mvc_env_9py_MvcEnv_rollout_return(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_7mvc_env_9py_MvcEnv_14rollout_return_1__get__(o);
+}
+
 static PyMethodDef __pyx_methods_7mvc_env_py_MvcEnv[] = {
   {"s0", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_3s0, METH_O, 0},
   {"step", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_5step, METH_O, 0},
   {"stepWithoutReward", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_7stepWithoutReward, METH_O, 0},
   {"stepDelete", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_9stepDelete, METH_O, 0},
   {"randomAction", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_11randomAction, METH_NOARGS, 0},
-  {"betweenAction", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_13betweenAction, METH_NOARGS, 0},
-  {"isTerminal", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_15isTerminal, METH_NOARGS, 0},
-  {"isNoNodes", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_17isNoNodes, METH_NOARGS, 0},
-  {"getReward", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_19getReward, METH_NOARGS, 0},
-  {"getMaxConnectedNodesNum", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_21getMaxConnectedNodesNum, METH_NOARGS, 0},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_23__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_25__setstate_cython__, METH_O, 0},
+  {"degreeAction", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_13degreeAction, METH_NOARGS, 0},
+  {"betweenAction", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_15betweenAction, METH_NOARGS, 0},
+  {"isTerminal", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_17isTerminal, METH_NOARGS, 0},
+  {"isNoNodes", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_19isNoNodes, METH_NOARGS, 0},
+  {"isTruncated", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_21isTruncated, METH_NOARGS, 0},
+  {"estimateRemainingReturn", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_7mvc_env_9py_MvcEnv_23estimateRemainingReturn, METH_VARARGS|METH_KEYWORDS, 0},
+  {"componentRollout", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_25componentRollout, METH_O, 0},
+  {"HeuristicRollout", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_27HeuristicRollout, METH_O, 0},
+  {"getReward", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_29getReward, METH_NOARGS, 0},
+  {"getMaxConnectedNodesNum", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_31getMaxConnectedNodesNum, METH_NOARGS, 0},
+  {"printGraph", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_33printGraph, METH_NOARGS, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_35__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_7mvc_env_9py_MvcEnv_37__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -4027,6 +4636,8 @@ static struct PyGetSetDef __pyx_getsets_7mvc_env_py_MvcEnv[] = {
   {(char *)"numCoveredEdges", __pyx_getprop_7mvc_env_9py_MvcEnv_numCoveredEdges, 0, (char *)0, 0},
   {(char *)"covered_set", __pyx_getprop_7mvc_env_9py_MvcEnv_covered_set, 0, (char *)0, 0},
   {(char *)"avail_list", __pyx_getprop_7mvc_env_9py_MvcEnv_avail_list, 0, (char *)0, 0},
+  {(char *)"trunc_threshold", __pyx_getprop_7mvc_env_9py_MvcEnv_trunc_threshold, 0, (char *)0, 0},
+  {(char *)"rollout_return", __pyx_getprop_7mvc_env_9py_MvcEnv_rollout_return, 0, (char *)0, 0},
   {0, 0, 0, 0, 0}
 };
 
@@ -4142,6 +4753,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_edge_list, __pyx_k_edge_list, sizeof(__pyx_k_edge_list), 0, 0, 1, 1},
+  {&__pyx_n_s_gamma, __pyx_k_gamma, sizeof(__pyx_k_gamma), 0, 0, 1, 1},
   {&__pyx_n_s_gc, __pyx_k_gc, sizeof(__pyx_k_gc), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_n_s_graph, __pyx_k_graph, sizeof(__pyx_k_graph), 0, 0, 1, 1},
@@ -4162,6 +4774,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
+  {&__pyx_n_s_rollout, __pyx_k_rollout, sizeof(__pyx_k_rollout), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
@@ -4169,7 +4782,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 131, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;

@@ -14,34 +14,6 @@ import matplotlib.pyplot as plt
 from testUtils import load_config, create_model, load_synthetic_graphs, detailed_result_dir, load_real_graph,_get_synth_param_grid
 from testUtils import load_real_csv,load_synth_csv
 
-# Model configurations to compare
-model_BA_params_configs = {'nrange_list':['30_50','50_100'],
-                            'm_list':[1,2,3,4,5,6]}
-model_g_type_configs = ['BA']
-model_gnn_configs = ['graphSage']
-
-# Generate all model configurations
-all_model_configs = []
-
-for g_type in model_g_type_configs:
-    for gnn in model_gnn_configs:
-        if g_type == 'BA':
-             for nrange in model_BA_params_configs['nrange_list']:
-                for m in model_BA_params_configs['m_list']:
-                    g_params = {
-                        'nrange': nrange,
-                        'm': m
-                    }
-                    model_config = {
-                        "g_type": g_type,
-                        "gnn_model": gnn,
-                        "target_graph": "Digg",
-                        "g_params": g_params,
-                        "save_model_dir": "./models"
-                    }
-                    all_model_configs.append(model_config)
-        if g_type == 'ego':
-            pass
 
 def _group_models_by_params(model_configs):
     """Groups model configurations by g_type and nrange for better visualization.
@@ -226,9 +198,9 @@ def plot_max_cc_comparison(all_results, save_dir, model_configs):
     - save_dir: directory to save the plot
     - model_configs: list of model configurations for labels
     """
-    plt.figure(figsize=(10, 6))
     
     for dataset,dataset_results in all_results.items():
+        plt.figure(figsize=(10, 6))
         print(f"Plotting MaxCC comparison on {dataset}")
         
         # Colors for different models
@@ -284,33 +256,36 @@ def plot_best_iter_overview(all_model_results, eval_config, save_dir, model_conf
     else:
         print(f"  ⚠ Invalid mode '{mode}' for plot_best_iter_overview.")
         return
-
+    
+    # row and col
     n = len(datasets)
+    m = 0;
     if n == 0:
         print(f"  ⚠ No {mode} datasets found to plot for overview.")
         return
-
-    # Build common limits
-    x_max, x_ticks, y_max, y_ticks = _compute_common_axes_limits()
     
     grouped_models = _group_models_by_params(model_configs)
     
     all_plot_combinations = []
     for dataset in datasets:
+        m = max(m,len(grouped_models.keys()))
         for group_key in grouped_models.keys():
             all_plot_combinations.append((dataset, group_key))
     
-    n_plots = len(all_plot_combinations)
+    n_plots = n*m
     if n_plots == 0:
         print(f"  ⚠ No {mode} iteration results found to plot for overview after grouping.")
         return
-    rows_new = int(np.ceil(np.sqrt(n_plots)))
-    cols_new = int(np.ceil(n_plots / rows_new))
-    fig, axes = plt.subplots(rows_new, cols_new, figsize=(4.0 * cols_new, 3.0 * rows_new))
-    axes = axes.flatten() if rows_new*cols_new > 1 else [axes]
+    rows = n
+    cols = m
+
+    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
+    axes = axes.flatten() if n_plots > 1 else [axes]
 
     markers = ['o', 's', '^', 'D', 'v', '<', '>', 'P', '*']
-    
+    # Build common limits
+    x_max, x_ticks, y_max, y_ticks = _compute_common_axes_limits()
+
     for plot_idx, (dataset, group_key) in enumerate(all_plot_combinations):
         ax = axes[plot_idx]
 
@@ -357,14 +332,14 @@ def plot_best_iter_overview(all_model_results, eval_config, save_dir, model_conf
             ax.legend(handles=local_handles, labels=local_labels, loc='upper right', fontsize=8)
 
     # Hide any empty axes
-    for j in range(n_plots, rows_new * cols_new):
+    for j in range(n_plots, rows * cols):
         axes[j].axis('off')
 
     fig.supylabel('Maximum Connected Component Size')
     fig.supxlabel('Removal Ratio', y=0.02)
     fig.tight_layout(rect=[0.02, 0.06, 1, 0.92])
 
-    out_name = f"{g_type_for_filename}_grouped_max_cc.png"
+    out_name = f"{g_type_for_filename}_overview_max_cc.png"
     out_path = os.path.join(save_dir, out_name)
     fig.savefig(out_path, dpi=300, bbox_inches='tight')
     print(f"  ✓ Saved MaxCC best_iter overview plot: {out_path}")
@@ -385,15 +360,34 @@ def plot_all_iters_overview(all_model_results, eval_config, save_dir, model_conf
     
     datasets = sorted(list(datasets))
     n = len(datasets)
+    m = 0;
     if n == 0:
         print("  ⚠ No iteration results found to plot for overview.")
         return
 
-    rows = int(np.ceil(np.sqrt(n)))
-    cols = int(np.ceil(n / rows))
-    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
-    axes = axes.flatten() if rows*cols > 1 else [axes]
+    # rows = int(np.ceil(np.sqrt(n)))
+    # cols = int(np.ceil(n / rows))
+    # fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
+    # axes = axes.flatten() if rows*cols > 1 else [axes]
 
+    grouped_models = _group_models_by_params(model_configs)
+
+    all_plot_combinations = []
+    for dataset in datasets:
+        m = max(m,len(grouped_models.keys()))
+        for group_key in grouped_models.keys():
+            all_plot_combinations.append((dataset, group_key))
+    
+    n_plots = n*m
+    if n_plots == 0:
+        print("  ⚠ No iteration results found to plot for overview after grouping.")
+        return
+    rows = n
+    cols = m
+    fig, axes = plt.subplots(rows, cols, figsize=(4.0 * cols, 3.0 * rows))
+    axes = axes.flatten() if n_plots > 1 else [axes]
+
+    markers = ['o', 's', '^', 'D', 'v', '<', '>', 'P', '*']
     # Common limits (using iteration range from the data)
     max_iter_val = 0
     min_iter_val = float('inf')
@@ -409,28 +403,9 @@ def plot_all_iters_overview(all_model_results, eval_config, save_dir, model_conf
     
     x_max = max_iter_val + 500 if max_iter_val > 0 else 6000 # Add some buffer
     y_max = 0.55 # Score is usually 0-1
-    
     x_step_dynamic = max(500, int(x_max / 5)) # Dynamic step for iterations
     x_ticks = np.arange(0, x_max + x_step_dynamic, x_step_dynamic)
     y_ticks = np.arange(0.0, y_max + 0.1, 0.1)
-
-    grouped_models = _group_models_by_params(model_configs)
-
-    all_plot_combinations = []
-    for dataset in datasets:
-        for group_key in grouped_models.keys():
-            all_plot_combinations.append((dataset, group_key))
-    
-    n_plots = len(all_plot_combinations)
-    if n_plots == 0:
-        print("  ⚠ No iteration results found to plot for overview after grouping.")
-        return
-    rows_new = int(np.ceil(np.sqrt(n_plots)))
-    cols_new = int(np.ceil(n_plots / rows_new))
-    fig, axes = plt.subplots(rows_new, cols_new, figsize=(4.0 * cols_new, 3.0 * rows_new))
-    axes = axes.flatten() if rows_new*cols_new > 1 else [axes]
-
-    markers = ['o', 's', '^', 'D', 'v', '<', '>', 'P', '*']
 
     for plot_idx, (dataset, group_key) in enumerate(all_plot_combinations):
         ax = axes[plot_idx]
@@ -490,8 +465,8 @@ def plot_all_iters_overview(all_model_results, eval_config, save_dir, model_conf
             ax.legend(handles=local_handles, labels=local_labels, loc='upper right', fontsize=8)
 
     # Hide any empty axes
-    for j in range(n_plots, rows_new * cols_new):
-        axes[j].axis('off')
+    # for j in range(n_plots, rows * cols):
+    #     axes[j].axis('off')
 
     fig.supylabel('Solution Score')
     fig.supxlabel('Iteration', y=0.02)
@@ -499,7 +474,7 @@ def plot_all_iters_overview(all_model_results, eval_config, save_dir, model_conf
     # fig.legend(handles=handles, labels=labels, loc='upper center', bbox_to_anchor=(0.5, 1.005),
     #            ncol=min(len(labels), 4), fontsize=8)
 
-    out_path = os.path.join(save_dir, f'iters_{mode}_grouped_overview_max_cc.png')
+    out_path = os.path.join(save_dir, f'iters_{mode}_overview_max_cc.png')
     fig.savefig(out_path, dpi=300, bbox_inches='tight')
     print(f"  ✓ Saved MaxCC all_iters overview plot: {out_path}")
     plt.close(fig)
@@ -583,8 +558,10 @@ def print_model_comparison_summary(all_model_results, eval_config):
 def main():
     # Load configuration
     config = load_config()
+    model_config = config['model_config']
     eval_config = config['eval_config']
     data_config = config['data_config']
+
     
     parser = argparse.ArgumentParser(description='Evaluate all models on synthetic and real datasets')
     parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
@@ -599,14 +576,43 @@ def main():
     parser.add_argument("--eval_all_iters", action="store_true", help="plot all iter results in csv from result dir")
     args = parser.parse_args()
 
-    # Update config with command line arguments
+    # Update model config to compare
+    model_BA_params_configs = {'nrange_list':['50_150'],
+                                'm_list':[4]}
+    model_g_type_configs = ['BA']
+    model_gnn_configs = ['graphSage']
+
+    # Generate all model configurations
+    all_model_configs = []
+    for g_type in model_g_type_configs:
+        for gnn in model_gnn_configs:
+            if g_type == 'BA':
+                for nrange in model_BA_params_configs['nrange_list']:
+                    for m in model_BA_params_configs['m_list']:
+                        g_params = {
+                            'nrange': nrange,
+                            'm': m
+                        }
+                        # Create a new model config for each combination
+                        new_model_config = model_config.copy()
+                        new_model_config.update({
+                            "g_type": g_type,
+                            "gnn_model": gnn,
+                            "g_params": g_params,
+                        })
+                        all_model_configs.append(new_model_config)
+            if g_type == 'ego':
+                pass
+       
+
+    # Update eval config with command line arguments
     eval_config = config['eval_config']
     eval_config.update({
-        'datasets': [],
+        'datasets': ['Crime','Digg'],
         'per_graphs': 2,
         "synthetic_g_params": {
             "nranges": ["30_50","50_100"],
-            "m_values": [1,2]
+            "m_values": [1,2,3,4,5,6]
         },
     })
 
@@ -625,7 +631,7 @@ def main():
     print(f"\nResults will be saved to: {save_result_dir}")
     
 
-    # Eval models
+    # ---------------------------------------- Evaluate all models ------------------------------------------------
     print(f"\n{'='*60}")
     print("Evaling Models...")
     print(f"{'='*60}")
@@ -651,14 +657,15 @@ def main():
             real_results = {}
             iters_synthetic_results = {}
             iters_real_results = {} 
-            # Evaluate on synthetic graphs
+            # Evaluate best iter on synthetic graphs
             if args.eval_synthetic:
                 synthetic_results = evaluate_model_on_synthetic_graphs(dqn, model_config, eval_config)
             
-            # Evaluate on real graphs
+            # Evaluate best iter on real graphs
             if args.eval_real:
                 real_results = evaluate_model_on_real_graphs(dqn, model_config, eval_config, data_config)
             
+            # Evaluate all iters, read from exsiting results by testSynthetic and testReal
             if args.eval_all_iters:
                 if args.eval_synthetic:
                     iters_synthetic_results = load_synth_csv(model_config,eval_config)
@@ -686,40 +693,49 @@ def main():
     print("Creating MaxCC plots...")
     print(f"{'='*60}")
 
-    # ---------------------Plot per-dataset figures (e.g., BA_nrange_30_50_m_1_max_cc_plot.png) , one graph one png file------------------------------------------
+    # ---------------------Plot per-dataset figures (e.g., BA_nrange_30_50_m_1_max_cc_plot.png) , one test graph one png file------------------------------------------
+    
     # synth/real_results will be reformated to {synth_dataset:{model_key:model_results}
-    # plot all synthetic graphs 
-    synth_grid = _get_synth_param_grid(eval_config)
-    synth_datasets = [g['synth_dataset'] for g in synth_grid]
-    synthetic_results = {}
-    for synth_dataset in synth_datasets:
-        # Collect results for per-dataset across all models
-        synthetic_results[synth_dataset] = {}
-        for model_key, model_results in all_model_results.items():
-            if model_results['synthetic'] and synth_dataset in model_results['synthetic']:
-                synthetic_results[synth_dataset][model_key] = model_results['synthetic'][synth_dataset]
-    if synthetic_results:
-        plot_max_cc_comparison(synthetic_results, save_result_dir, all_model_configs)
+
+    # plot synthetic graph comparisons
+    if args.eval_synthetic:
+        synth_grid = _get_synth_param_grid(eval_config)
+        synth_datasets = [g['synth_dataset'] for g in synth_grid]
+        synthetic_results = {}
+        for synth_dataset in synth_datasets:
+            # Collect results for per-dataset across all models
+            synthetic_results[synth_dataset] = {}
+            for model_key, model_results in all_model_results.items():
+                if model_results['synthetic'] and synth_dataset in model_results['synthetic']:
+                    synthetic_results[synth_dataset][model_key] = model_results['synthetic'][synth_dataset]
+        if synthetic_results:
+            plot_max_cc_comparison(synthetic_results, save_result_dir, all_model_configs)
     
     # Plot real graph comparisons
-    real_results = {}
-    for real_dataset in eval_config['datasets']:
-        # Collect results for this dataset across all models
-        real_results[real_dataset] = {}
-        for model_key, model_results in all_model_results.items():
-            if model_results['real'] and real_dataset in model_results['real']:
-                real_results[real_dataset][model_key] = model_results['real'][real_dataset]
-    if real_results:
-        plot_max_cc_comparison(real_results, save_result_dir, all_model_configs)
+    if args.eval_real:
+        real_results = {}
+        for real_dataset in eval_config['datasets']:
+            # Collect results for this dataset across all models
+            real_results[real_dataset] = {}
+            for model_key, model_results in all_model_results.items():
+                if model_results['real'] and real_dataset in model_results['real']:
+                    real_results[real_dataset][model_key] = model_results['real'][real_dataset]
+        if real_results:
+            plot_max_cc_comparison(real_results, save_result_dir, all_model_configs)
     
 
-    # Overview all models on all datasets
+    # ---------------------------------Plot per-dataset figures (e.g. synthetic_BA_grouped_max_cc.png) all models on all datasets-------------------------------------------------------
+    
     # TODO:maybe need to reformat like plot_max_cc_comparison
     print(f"\nPlotting MaxCC overview for all models...")
-    plot_best_iter_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='synthetic')
-    plot_best_iter_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='real')
-    plot_all_iters_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='synthetic')
-    plot_all_iters_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='real')
+    if args.eval_synthetic:
+        plot_best_iter_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='synthetic')
+        if args.eval_all_iters:
+            plot_all_iters_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='synthetic')
+    if args.eval_real:
+        plot_best_iter_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='real')
+        if args.eval_all_iters:
+            plot_all_iters_overview(all_model_results, eval_config, save_result_dir, all_model_configs, mode='real')
     
     print(f"\n{'='*60}")
     print("Model comparison evaluation completed!")

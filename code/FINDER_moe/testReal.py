@@ -6,6 +6,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from unittest import result
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
 from GraphDQN import GraphDQN
+from MoEGraphDQN import MoEGraphDQN
 import numpy as np
 from tqdm import tqdm
 import time
@@ -15,7 +16,7 @@ import pickle as cp
 import json
 import argparse
 
-from testUtils import load_config,create_model,detailed_result_dir,load_real_graph,load_real_csv,save_real_results
+from testUtils import load_config,create_model,create_moe_model,detailed_result_dir,load_real_graph,load_real_csv,save_real_results
 
 
 
@@ -160,7 +161,7 @@ def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False
     data_config = config['data_config']
 
     # Create model for this iteration
-    dqn = create_model(model_config, iter_num)
+    dqn = create_moe_model(model_config, iter_num)
     
     step_ratio = eval_config['step_ratio']
     strategy_id = eval_config['strategy_id']
@@ -343,7 +344,7 @@ def main():
         # eval one iter
         if args.eval_iter < 0:
             # find best model iter using Dqn.findModel
-            dqn = create_model(config['model_config'])
+            dqn = create_moe_model(config['model_config'])
             print("eval_iter = None, find best iter by dqn.findModel")
             best_ckpt_file = dqn.findModel()
             dqn.LoadModel(best_ckpt_file)

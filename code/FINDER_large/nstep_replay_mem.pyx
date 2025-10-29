@@ -56,13 +56,13 @@ cdef class py_NStepReplayMem:
     cdef shared_ptr[MvcEnv] inner_MvcEnv
     cdef shared_ptr[ReplaySample] inner_ReplaySample
     #__cinit__会在__init__之前被调用
-    def __cinit__(self,int memory_size):
+    def __cinit__(self,int memory_size, double gamma=1.0):
         '''默认构造函数，暂不调用Graph的默认构造函数，
         默认构造函数在栈上分配的内存读写速度比较快，
         但实际情况下网络的结构一旦变化就要重新在堆上创建对象，因此基本上栈上分配的内存不会被使用
         除非将类的实现文件重写，加入python的调用接口，否则无法避免在堆上创建对象'''
         #print('默认构造函数。')
-        self.inner_NStepReplayMem = shared_ptr[NStepReplayMem](new NStepReplayMem(memory_size))
+        self.inner_NStepReplayMem = shared_ptr[NStepReplayMem](new NStepReplayMem(memory_size, gamma))
     # def __dealloc__(self):
     #     if self.inner_NStepReplayMem != NULL:
     #         self.inner_NStepReplayMem.reset()
@@ -97,6 +97,7 @@ cdef class py_NStepReplayMem:
         deref(self.inner_MvcEnv).numCoveredEdges = mvcenv.numCoveredEdges
         deref(self.inner_MvcEnv).covered_set = mvcenv.covered_set
         deref(self.inner_MvcEnv).avail_list = mvcenv.avail_list
+        deref(self.inner_MvcEnv).rollout_return = mvcenv.rollout_return
         deref(self.inner_NStepReplayMem).Add(self.inner_MvcEnv,nstep)
 
     def Sampling(self,int batch_size):
@@ -136,6 +137,9 @@ cdef class py_NStepReplayMem:
     @property
     def memory_size(self):
         return deref(self.inner_NStepReplayMem).memory_size
+    @property
+    def gamma(self):
+        return deref(self.inner_NStepReplayMem).gamma
     cdef G2P(self,Graph graph1):
         num_nodes = graph1.num_nodes     #得到Graph对象的节点个数
         num_edges = graph1.num_edges    #得到Graph对象的连边个数

@@ -20,7 +20,7 @@ import matplotlib.animation as animation
 from matplotlib.patches import FancyBboxPatch
 import matplotlib.patches as mpatches
 
-def load_config(config_file='config.json'):
+def load_config(config_file=f'{os.path.dirname(__file__)}/config.json'):
     """Load configuration from JSON file"""
     with open(config_file, 'r') as f:
         config = json.load(f)

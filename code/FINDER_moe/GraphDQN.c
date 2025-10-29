@@ -801,7 +801,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "FINDER_ND\\GraphDQN.pyx",
+  "FINDER_moe\\GraphDQN.pyx",
 };
 
 /*--- Type declarations ---*/
@@ -1735,7 +1735,6 @@ static const char __pyx_k_n_graphs[] = "n_graphs";
 static const char __pyx_k_networkx[] = "networkx";
 static const char __pyx_k_nrange_2[] = "_nrange_";
 static const char __pyx_k_pagerank[] = "pagerank";
-static const char __pyx_k_powerlaw[] = "powerlaw";
 static const char __pyx_k_py_Graph[] = "py_Graph";
 static const char __pyx_k_py_Utils[] = "py_Utils";
 static const char __pyx_k_q_on_all[] = "q_on_all";
@@ -1835,7 +1834,6 @@ static const char __pyx_k_IsHuberloss[] = "IsHuberloss";
 static const char __pyx_k_Iteration_d[] = "Iteration:%d";
 static const char __pyx_k_action_list[] = "action_list";
 static const char __pyx_k_batch_idxes[] = "batch_idxes";
-static const char __pyx_k_erdos_renyi[] = "erdos_renyi";
 static const char __pyx_k_gpu_options[] = "gpu_options";
 static const char __pyx_k_isNoNodes_2[] = "isNoNodes";
 static const char __pyx_k_list_target[] = "list_target";
@@ -1847,7 +1845,6 @@ static const char __pyx_k_randomRatio[] = "randomRatio";
 static const char __pyx_k_reduce_mean[] = "reduce_mean";
 static const char __pyx_k_remove_node[] = "remove_node";
 static const char __pyx_k_result_file[] = "result_file";
-static const char __pyx_k_small_world[] = "small-world";
 static const char __pyx_k_test_graphs[] = "test_graphs";
 static const char __pyx_k_GPU_detected[] = "GPU detected: ";
 static const char __pyx_k_GraphDQN_Fit[] = "GraphDQN.Fit";
@@ -1924,6 +1921,7 @@ static const char __pyx_k_val_betweenness[] = "val_betweenness";
 static const char __pyx_k_ClearTrainGraphs[] = "ClearTrainGraphs";
 static const char __pyx_k_EvaluateRealData[] = "EvaluateRealData";
 static const char __pyx_k_GraphDQN_Predict[] = "GraphDQN.Predict";
+static const char __pyx_k_GraphDQN_modules[] = "GraphDQN_modules";
 static const char __pyx_k_PrepareValidData[] = "PrepareValidData";
 static const char __pyx_k_double_list_pred[] = "double_list_pred";
 static const char __pyx_k_is_gpu_available[] = "is_gpu_available";
@@ -1939,7 +1937,6 @@ static const char __pyx_k_cur_message_layer[] = "cur_message_layer";
 static const char __pyx_k_degree_centrality[] = "degree_centrality";
 static const char __pyx_k_double_list_predT[] = "double_list_predT";
 static const char __pyx_k_erdos_renyi_graph[] = "erdos_renyi_graph";
-static const char __pyx_k_graph_dqn_modules[] = "graph_dqn_modules";
 static const char __pyx_k_number_of_edges_d[] = "number of edges:%d";
 static const char __pyx_k_number_of_nodes_d[] = "number of nodes:%d";
 static const char __pyx_k_prepareBatchGraph[] = "prepareBatchGraph";
@@ -1983,7 +1980,6 @@ static const char __pyx_k_initialization_stddev[] = "initialization_stddev";
 static const char __pyx_k_list_physical_devices[] = "list_physical_devices";
 static const char __pyx_k_model_checkpoint_path[] = "model_checkpoint_path:";
 static const char __pyx_k_number_of_sol_nodes_d[] = "number of sol nodes:%d";
-static const char __pyx_k_FINDER_ND_GraphDQN_pyx[] = "FINDER_ND\\GraphDQN.pyx";
 static const char __pyx_k_GetSolution_CurrentEnv[] = "GetSolution_CurrentEnv";
 static const char __pyx_k_GraphDQN_Run_simulator[] = "GraphDQN.Run_simulator";
 static const char __pyx_k_PredictWithCurrentQNet[] = "PredictWithCurrentQNet";
@@ -1993,6 +1989,7 @@ static const char __pyx_k_has_been_saved_success[] = " has been saved success!\n
 static const char __pyx_k_powerlaw_cluster_graph[] = "powerlaw_cluster_graph";
 static const char __pyx_k_300_iterations_time_2fs[] = "300 iterations time: %.2fs\n";
 static const char __pyx_k_EvaluateRealData_random[] = "EvaluateRealData_random";
+static const char __pyx_k_FINDER_moe_GraphDQN_pyx[] = "FINDER_moe\\GraphDQN.pyx";
 static const char __pyx_k_GraphDQN_gen_new_graphs[] = "GraphDQN.gen_new_graphs";
 static const char __pyx_k_disable_eager_execution[] = "disable_eager_execution";
 static const char __pyx_k_numCovered_d_numEdges_d[] = "numCovered:%d , numEdges:%d";
@@ -2057,7 +2054,7 @@ static PyObject *__pyx_n_s_Evaluate;
 static PyObject *__pyx_n_s_EvaluateRealData;
 static PyObject *__pyx_n_s_EvaluateRealData_random;
 static PyObject *__pyx_n_s_EvaluateSol;
-static PyObject *__pyx_kp_s_FINDER_ND_GraphDQN_pyx;
+static PyObject *__pyx_kp_s_FINDER_moe_GraphDQN_pyx;
 static PyObject *__pyx_kp_s_Finding_best_model_by_validation;
 static PyObject *__pyx_n_s_Fit;
 static PyObject *__pyx_n_s_G;
@@ -2106,6 +2103,7 @@ static PyObject *__pyx_n_s_GraphDQN_fit;
 static PyObject *__pyx_n_s_GraphDQN_fit_with_prioritized;
 static PyObject *__pyx_n_s_GraphDQN_gen_graph;
 static PyObject *__pyx_n_s_GraphDQN_gen_new_graphs;
+static PyObject *__pyx_n_s_GraphDQN_modules;
 static PyObject *__pyx_n_s_GraphDQN_resume_checkpoint_and_i;
 static PyObject *__pyx_n_s_GraphDQN_resume_nlines_and_runti;
 static PyObject *__pyx_n_s_GraphEncoder;
@@ -2277,7 +2275,6 @@ static PyObject *__pyx_n_s_eps;
 static PyObject *__pyx_n_s_eps_end;
 static PyObject *__pyx_n_s_eps_start;
 static PyObject *__pyx_n_s_eps_step;
-static PyObject *__pyx_n_s_erdos_renyi;
 static PyObject *__pyx_n_s_erdos_renyi_graph;
 static PyObject *__pyx_n_s_exists;
 static PyObject *__pyx_n_s_exit;
@@ -2315,7 +2312,6 @@ static PyObject *__pyx_n_s_gpu_options;
 static PyObject *__pyx_n_s_gpus;
 static PyObject *__pyx_n_s_graph;
 static PyObject *__pyx_n_s_graphSage;
-static PyObject *__pyx_n_s_graph_dqn_modules;
 static PyObject *__pyx_n_s_graphs;
 static PyObject *__pyx_n_s_group;
 static PyObject *__pyx_kp_u_has_been_saved_success;
@@ -2447,7 +2443,6 @@ static PyObject *__pyx_kp_u_pkl;
 static PyObject *__pyx_n_s_placeholder;
 static PyObject *__pyx_kp_s_please_implement_one_ego_graph_g;
 static PyObject *__pyx_n_s_pos;
-static PyObject *__pyx_n_s_powerlaw;
 static PyObject *__pyx_n_s_powerlaw_cluster_graph;
 static PyObject *__pyx_n_s_pred;
 static PyObject *__pyx_n_s_prepare;
@@ -2518,7 +2513,6 @@ static PyObject *__pyx_n_s_session;
 static PyObject *__pyx_n_s_setLevel;
 static PyObject *__pyx_n_s_set_verbosity;
 static PyObject *__pyx_n_s_shape;
-static PyObject *__pyx_kp_s_small_world;
 static PyObject *__pyx_n_s_sol;
 static PyObject *__pyx_n_s_sol_file;
 static PyObject *__pyx_n_s_sol_left;
@@ -8569,7 +8563,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
  *         sys.stdout.flush()
  *         cdef double result_degree = 0.0             # <<<<<<<<<<<<<<
  *         cdef double result_betweenness = 0.0
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  */
   __pyx_v_result_degree = 0.0;
 
@@ -8577,7 +8571,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
  *         sys.stdout.flush()
  *         cdef double result_degree = 0.0
  *         cdef double result_betweenness = 0.0             # <<<<<<<<<<<<<<
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):
  */
   __pyx_v_result_betweenness = 0.0;
@@ -8585,25 +8579,25 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
   /* "GraphDQN.pyx":326
  *         cdef double result_degree = 0.0
  *         cdef double result_betweenness = 0.0
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:             # <<<<<<<<<<<<<<
+ *         if self.g_type in ['ER','PL','SW','BA']:             # <<<<<<<<<<<<<<
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):
  *                 g = self.gen_graph(self.num_min, self.num_max)
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_g_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 326, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_erdos_renyi, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_ER, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_powerlaw, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_PL, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_kp_s_small_world, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_SW, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 326, __pyx_L1_error)
   if (!__pyx_t_5) {
   } else {
     __pyx_t_4 = __pyx_t_5;
@@ -8618,7 +8612,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
 
     /* "GraphDQN.pyx":327
  *         cdef double result_betweenness = 0.0
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):             # <<<<<<<<<<<<<<
  *                 g = self.gen_graph(self.num_min, self.num_max)
  *                 g_degree = g.copy()
@@ -8687,7 +8681,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
       __pyx_t_6 = 0;
 
       /* "GraphDQN.pyx":328
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):
  *                 g = self.gen_graph(self.num_min, self.num_max)             # <<<<<<<<<<<<<<
  *                 g_degree = g.copy()
@@ -9073,7 +9067,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
 
       /* "GraphDQN.pyx":327
  *         cdef double result_betweenness = 0.0
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+ *         if self.g_type in ['ER','PL','SW','BA']:
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):             # <<<<<<<<<<<<<<
  *                 g = self.gen_graph(self.num_min, self.num_max)
  *                 g_degree = g.copy()
@@ -9084,7 +9078,7 @@ static PyObject *__pyx_pf_8GraphDQN_8GraphDQN_14PrepareValidData(CYTHON_UNUSED P
     /* "GraphDQN.pyx":326
  *         cdef double result_degree = 0.0
  *         cdef double result_betweenness = 0.0
- *         if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:             # <<<<<<<<<<<<<<
+ *         if self.g_type in ['ER','PL','SW','BA']:             # <<<<<<<<<<<<<<
  *             for i in tqdm(range(n_valid), desc="Validation graphs"):
  *                 g = self.gen_graph(self.num_min, self.num_max)
  */
@@ -27163,7 +27157,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_EvaluateRealData, __pyx_k_EvaluateRealData, sizeof(__pyx_k_EvaluateRealData), 0, 0, 1, 1},
   {&__pyx_n_s_EvaluateRealData_random, __pyx_k_EvaluateRealData_random, sizeof(__pyx_k_EvaluateRealData_random), 0, 0, 1, 1},
   {&__pyx_n_s_EvaluateSol, __pyx_k_EvaluateSol, sizeof(__pyx_k_EvaluateSol), 0, 0, 1, 1},
-  {&__pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_k_FINDER_ND_GraphDQN_pyx, sizeof(__pyx_k_FINDER_ND_GraphDQN_pyx), 0, 0, 1, 0},
+  {&__pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_k_FINDER_moe_GraphDQN_pyx, sizeof(__pyx_k_FINDER_moe_GraphDQN_pyx), 0, 0, 1, 0},
   {&__pyx_kp_s_Finding_best_model_by_validation, __pyx_k_Finding_best_model_by_validation, sizeof(__pyx_k_Finding_best_model_by_validation), 0, 0, 1, 0},
   {&__pyx_n_s_Fit, __pyx_k_Fit, sizeof(__pyx_k_Fit), 0, 0, 1, 1},
   {&__pyx_n_s_G, __pyx_k_G, sizeof(__pyx_k_G), 0, 0, 1, 1},
@@ -27212,6 +27206,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_GraphDQN_fit_with_prioritized, __pyx_k_GraphDQN_fit_with_prioritized, sizeof(__pyx_k_GraphDQN_fit_with_prioritized), 0, 0, 1, 1},
   {&__pyx_n_s_GraphDQN_gen_graph, __pyx_k_GraphDQN_gen_graph, sizeof(__pyx_k_GraphDQN_gen_graph), 0, 0, 1, 1},
   {&__pyx_n_s_GraphDQN_gen_new_graphs, __pyx_k_GraphDQN_gen_new_graphs, sizeof(__pyx_k_GraphDQN_gen_new_graphs), 0, 0, 1, 1},
+  {&__pyx_n_s_GraphDQN_modules, __pyx_k_GraphDQN_modules, sizeof(__pyx_k_GraphDQN_modules), 0, 0, 1, 1},
   {&__pyx_n_s_GraphDQN_resume_checkpoint_and_i, __pyx_k_GraphDQN_resume_checkpoint_and_i, sizeof(__pyx_k_GraphDQN_resume_checkpoint_and_i), 0, 0, 1, 1},
   {&__pyx_n_s_GraphDQN_resume_nlines_and_runti, __pyx_k_GraphDQN_resume_nlines_and_runti, sizeof(__pyx_k_GraphDQN_resume_nlines_and_runti), 0, 0, 1, 1},
   {&__pyx_n_s_GraphEncoder, __pyx_k_GraphEncoder, sizeof(__pyx_k_GraphEncoder), 0, 0, 1, 1},
@@ -27383,7 +27378,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_eps_end, __pyx_k_eps_end, sizeof(__pyx_k_eps_end), 0, 0, 1, 1},
   {&__pyx_n_s_eps_start, __pyx_k_eps_start, sizeof(__pyx_k_eps_start), 0, 0, 1, 1},
   {&__pyx_n_s_eps_step, __pyx_k_eps_step, sizeof(__pyx_k_eps_step), 0, 0, 1, 1},
-  {&__pyx_n_s_erdos_renyi, __pyx_k_erdos_renyi, sizeof(__pyx_k_erdos_renyi), 0, 0, 1, 1},
   {&__pyx_n_s_erdos_renyi_graph, __pyx_k_erdos_renyi_graph, sizeof(__pyx_k_erdos_renyi_graph), 0, 0, 1, 1},
   {&__pyx_n_s_exists, __pyx_k_exists, sizeof(__pyx_k_exists), 0, 0, 1, 1},
   {&__pyx_n_s_exit, __pyx_k_exit, sizeof(__pyx_k_exit), 0, 0, 1, 1},
@@ -27421,7 +27415,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_gpus, __pyx_k_gpus, sizeof(__pyx_k_gpus), 0, 0, 1, 1},
   {&__pyx_n_s_graph, __pyx_k_graph, sizeof(__pyx_k_graph), 0, 0, 1, 1},
   {&__pyx_n_s_graphSage, __pyx_k_graphSage, sizeof(__pyx_k_graphSage), 0, 0, 1, 1},
-  {&__pyx_n_s_graph_dqn_modules, __pyx_k_graph_dqn_modules, sizeof(__pyx_k_graph_dqn_modules), 0, 0, 1, 1},
   {&__pyx_n_s_graphs, __pyx_k_graphs, sizeof(__pyx_k_graphs), 0, 0, 1, 1},
   {&__pyx_n_s_group, __pyx_k_group, sizeof(__pyx_k_group), 0, 0, 1, 1},
   {&__pyx_kp_u_has_been_saved_success, __pyx_k_has_been_saved_success, sizeof(__pyx_k_has_been_saved_success), 0, 1, 0, 0},
@@ -27553,7 +27546,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_placeholder, __pyx_k_placeholder, sizeof(__pyx_k_placeholder), 0, 0, 1, 1},
   {&__pyx_kp_s_please_implement_one_ego_graph_g, __pyx_k_please_implement_one_ego_graph_g, sizeof(__pyx_k_please_implement_one_ego_graph_g), 0, 0, 1, 0},
   {&__pyx_n_s_pos, __pyx_k_pos, sizeof(__pyx_k_pos), 0, 0, 1, 1},
-  {&__pyx_n_s_powerlaw, __pyx_k_powerlaw, sizeof(__pyx_k_powerlaw), 0, 0, 1, 1},
   {&__pyx_n_s_powerlaw_cluster_graph, __pyx_k_powerlaw_cluster_graph, sizeof(__pyx_k_powerlaw_cluster_graph), 0, 0, 1, 1},
   {&__pyx_n_s_pred, __pyx_k_pred, sizeof(__pyx_k_pred), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
@@ -27624,7 +27616,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_setLevel, __pyx_k_setLevel, sizeof(__pyx_k_setLevel), 0, 0, 1, 1},
   {&__pyx_n_s_set_verbosity, __pyx_k_set_verbosity, sizeof(__pyx_k_set_verbosity), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
-  {&__pyx_kp_s_small_world, __pyx_k_small_world, sizeof(__pyx_k_small_world), 0, 0, 1, 0},
   {&__pyx_n_s_sol, __pyx_k_sol, sizeof(__pyx_k_sol), 0, 0, 1, 1},
   {&__pyx_n_s_sol_file, __pyx_k_sol_file, sizeof(__pyx_k_sol_file), 0, 0, 1, 1},
   {&__pyx_n_s_sol_left, __pyx_k_sol_left, sizeof(__pyx_k_sol_left), 0, 0, 1, 1},
@@ -27872,7 +27863,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__22 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_g_type, __pyx_n_s_g_params, __pyx_n_s_gnn_model, __pyx_n_s_target_graph, __pyx_n_s_save_model_dir, __pyx_n_s_i, __pyx_n_s_config, __pyx_n_s_gpus, __pyx_n_s_a, __pyx_n_s_b); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(6, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_init, 75, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(6, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_init, 75, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 75, __pyx_L1_error)
 
   /* "GraphDQN.pyx":195
  * 
@@ -27884,7 +27875,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__24 = PyTuple_Pack(17, __pyx_n_s_self, __pyx_n_s_nodes_size, __pyx_n_s_y_nodes_size, __pyx_n_s_feature_size, __pyx_n_s_node_input, __pyx_n_s_y_node_input, __pyx_n_s_encoder, __pyx_n_s_decoder, __pyx_n_s_cur_message_layer, __pyx_n_s_y_cur_message_layer, __pyx_n_s_q_pred, __pyx_n_s_q_on_all, __pyx_n_s_loss_recons, __pyx_n_s_edge_num, __pyx_n_s_loss_rl, __pyx_n_s_loss, __pyx_n_s_trainStep); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(1, 0, 17, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_BuildNet, 195, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(1, 0, 17, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_BuildNet, 195, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 195, __pyx_L1_error)
 
   /* "GraphDQN.pyx":267
  * 
@@ -27896,7 +27887,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__26 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_num_min, __pyx_n_s_num_max, __pyx_n_s_max_n, __pyx_n_s_min_n, __pyx_n_s_cur_n, __pyx_n_s_g); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 267, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_gen_graph, 267, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 267, __pyx_L1_error)
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_gen_graph, 267, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 267, __pyx_L1_error)
 
   /* "GraphDQN.pyx":284
  *         return g
@@ -27908,7 +27899,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__28 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_num_min, __pyx_n_s_num_max, __pyx_n_s_i, __pyx_n_s_g, __pyx_n_s_graphs); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_gen_new_graphs, 284, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 284, __pyx_L1_error)
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_gen_new_graphs, 284, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 284, __pyx_L1_error)
 
   /* "GraphDQN.pyx":302
  * 
@@ -27920,7 +27911,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__30 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 302, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_ClearTrainGraphs, 302, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 302, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_ClearTrainGraphs, 302, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 302, __pyx_L1_error)
 
   /* "GraphDQN.pyx":306
  *         self.TrainSet.Clear()
@@ -27932,7 +27923,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__32 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_ClearTestGraphs, 306, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 306, __pyx_L1_error)
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_ClearTestGraphs, 306, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 306, __pyx_L1_error)
 
   /* "GraphDQN.pyx":310
  *         self.TestSet.Clear()
@@ -27944,7 +27935,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__34 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_g, __pyx_n_s_is_test, __pyx_n_s_t); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 310, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_InsertGraph, 310, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 310, __pyx_L1_error)
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_InsertGraph, 310, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 310, __pyx_L1_error)
 
   /* "GraphDQN.pyx":321
  *             self.TrainSet.InsertGraph(t, self.GenNetwork(g))
@@ -27956,7 +27947,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__36 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_result_degree, __pyx_n_s_result_betweenness, __pyx_n_s_i, __pyx_n_s_g, __pyx_n_s_g_degree, __pyx_n_s_g_betweenness, __pyx_n_s_val_degree, __pyx_n_s_sol, __pyx_n_s_val_betweenness, __pyx_n_s_graphs); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 321, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_PrepareValidData, 321, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 321, __pyx_L1_error)
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_PrepareValidData, 321, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 321, __pyx_L1_error)
 
   /* "GraphDQN.pyx":353
  * 
@@ -27968,7 +27959,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__38 = PyTuple_Pack(13, __pyx_n_s_self, __pyx_n_s_n_traj, __pyx_n_s_eps, __pyx_n_s_TrainSet, __pyx_n_s_n_step, __pyx_n_s_num_env, __pyx_n_s_n, __pyx_n_s_i, __pyx_n_s_g_sample, __pyx_n_s_Random, __pyx_n_s_pred, __pyx_n_s_a_t, __pyx_n_s_env); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 353, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__38);
   __Pyx_GIVEREF(__pyx_tuple__38);
-  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(5, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Run_simulator, 353, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 353, __pyx_L1_error)
+  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(5, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Run_simulator, 353, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 353, __pyx_L1_error)
 
   /* "GraphDQN.pyx":383
  *                 self.env_list[i].step(a_t)
@@ -27980,7 +27971,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__40 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_n_traj, __pyx_n_s_eps); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
-  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_PlayGame, 383, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 383, __pyx_L1_error)
+  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_PlayGame, 383, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 383, __pyx_L1_error)
 
   /* "GraphDQN.pyx":387
  * 
@@ -27992,7 +27983,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__42 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_idxes, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_actions, __pyx_n_s_target, __pyx_n_s_prepareBatchGraph); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 387, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__42);
   __Pyx_GIVEREF(__pyx_tuple__42);
-  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(6, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__42, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_SetupTrain, 387, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 387, __pyx_L1_error)
+  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(6, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__42, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_SetupTrain, 387, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 387, __pyx_L1_error)
 
   /* "GraphDQN.pyx":401
  * 
@@ -28004,7 +27995,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__44 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_idxes, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_prepareBatchGraph); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 401, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__44);
   __Pyx_GIVEREF(__pyx_tuple__44);
-  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(4, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_SetupPredAll, 401, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 401, __pyx_L1_error)
+  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(4, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_SetupPredAll, 401, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 401, __pyx_L1_error)
 
   /* "GraphDQN.pyx":412
  *         return prepareBatchGraph.idx_map_list
@@ -28016,7 +28007,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__46 = PyTuple_Pack(18, __pyx_n_s_self, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_isSnapSnot, __pyx_n_s_n_graphs, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_bsize, __pyx_n_s_batch_idxes, __pyx_n_s_idx_map_list, __pyx_n_s_my_dict, __pyx_n_s_result, __pyx_n_s_raw_output, __pyx_n_s_pos, __pyx_n_s_pred, __pyx_n_s_idx_map, __pyx_n_s_cur_pred); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__46);
   __Pyx_GIVEREF(__pyx_tuple__46);
-  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(4, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Predict, 412, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 412, __pyx_L1_error)
+  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(4, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Predict, 412, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 412, __pyx_L1_error)
 
   /* "GraphDQN.pyx":456
  *         return pred
@@ -28028,7 +28019,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__48 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_result); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__48);
   __Pyx_GIVEREF(__pyx_tuple__48);
-  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_PredictWithCurrentQNet, 456, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 456, __pyx_L1_error)
+  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_PredictWithCurrentQNet, 456, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 456, __pyx_L1_error)
 
   /* "GraphDQN.pyx":460
  *         return result
@@ -28040,7 +28031,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__50 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_result); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 460, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__50);
   __Pyx_GIVEREF(__pyx_tuple__50);
-  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_PredictWithSnapshot, 460, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 460, __pyx_L1_error)
+  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_PredictWithSnapshot, 460, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 460, __pyx_L1_error)
 
   /* "GraphDQN.pyx":464
  *         return result
@@ -28052,7 +28043,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__52 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 464, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__52);
   __Pyx_GIVEREF(__pyx_tuple__52);
-  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_TakeSnapShot, 464, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_TakeSnapShot, 464, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 464, __pyx_L1_error)
 
   /* "GraphDQN.pyx":467
  *        self.session.run(self.UpdateTargetQNetwork)
@@ -28064,7 +28055,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__54 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_sample, __pyx_n_s_ness, __pyx_n_s_i, __pyx_n_s_double_list_pred, __pyx_n_s_double_list_predT, __pyx_n_s_list_pred, __pyx_n_s_list_target, __pyx_n_s_q_rhs, __pyx_n_s_a, __pyx_n_s_b); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 467, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__54);
   __Pyx_GIVEREF(__pyx_tuple__54);
-  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(1, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Fit, 467, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 467, __pyx_L1_error)
+  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(1, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Fit, 467, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 467, __pyx_L1_error)
 
   /* "GraphDQN.pyx":527
  *                 )
@@ -28076,7 +28067,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__56 = PyTuple_Pack(15, __pyx_n_s_self, __pyx_n_s_tree_idx, __pyx_n_s_ISWeights, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_actions, __pyx_n_s_list_target, __pyx_n_s_loss, __pyx_n_s_n_graphs, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_bsize, __pyx_n_s_batch_idxes, __pyx_n_s_my_dict, __pyx_n_s_result); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(0, 527, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__56);
   __Pyx_GIVEREF(__pyx_tuple__56);
-  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(7, 0, 15, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_fit_with_prioritized, 527, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 527, __pyx_L1_error)
+  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(7, 0, 15, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_fit_with_prioritized, 527, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 527, __pyx_L1_error)
 
   /* "GraphDQN.pyx":561
  * 
@@ -28088,7 +28079,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__58 = PyTuple_Pack(13, __pyx_n_s_self, __pyx_n_s_g_list, __pyx_n_s_covered, __pyx_n_s_actions, __pyx_n_s_list_target, __pyx_n_s_loss, __pyx_n_s_n_graphs, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_bsize, __pyx_n_s_batch_idxes, __pyx_n_s_my_dict, __pyx_n_s_result); if (unlikely(!__pyx_tuple__58)) __PYX_ERR(0, 561, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__58);
   __Pyx_GIVEREF(__pyx_tuple__58);
-  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(5, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_fit, 561, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 561, __pyx_L1_error)
+  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(5, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_fit, 561, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 561, __pyx_L1_error)
 
   /* "GraphDQN.pyx":594
  * 
@@ -28100,7 +28091,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__60 = PyTuple_Pack(24, __pyx_n_s_self, __pyx_n_s_i, __pyx_n_s_iter, __pyx_n_s_idx, __pyx_n_s_eps_start, __pyx_n_s_eps_end, __pyx_n_s_eps_step, __pyx_n_s_loss, __pyx_n_s_frac, __pyx_n_s_start, __pyx_n_s_end, __pyx_n_s_start_iter, __pyx_n_s_last_ckpt, __pyx_n_s_last_iter, __pyx_n_s_, __pyx_n_s_runtime, __pyx_n_s_f_out, __pyx_n_s_t_train_start, __pyx_n_s_eps, __pyx_n_s_N_start, __pyx_n_s_test_start, __pyx_n_s_test_end, __pyx_n_s_N_end, __pyx_n_s_ckpt_file); if (unlikely(!__pyx_tuple__60)) __PYX_ERR(0, 594, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__60);
   __Pyx_GIVEREF(__pyx_tuple__60);
-  __pyx_codeobj__61 = (PyObject*)__Pyx_PyCode_New(1, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Train, 594, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__61)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __pyx_codeobj__61 = (PyObject*)__Pyx_PyCode_New(1, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Train, 594, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__61)) __PYX_ERR(0, 594, __pyx_L1_error)
 
   /* "GraphDQN.pyx":660
  *         f_out.close()
@@ -28112,7 +28103,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__62 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_gid, __pyx_n_s_g_list, __pyx_n_s_cost, __pyx_n_s_i, __pyx_n_s_sol, __pyx_n_s_list_pred, __pyx_n_s_new_action, __pyx_n_s_nodes, __pyx_n_s_solution, __pyx_n_s_Robustness); if (unlikely(!__pyx_tuple__62)) __PYX_ERR(0, 660, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__62);
   __Pyx_GIVEREF(__pyx_tuple__62);
-  __pyx_codeobj__63 = (PyObject*)__Pyx_PyCode_New(2, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__62, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Test, 660, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__63)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __pyx_codeobj__63 = (PyObject*)__Pyx_PyCode_New(2, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__62, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Test, 660, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__63)) __PYX_ERR(0, 660, __pyx_L1_error)
 
   /* "GraphDQN.pyx":679
  *         return Robustness
@@ -28124,7 +28115,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__64 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_vc_list, __pyx_n_s_line, __pyx_n_s_start_loc, __pyx_n_s_min_vc, __pyx_n_s_best_model_iter, __pyx_n_s_best_model); if (unlikely(!__pyx_tuple__64)) __PYX_ERR(0, 679, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__64);
   __Pyx_GIVEREF(__pyx_tuple__64);
-  __pyx_codeobj__65 = (PyObject*)__Pyx_PyCode_New(1, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__64, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_findModel, 679, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__65)) __PYX_ERR(0, 679, __pyx_L1_error)
+  __pyx_codeobj__65 = (PyObject*)__Pyx_PyCode_New(1, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__64, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_findModel, 679, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__65)) __PYX_ERR(0, 679, __pyx_L1_error)
 
   /* "GraphDQN.pyx":696
  * 
@@ -28136,7 +28127,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__66 = PyTuple_Pack(16, __pyx_n_s_self, __pyx_n_s_test_graphs, __pyx_n_s_g_num, __pyx_n_s_n_test, __pyx_n_s_i, __pyx_n_s_result_list_score, __pyx_n_s_result_list_time, __pyx_n_s_g, __pyx_n_s_t1, __pyx_n_s_val, __pyx_n_s_sol, __pyx_n_s_t2, __pyx_n_s_score_mean, __pyx_n_s_score_std, __pyx_n_s_time_mean, __pyx_n_s_time_std); if (unlikely(!__pyx_tuple__66)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__66);
   __Pyx_GIVEREF(__pyx_tuple__66);
-  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(2, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Evaluate, 696, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) __PYX_ERR(0, 696, __pyx_L1_error)
+  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(2, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Evaluate, 696, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) __PYX_ERR(0, 696, __pyx_L1_error)
 
   /* "GraphDQN.pyx":722
  * 
@@ -28148,7 +28139,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__68 = PyTuple_Pack(12, __pyx_n_s_self, __pyx_n_s_test_graph, __pyx_n_s_result_file, __pyx_n_s_stepRatio, __pyx_n_s_solution_time, __pyx_n_s_g, __pyx_n_s_step, __pyx_n_s_t1, __pyx_n_s_solution, __pyx_n_s_t2, __pyx_n_s_f_out, __pyx_n_s_i); if (unlikely(!__pyx_tuple__68)) __PYX_ERR(0, 722, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__68);
   __Pyx_GIVEREF(__pyx_tuple__68);
-  __pyx_codeobj__69 = (PyObject*)__Pyx_PyCode_New(4, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__68, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_EvaluateRealData, 722, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__69)) __PYX_ERR(0, 722, __pyx_L1_error)
+  __pyx_codeobj__69 = (PyObject*)__Pyx_PyCode_New(4, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__68, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_EvaluateRealData, 722, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__69)) __PYX_ERR(0, 722, __pyx_L1_error)
   __pyx_tuple__70 = PyTuple_Pack(2, ((PyObject *)Py_None), ((PyObject*)__pyx_float_0_0025)); if (unlikely(!__pyx_tuple__70)) __PYX_ERR(0, 722, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__70);
   __Pyx_GIVEREF(__pyx_tuple__70);
@@ -28163,7 +28154,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__71 = PyTuple_Pack(13, __pyx_n_s_self, __pyx_n_s_gid, __pyx_n_s_step, __pyx_n_s_g_list, __pyx_n_s_sol, __pyx_n_s_start, __pyx_n_s_iter, __pyx_n_s_new_action, __pyx_n_s_sum_sort_time, __pyx_n_s_list_pred, __pyx_n_s_start_time, __pyx_n_s_batchSol_2, __pyx_n_s_end_time); if (unlikely(!__pyx_tuple__71)) __PYX_ERR(0, 753, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__71);
   __Pyx_GIVEREF(__pyx_tuple__71);
-  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_GetSolution, 753, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) __PYX_ERR(0, 753, __pyx_L1_error)
+  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_GetSolution, 753, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) __PYX_ERR(0, 753, __pyx_L1_error)
 
   /* "GraphDQN.pyx":780
  *         return sol
@@ -28175,7 +28166,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__73 = PyTuple_Pack(12, __pyx_n_s_self, __pyx_n_s_step, __pyx_n_s_g_list, __pyx_n_s_sol, __pyx_n_s_start, __pyx_n_s_iter, __pyx_n_s_new_action, __pyx_n_s_sum_sort_time, __pyx_n_s_list_pred, __pyx_n_s_start_time, __pyx_n_s_batchSol_2, __pyx_n_s_end_time); if (unlikely(!__pyx_tuple__73)) __PYX_ERR(0, 780, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__73);
   __Pyx_GIVEREF(__pyx_tuple__73);
-  __pyx_codeobj__74 = (PyObject*)__Pyx_PyCode_New(2, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__73, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_GetSolution_CurrentEnv, 780, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__74)) __PYX_ERR(0, 780, __pyx_L1_error)
+  __pyx_codeobj__74 = (PyObject*)__Pyx_PyCode_New(2, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__73, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_GetSolution_CurrentEnv, 780, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__74)) __PYX_ERR(0, 780, __pyx_L1_error)
 
   /* "GraphDQN.pyx":817
  *         return sol
@@ -28187,7 +28178,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__75 = PyTuple_Pack(18, __pyx_n_s_self, __pyx_n_s_test_graph, __pyx_n_s_sol_file, __pyx_n_s_strategyID, __pyx_n_s_reInsertStep, __pyx_n_s_g, __pyx_n_s_g_inner, __pyx_n_s_nodes, __pyx_n_s_sol, __pyx_n_s_line, __pyx_n_s_sol_left, __pyx_n_s_start, __pyx_n_s_step, __pyx_n_s_sol_reinsert, __pyx_n_s_end, __pyx_n_s_solution, __pyx_n_s_Robustness, __pyx_n_s_MaxCCList); if (unlikely(!__pyx_tuple__75)) __PYX_ERR(0, 817, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__75);
   __Pyx_GIVEREF(__pyx_tuple__75);
-  __pyx_codeobj__76 = (PyObject*)__Pyx_PyCode_New(5, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__75, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_EvaluateSol, 817, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__76)) __PYX_ERR(0, 817, __pyx_L1_error)
+  __pyx_codeobj__76 = (PyObject*)__Pyx_PyCode_New(5, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__75, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_EvaluateSol, 817, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__76)) __PYX_ERR(0, 817, __pyx_L1_error)
   __pyx_tuple__77 = PyTuple_Pack(2, ((PyObject *)__pyx_int_0), ((PyObject *)__pyx_int_20)); if (unlikely(!__pyx_tuple__77)) __PYX_ERR(0, 817, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__77);
   __Pyx_GIVEREF(__pyx_tuple__77);
@@ -28202,7 +28193,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__78 = PyTuple_Pack(22, __pyx_n_s_self, __pyx_n_s_data_test, __pyx_n_s_save_dir, __pyx_n_s_randomRatio, __pyx_n_s_stepRatio, __pyx_n_s_solution_time, __pyx_n_s_test_name, __pyx_n_s_save_dir_local, __pyx_n_s_result_file, __pyx_n_s_g, __pyx_n_s_step, __pyx_n_s_g_inner, __pyx_n_s_randomStep, __pyx_n_s_s, __pyx_n_s_a_t, __pyx_n_s_t1, __pyx_n_s_sol, __pyx_n_s_t2, __pyx_n_s_nodes, __pyx_n_s_solution, __pyx_n_s_Robustness, __pyx_n_s_MaxCCList); if (unlikely(!__pyx_tuple__78)) __PYX_ERR(0, 847, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__78);
   __Pyx_GIVEREF(__pyx_tuple__78);
-  __pyx_codeobj__79 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__78, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_EvaluateRealData_random, 847, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__79)) __PYX_ERR(0, 847, __pyx_L1_error)
+  __pyx_codeobj__79 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__78, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_EvaluateRealData_random, 847, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__79)) __PYX_ERR(0, 847, __pyx_L1_error)
   __pyx_tuple__80 = PyTuple_Pack(1, ((PyObject*)__pyx_float_0_0025)); if (unlikely(!__pyx_tuple__80)) __PYX_ERR(0, 847, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__80);
   __Pyx_GIVEREF(__pyx_tuple__80);
@@ -28217,7 +28208,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__81 = PyTuple_Pack(12, __pyx_n_s_self, __pyx_n_s_gid, __pyx_n_s_step, __pyx_n_s_g_list, __pyx_n_s_cost, __pyx_n_s_sol, __pyx_n_s_new_action, __pyx_n_s_list_pred, __pyx_n_s_batchSol_2, __pyx_n_s_nodes, __pyx_n_s_solution, __pyx_n_s_Robustness); if (unlikely(!__pyx_tuple__81)) __PYX_ERR(0, 900, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__81);
   __Pyx_GIVEREF(__pyx_tuple__81);
-  __pyx_codeobj__82 = (PyObject*)__Pyx_PyCode_New(3, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__81, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_GetSol, 900, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__82)) __PYX_ERR(0, 900, __pyx_L1_error)
+  __pyx_codeobj__82 = (PyObject*)__Pyx_PyCode_New(3, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__81, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_GetSol, 900, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__82)) __PYX_ERR(0, 900, __pyx_L1_error)
 
   /* "GraphDQN.pyx":922
  * 
@@ -28229,7 +28220,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__83 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_ckpt_file, __pyx_n_s_model_path); if (unlikely(!__pyx_tuple__83)) __PYX_ERR(0, 922, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__83);
   __Pyx_GIVEREF(__pyx_tuple__83);
-  __pyx_codeobj__84 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__83, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_SaveModel, 922, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__84)) __PYX_ERR(0, 922, __pyx_L1_error)
+  __pyx_codeobj__84 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__83, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_SaveModel, 922, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__84)) __PYX_ERR(0, 922, __pyx_L1_error)
 
   /* "GraphDQN.pyx":927
  *         print(f'{model_path} has been saved success!\n')
@@ -28241,7 +28232,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__85 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_ckpt_file, __pyx_n_s_model_path); if (unlikely(!__pyx_tuple__85)) __PYX_ERR(0, 927, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__85);
   __Pyx_GIVEREF(__pyx_tuple__85);
-  __pyx_codeobj__86 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__85, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_LoadModel, 927, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__86)) __PYX_ERR(0, 927, __pyx_L1_error)
+  __pyx_codeobj__86 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__85, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_LoadModel, 927, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__86)) __PYX_ERR(0, 927, __pyx_L1_error)
 
   /* "GraphDQN.pyx":932
  *         print(f'restore model from {model_path} successfully')
@@ -28253,7 +28244,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__87 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_g, __pyx_n_s_edges, __pyx_n_s_a, __pyx_n_s_b, __pyx_n_s_A, __pyx_n_s_B); if (unlikely(!__pyx_tuple__87)) __PYX_ERR(0, 932, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__87);
   __Pyx_GIVEREF(__pyx_tuple__87);
-  __pyx_codeobj__88 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__87, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_GenNetwork, 932, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__88)) __PYX_ERR(0, 932, __pyx_L1_error)
+  __pyx_codeobj__88 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__87, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_GenNetwork, 932, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__88)) __PYX_ERR(0, 932, __pyx_L1_error)
 
   /* "GraphDQN.pyx":944
  * 
@@ -28265,7 +28256,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__89 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_scores, __pyx_n_s_n, __pyx_n_s_pos, __pyx_n_s_best, __pyx_n_s_i); if (unlikely(!__pyx_tuple__89)) __PYX_ERR(0, 944, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__89);
   __Pyx_GIVEREF(__pyx_tuple__89);
-  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__89, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_argMax, 944, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) __PYX_ERR(0, 944, __pyx_L1_error)
+  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__89, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_argMax, 944, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) __PYX_ERR(0, 944, __pyx_L1_error)
 
   /* "GraphDQN.pyx":956
  * 
@@ -28277,7 +28268,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__91 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_scores, __pyx_n_s_n, __pyx_n_s_pos, __pyx_n_s_best, __pyx_n_s_i); if (unlikely(!__pyx_tuple__91)) __PYX_ERR(0, 956, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__91);
   __Pyx_GIVEREF(__pyx_tuple__91);
-  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__91, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_Max, 956, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) __PYX_ERR(0, 956, __pyx_L1_error)
+  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__91, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_Max, 956, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) __PYX_ERR(0, 956, __pyx_L1_error)
 
   /* "GraphDQN.pyx":968
  * 
@@ -28289,7 +28280,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__93 = PyTuple_Pack(14, __pyx_n_s_self, __pyx_n_s_g, __pyx_n_s_method, __pyx_n_s_sol, __pyx_n_s_G, __pyx_n_s_dc, __pyx_n_s_keys, __pyx_n_s_values, __pyx_n_s_maxTag, __pyx_n_s_node, __pyx_n_s_solution, __pyx_n_s_solutions, __pyx_n_s_Robustness, __pyx_n_s_i); if (unlikely(!__pyx_tuple__93)) __PYX_ERR(0, 968, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__93);
   __Pyx_GIVEREF(__pyx_tuple__93);
-  __pyx_codeobj__94 = (PyObject*)__Pyx_PyCode_New(3, 0, 14, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__93, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_HXA, 968, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__94)) __PYX_ERR(0, 968, __pyx_L1_error)
+  __pyx_codeobj__94 = (PyObject*)__Pyx_PyCode_New(3, 0, 14, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__93, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_HXA, 968, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__94)) __PYX_ERR(0, 968, __pyx_L1_error)
 
   /* "GraphDQN.pyx":992
  *         return Robustness, sol
@@ -28301,7 +28292,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__95 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_checkpoint_path, __pyx_n_s_f, __pyx_n_s_line, __pyx_n_s_ckpt, __pyx_n_s_ckpt_name, __pyx_n_s_re, __pyx_n_s_m_2, __pyx_n_s_last_iter); if (unlikely(!__pyx_tuple__95)) __PYX_ERR(0, 992, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__95);
   __Pyx_GIVEREF(__pyx_tuple__95);
-  __pyx_codeobj__96 = (PyObject*)__Pyx_PyCode_New(1, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__95, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_resume_checkpoint_and_iter, 992, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__96)) __PYX_ERR(0, 992, __pyx_L1_error)
+  __pyx_codeobj__96 = (PyObject*)__Pyx_PyCode_New(1, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__95, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_resume_checkpoint_and_iter, 992, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__96)) __PYX_ERR(0, 992, __pyx_L1_error)
 
   /* "GraphDQN.pyx":1012
  *         return None, 0
@@ -28313,7 +28304,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__97 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_f, __pyx_n_s_lines, __pyx_n_s_last_line, __pyx_n_s_runtime); if (unlikely(!__pyx_tuple__97)) __PYX_ERR(0, 1012, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__97);
   __Pyx_GIVEREF(__pyx_tuple__97);
-  __pyx_codeobj__98 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__97, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_ND_GraphDQN_pyx, __pyx_n_s_resume_nlines_and_runtime, 1012, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__98)) __PYX_ERR(0, 1012, __pyx_L1_error)
+  __pyx_codeobj__98 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__97, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_FINDER_moe_GraphDQN_pyx, __pyx_n_s_resume_nlines_and_runtime, 1012, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__98)) __PYX_ERR(0, 1012, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -28894,7 +28885,7 @@ if (!__Pyx_RefNanny) {
  * import mvc_env
  * import utils             # <<<<<<<<<<<<<<
  * import pickle
- * from graph_dqn_modules import GraphEncoder, MLPDecoder
+ * from GraphDQN_modules import GraphEncoder, MLPDecoder
  */
   __pyx_t_2 = __Pyx_Import(__pyx_n_s_utils, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -28905,7 +28896,7 @@ if (!__Pyx_RefNanny) {
  * import mvc_env
  * import utils
  * import pickle             # <<<<<<<<<<<<<<
- * from graph_dqn_modules import GraphEncoder, MLPDecoder
+ * from GraphDQN_modules import GraphEncoder, MLPDecoder
  * 
  */
   __pyx_t_2 = __Pyx_Import(__pyx_n_s_pickle, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
@@ -28916,7 +28907,7 @@ if (!__Pyx_RefNanny) {
   /* "GraphDQN.pyx":39
  * import utils
  * import pickle
- * from graph_dqn_modules import GraphEncoder, MLPDecoder             # <<<<<<<<<<<<<<
+ * from GraphDQN_modules import GraphEncoder, MLPDecoder             # <<<<<<<<<<<<<<
  * 
  * # Hyper Parameters:
  */
@@ -28928,7 +28919,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_MLPDecoder);
   __Pyx_GIVEREF(__pyx_n_s_MLPDecoder);
   PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_MLPDecoder);
-  __pyx_t_3 = __Pyx_Import(__pyx_n_s_graph_dqn_modules, __pyx_t_2, -1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_Import(__pyx_n_s_GraphDQN_modules, __pyx_t_2, -1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_GraphEncoder); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)

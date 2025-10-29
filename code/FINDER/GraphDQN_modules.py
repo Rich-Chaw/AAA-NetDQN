@@ -18,7 +18,7 @@ class GraphEncoder:
         # scope_name = f"encoder_{expert_name}" if expert_name else "encoder"
 
         # Weights
-        # GIN, originally in GIN
+        # GIN encoder, originally in GIN
         if embeddingMethod == 'GIN':
             # Create MLP weights for each GIN layer
             self.gin_mlps = []
@@ -30,7 +30,7 @@ class GraphEncoder:
                 self.gin_mlps.append((w1, b1, w2, b2))
             self.epsilons = [tf1.Variable(0.0, dtype=tf.float32) for _ in range(gnn_layers)]
         
-        # graphSage or S2V ,originally in FINDER
+        # graphSage or S2V encoder,originally in FINDER
         self.w_n2l = tf1.Variable(tf1.truncated_normal([feature_size, embedding_size], stddev=initialization_stddev), tf.float32)
         # W_1 
         self.p_node_conv = tf1.Variable(tf1.truncated_normal([embedding_size, embedding_size], stddev=initialization_stddev), tf.float32)
@@ -45,19 +45,24 @@ class GraphEncoder:
 
     def encode(self, node_input, y_node_input, n2nsum_param, subgsum_param, batch_graph_ids=None):
         '''
+        Args:
             node_input: [N,feature_size]
             y_node_input: [B,feature_size]
             n2nsum_param: [N,N]
             subgsum_param: [B,N]
-            Note in GraphDQN: 
-            B = num_graphs (in a batch)
-            N = B * num_nodes_per_graph, however: graphs have variable numbers of nodes
+        Note in GraphDQN: 
+                B = num_graphs (in a batch) = batch_size
+                N = B * num_nodes_per_graph, however: graphs have variable numbers of nodes
+        Returns 
+            cur_message_layer (node_embeddings)   
+            y_cur_message_layer (graph_embeddings)
+
         '''
         num_graphs = tf.shape(subgsum_param)[0]       # num graphs in a batch
         num_nodes = tf.shape(n2nsum_param)[0]         # total batch num of a graph
         num_nodes_per_graph = num_nodes // num_graphs  # num nodes per graph
 
-        # GIN, originally in GIN
+        # GIN encoder forward, originally in GIN
         if self.embeddingMethod == 'GIN':
             # [N, feature_size]
             h = node_input  
@@ -76,15 +81,15 @@ class GraphEncoder:
             # Use TensorFlow ops for batch_graph_ids
             y_cur_message_layer = tf.math.unsorted_segment_sum(cur_message_layer, batch_graph_ids, num_graphs)
 
-        # graphSage or S2V ,originally in FINDER
+        # graphSage or S2V encoder forward ,originally in FINDER
         if self.embeddingMethod == 'graphSage' or self.embeddingMethod == 'S2V':
-            # [N,embedding_dim]
+            # [N,embedding_size]
             input_message = tf.matmul(node_input, self.w_n2l)
-            # [B,embedding_dim]
+            # [B,embedding_size]
             y_input_message = tf.matmul(y_node_input, self.w_n2l)
-            # [N,embedding_dim] node_embedding
+            # [N,embedding_size] node_embedding
             cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(input_message), axis=1)
-            # [B,embedding_dim] graph_embedding = virtual_node_embedding virtual_node_embedding = sum(node_embedding)
+            # [B,embedding_size] graph_embedding = virtual_node_embedding virtual_node_embedding = sum(node_embedding)
             # i.e.  assume a virtual node connect to all nodes in the graph
             y_cur_message_layer = tf.nn.l2_normalize(tf.nn.relu(y_input_message), axis=1)
             
@@ -120,34 +125,37 @@ class MLPDecoder:
         self.aux_dim = aux_dim
         self.initialization_stddev = initialization_stddev
         if reg_hidden > 0:
+            # W_1
             self.h1_weight = tf1.Variable(tf1.truncated_normal([embedding_size, reg_hidden], stddev=initialization_stddev), tf.float32)
+            # W_2
             self.last_w = tf1.Variable(tf1.truncated_normal([reg_hidden + aux_dim, 1], stddev=initialization_stddev), tf.float32)
         else:
             self.h1_weight = tf1.Variable(tf1.truncated_normal([embedding_size, 2 * embedding_size], stddev=initialization_stddev), tf.float32)
             self.last_w = tf1.Variable(tf1.truncated_normal([2 * embedding_size + aux_dim, 1], stddev=initialization_stddev), tf.float32)
+        # W_cross
         self.cross_product = tf1.Variable(tf1.truncated_normal([embedding_size, 1], stddev=initialization_stddev), tf.float32)
 
     def decode_q(self, cur_message_layer,action_select, y_cur_message_layer, aux_input):
         '''
-        cur_message_layer: [N, embed_dim]
+        cur_message_layer: [N, embedding_size]
         action_select: [B, N]
-        y_cur_message_layer: [B, embed_dim]
+        y_cur_message_layer: [B, embedding_size]
         aux_input: [B, aux_dim]
 
         return: [B, 1]
         '''
         # Action embedding
-        # [B,embed_dim]
+        # [B,embedding_size]
         action_embed = tf1.sparse_tensor_dense_matmul(tf.cast(action_select, tf.float32), cur_message_layer)
 
         # Cross product to calculate embed_s_a 
-        # [B, embed_dim, embed_dim]
+        # [B, embedding_size, embedding_size]
         temp = tf.matmul(tf.expand_dims(action_embed, axis=2), tf.expand_dims(y_cur_message_layer, axis=1))
-        # [B, embed_dim]
+        # [B, embedding_size]
         Shape = tf.shape(action_embed)
-        # [B, embed_dim, 1]
+        # [B, embedding_size, 1]
         batch_cross_product = tf.reshape(tf.tile(self.cross_product, [Shape[0], 1]), [Shape[0], Shape[1], 1])
-        # [B, embed_dim]
+        # [B, embedding_size]
         embed_s_a = tf.reshape(tf.matmul(temp, batch_cross_product), Shape)
 
         # [B,embedding_size]
@@ -163,21 +171,21 @@ class MLPDecoder:
     
     def decode_q_all(self, cur_message_layer, y_cur_message_layer, aux_input, rep_global):
         '''
-        cur_message_layer: [N, embed_dim]
-        y_cur_message_layer: [B, embed_dim]
+        cur_message_layer: [N, embedding_size]
+        y_cur_message_layer: [B, embedding_size]
         aux_input: [B, aux_dim]
         rep_global: [N, B]
 
         return: [N, 1]
         '''
         # Q(s,a) on all nodes of all graphs
-        # [N,embed_dim]
+        # [N,embedding_size]
         rep_y = tf1.sparse_tensor_dense_matmul(tf.cast(rep_global, tf.float32), y_cur_message_layer)
-        # [N,embed_dim,embed_dim]
+        # [N,embedding_size,embedding_size]
         temp1 = tf.matmul(tf.expand_dims(cur_message_layer, axis=2), tf.expand_dims(rep_y, axis=1))
-        # [N,embed_dim]
+        # [N,embedding_size]
         Shape1 = tf.shape(cur_message_layer)
-        # [N,embed_dim]
+        # [N,embedding_size]
         embed_s_a_all = tf.reshape(tf.matmul(temp1, tf.reshape(tf.tile(self.cross_product, [Shape1[0], 1]), [Shape1[0], Shape1[1], 1])), Shape1)
         last_output = embed_s_a_all
         if self.reg_hidden > 0:

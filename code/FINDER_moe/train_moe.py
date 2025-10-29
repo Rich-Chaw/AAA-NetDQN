@@ -20,6 +20,8 @@ import logging
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
+import subprocess
+
 from MoEGraphDQN import MoEGraphDQN
 print(sys.path)
 
@@ -44,8 +46,10 @@ def main():
     # Check GPU setup first
     gpu_available = check_gpu_setup()
     
+    # setup cython modules
+    subprocess.run('python -u .\\FINDER_moe\\setup.py build_ext -i')
+
     print("\n=== Starting MoE GraphDQN Training ===")
-    
     # MoE configuration
     moe_config = {
         'num_experts': 4,
@@ -60,6 +64,7 @@ def main():
             g_params = {'nrange': '50_100',
                         'm':6},
             target_graph = "Digg",
+            save_model_dir= "./FINDER_moe/models",
             moe_config = moe_config
         )
         

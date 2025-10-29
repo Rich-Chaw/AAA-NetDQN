@@ -323,7 +323,7 @@ class GraphDQN:
         sys.stdout.flush()
         cdef double result_degree = 0.0
         cdef double result_betweenness = 0.0
-        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+        if self.g_type in ['ER','PL','SW','BA']:
             for i in tqdm(range(n_valid), desc="Validation graphs"):
                 g = self.gen_graph(self.num_min, self.num_max)
                 g_degree = g.copy()

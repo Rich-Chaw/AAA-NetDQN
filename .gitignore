@@ -11,7 +11,9 @@ __pycache__/
 /data/
 /Figures and Tables/
 
+router_analysis_results/
 *.so
 *.pyd
+*.log
 models/
 result/

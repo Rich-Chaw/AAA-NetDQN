@@ -39,6 +39,9 @@ cdef class py_MvcEnv:
 
     def randomAction(self):
         return deref(self.inner_MvcEnv).randomAction()
+    
+    def degreeAction(self):
+        return deref(self.inner_MvcEnv).degreeAction()
 
     def betweenAction(self):
         return deref(self.inner_MvcEnv).betweenAction()
@@ -49,11 +52,26 @@ cdef class py_MvcEnv:
     def isNoNodes(self):
         return deref(self.inner_MvcEnv).isNoNodes()
 
+    def isTruncated(self):
+        return deref(self.inner_MvcEnv).isTruncated()
+
+    def estimateRemainingReturn(self,int rollout,double gamma):
+        return deref(self.inner_MvcEnv).estimateRemainingReturn(rollout,gamma)
+
+    def componentRollout(self, double gamma):
+        return deref(self.inner_MvcEnv).componentRollout(gamma)
+
+    def HeuristicRollout(self, double gamma):
+        return deref(self.inner_MvcEnv).HeuristicRollout(gamma)
+
     def getReward(self):
         return deref(self.inner_MvcEnv).getReward()
 
     def getMaxConnectedNodesNum(self):
         return deref(self.inner_MvcEnv).getMaxConnectedNodesNum()
+
+    def printGraph(self):
+        deref(self.inner_MvcEnv).printGraph()
 
     @property
     def norm(self):
@@ -96,6 +114,13 @@ cdef class py_MvcEnv:
     def avail_list(self):
         return deref(self.inner_MvcEnv).avail_list
 
+    @property
+    def trunc_threshold(self):
+        return deref(self.inner_MvcEnv).trunc_threshold
+
+    @property
+    def rollout_return(self):
+        return deref(self.inner_MvcEnv).rollout_return    
 
     cdef G2P(self,Graph graph1):
         num_nodes = graph1.num_nodes     #得到Graph对象的节点个数

@@ -38,8 +38,8 @@ struct cfg
 
         }
 
-        if (n_step <= 0)
-            n_step = max_n;
+        // if (n_step <= 0)
+        //     n_step = max_n;
 
     }
 };

@@ -2,6 +2,7 @@
 #define MSG_PASS_H
 
 #include "graph_struct.h"
+#include "PrepareBatchGraph.h"
 #include <memory>
 #include <vector>
 

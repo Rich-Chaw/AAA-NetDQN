@@ -18,6 +18,8 @@ public:
     std::vector< std::vector< int > > adj_list;
     std::vector< std::pair<int, int> > edge_list;
     double getTwoRankNeighborsRatio(std::vector<int> covered);
+    std::vector<std::vector<int>> getCcDescending(const std::set<int> covered) const;
+    std::vector<int> getCcSizesDescending(const std::set<int> covered) const;
 
 };
 
