@@ -40,6 +40,9 @@ cdef class py_MvcEnv:
     def randomAction(self):
         return deref(self.inner_MvcEnv).randomAction()
 
+    def degreeAction(self):
+        return deref(self.inner_MvcEnv).degreeAction()
+
     def betweenAction(self):
         return deref(self.inner_MvcEnv).betweenAction()
 

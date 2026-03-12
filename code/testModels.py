@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys,os
 sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from tqdm import tqdm
 import numpy as np
@@ -11,9 +12,9 @@ import pandas as pd
 import json
 import argparse
 import matplotlib.pyplot as plt
-from testUtils import load_config, create_model,create_moe_model, load_synthetic_graphs, detailed_result_dir, load_real_graph,_get_synth_param_grid
-from testUtils import load_real_csv,load_synth_csv
 
+from testUtils import load_real_csv,load_synth_csv
+from testUtils import _get_synth_param_grid,load_synthetic_graphs,load_real_graph,detailed_result_dir
 
 def _group_models_by_params(model_configs):
     """Groups model configurations by g_type and nrange for better visualization.
@@ -108,6 +109,7 @@ def evaluate_model_on_real_graphs(dqn, model_config, eval_config, data_config):
                 'graph': g
             }}
     """
+    from testUtils import load_real_graph
     print(f"  Evaluating on real graphs...")
     
     results = {}
@@ -322,7 +324,7 @@ def plot_best_iter_overview(all_model_results, eval_config, save_dir, model_conf
                 local_handles.append(line)
                 local_labels.append(label)
         
-        ax.set_title(f'{dataset} - {group_key}', fontsize=10) 
+        ax.set_title(f'Dataset:{dataset} - Model:{group_key}', fontsize=10) 
         ax.set_xlim(0, x_max if x_max > 0 else 1.0)
         ax.set_ylim(0, y_max)
         ax.set_xticks(x_ticks)
@@ -556,29 +558,43 @@ def print_model_comparison_summary(all_model_results, eval_config):
     print(f"\n{'='*60}")
 
 def main():
-    # Load configuration
-    config = load_config()
-    model_config = config['model_config']
-    eval_config = config['eval_config']
-    data_config = config['data_config']
-
-    
     parser = argparse.ArgumentParser(description='Evaluate all models on synthetic and real datasets')
-    parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
-    parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
-    parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
-    parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
+    # parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
+    # parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
+    # parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
     parser.add_argument("--per_graphs", type=int, default=2, help="Number of graphs per configuration")
     parser.add_argument("--eval_iter",type=int)
     parser.add_argument("--plot", action="store_true")
     parser.add_argument("--eval_real", action="store_true")
     parser.add_argument("--eval_synthetic", action="store_true")
     parser.add_argument("--eval_all_iters", action="store_true", help="plot all iter results in csv from result dir")
+    parser.add_argument("--FINDER_type",type=str,default="FINDER")
     args = parser.parse_args()
 
+
+    # -----------------------------------------LOAD modules----------------------------------------------
+    FINDER_type = args.FINDER_type
+    # sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+    if "moe" in FINDER_type:
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'{FINDER_type}/')
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'FINDER/')
+        from GraphDQN import GraphDQN
+        from MoEGraphDQN import MoEGraphDQN
+    else:
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'{FINDER_type}/')
+        from GraphDQN import GraphDQN
+    from testUtils import load_config, create_model,create_moe_model
+
+    # -------------------------------------LOAD configuration---------------------------------------------
+        # Load configuration
+    config = load_config()
+    model_config = config['model_config']
+    eval_config = config['eval_config']
+    data_config = config['data_config']
+    
     # Update model config to compare
-    model_BA_params_configs = {'nrange_list':['50_100'],
-                                'm_list':[6]}
+    model_BA_params_configs = {'nrange_list':['30_50','50_100'],
+                                'm_list':[1,2,3,4,5,6]}
     model_g_type_configs = ['BA']
     model_gnn_configs = ['graphSage']
 
@@ -608,12 +624,13 @@ def main():
     # Update eval config with command line arguments
     eval_config = config['eval_config']
     eval_config.update({
-        'datasets': ['Youtube'],
+        'datasets': ['Crime','HI-II-14','Digg','Enron','Gnutella31','Epinions','Facebook'],
         'per_graphs': 2,
         "synthetic_g_params": {
             "nranges": ["30_50","50_100"],
             "m_values": [1,2,3,4,5,6]
         },
+        "save_result_dir": f"./{FINDER_type}/result"
     })
 
     # ['Crime','HI-II-14','Digg','Enron','Gnutella31','Epinions','Facebook','Youtube','Flickr']
@@ -621,18 +638,17 @@ def main():
             # "nranges": ["30_50","50_100","100_200","200_300","300_400","400_500"],
             # "m_values": [1,2,3,4,5,6]
 
+    # -------------------------------------------------print params -----------------------------------------------------
     print(f"Model Comparison Evaluation")
     print(f"Number of models to compare: {len(all_model_configs)}")
     print(f"Synthetic graphs per config: {eval_config['per_graphs']}")
     print(f"Real datasets: {eval_config['datasets']}")
-    
+
     # Create save directory
     save_result_dir = eval_config['save_result_dir']
     if not os.path.exists(save_result_dir):
         os.makedirs(save_result_dir, exist_ok=True)
     print(f"\nResults will be saved to: {save_result_dir}")
-    
-
     # ---------------------------------------- Evaluate all models ------------------------------------------------
     print(f"\n{'='*60}")
     print("Evaling Models...")
@@ -648,7 +664,10 @@ def main():
         
         try:
             # Create and load model
-            dqn = create_moe_model(model_config)
+            if "moe" in args.FINDER_type:
+                dqn = create_moe_model(model_config)
+            else:
+                dqn = create_model(model_config)
             best_ckpt_file = dqn.findModel()
             best_iter = int(best_ckpt_file.split('.ckpt')[0].split('_')[-1])
             dqn.LoadModel(best_ckpt_file)

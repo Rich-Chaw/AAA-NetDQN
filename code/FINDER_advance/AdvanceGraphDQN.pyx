@@ -38,6 +38,7 @@ import utils
 import pickle
 import json
 from GraphDQN_modules import GraphEncoder, MLPDecoder
+from MoEGraphDQN_modules import MoEGraphEncoder,MoEMLPDecoder
 
 # Hyper Parameters:
 cdef double GAMMA = 1  # decay rate of past observations
@@ -70,21 +71,14 @@ cdef int aggregatorID = 0 #0:sum; 1:mean; 2:GCN
 cdef int embeddingMethod = 1   #0:structure2vec; 1:graphsage
 
 
-# g_type = 'BA',
-# g_params = {'nrange': '30_50',
-#             'm':2},
-# gnn_model = 'graphSage',
-# save_model_dir = './FINDER/models'
-
-class GraphDQN:
+class AdvanceGraphDQN:
 
     def __init__(self,
         **model_config
     ):
         # init some parameters
         self.embeddingMethod = model_config["gnn_model"]
-        self.embedding_size = EMBEDDING_SIZE
-        self.learning_rate = LEARNING_RATE
+        
         self.g_type = model_config["g_type"] #BA(barabasi_albert),ER(),PL(powerlaw), SW(small-world), ego
         self.g_params = model_config["g_params"]
         self.num_min = int(model_config["g_params"]['nrange'].split('_')[0])
@@ -92,9 +86,15 @@ class GraphDQN:
         self.TrainSet = graph.py_GSet()
         self.TestSet = graph.py_GSet()
         self.inputs = dict()
-        self.reg_hidden = REG_HIDDEN
         self.utils = utils.py_Utils()
-        self.save_config = model_config.get('save_config',False)
+        self.options = model_config.get("options",{})
+
+        self.hyperparameters = model_config.get("hyperparameters",{})
+        self.embedding_size = self.hyperparameters.get("embedding_size",EMBEDDING_SIZE)
+        self.reg_hidden = self.hyperparameters.get("reg_hidden",REG_HIDDEN)
+        self.learning_rate = self.hyperparameters.get("learning_rate",LEARNING_RATE)
+        self.gamma = self.hyperparameters.get("gamma",GAMMA)
+        self.batch_size = self.hyperparameters.get("batch_size",BATCH_SIZE)
 
         ############----------------------------- paths ------------------- ###################################
         # self.train_dir = f"../../dataset/synthetic/GSDM"
@@ -106,20 +106,35 @@ class GraphDQN:
         if self.g_type == 'ego' or self.g_type == 'mix':
             self.save_model_dir = f"{save_model_dir}/{self.embeddingMethod}_{self.g_type}_nrange_{self.g_params['nrange']}"
         else: self.save_model_dir = f"{save_model_dir}/{self.embeddingMethod}_{self.g_type}_nrange_{self.g_params['nrange']}_m_{self.g_params['m']}"
-        if model_config.get('IsSOTA',False):
-            self.save_model_dir += '_SOTA'   # original SOTA in FINDER paper
+
         
         ############----------------------------- variants of DQN(start) ------------------- ###################################
-        self.IsHuberloss = False
+        if self.embeddingMethod=='MoE':
+            # MoE specific parameters
+            self.moe_config = model_config.get("moe_config", {})
+            if not self.moe_config:
+                self.moe_config['top_k'] = 2
+                self.moe_config['from_pretrained'] = False
+                self.moe_config['pretrained_model_dir'] = None
+                self.moe_config['num_experts'] = 4
         
-        self.IsDoubleDQN = False
+        self.IsFeatures =  self.options.get('IsFeatures',False)
+        if self.IsFeatures:
+             self.save_model_dir += "_AF"
+        
+        self.IsDisturbG = self.options.get('IsDisturbG',False)
+        if self.IsDisturbG:
+             self.save_model_dir += "_DG"
+             
+        self.IsDoubleDQN = self.options.get('IsDoubleDQN',False)
         if self.IsDoubleDQN:
             self.save_model_dir += "_DDQN"
         
-        self.IsPrioritizedSampling = False
+        self.IsPrioritizedSampling = self.options.get('IsPrioritizedSampling',False)
         if self.IsPrioritizedSampling:
              self.save_model_dir += "_Prioritized"
-        
+
+        self.IsHuberloss = False
         self.IsDuelingDQN = False
         self.IsMultiStepDQN = True     ##(if IsNStepDQN=False, N_STEP==1)
         self.IsDistributionalDQN = False
@@ -130,13 +145,12 @@ class GraphDQN:
             os.makedirs(self.save_model_dir)
 
         # save model config
-        if self.save_config:
-            config = {}
-            config["model_config"] = model_config
-            config_path = os.path.join(self.save_model_dir,'config.json')
-            with open(config_path,'w',encoding='utf-8') as f:
-                json.dump(config, f,ensure_ascii=False,indent=4)
-                print(f"save config in {config_path}")
+        config = {}
+        config["model_config"] = model_config
+        config_path = os.path.join(self.save_model_dir,'config.json')
+        with open(config_path,'w',encoding='utf-8') as f:
+            json.dump(config, f,ensure_ascii=False,indent=4)
+            print(f"save config in {config_path}")
 
         # VCFile: file to store the validation results
         self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}.csv")
@@ -151,7 +165,7 @@ class GraphDQN:
         if self.IsPrioritizedSampling:
             self.nStepReplayMem = nstep_replay_mem_prioritized.py_Memory(epsilon,alpha,beta,beta_increment_per_sampling,TD_err_upper,MEMORY_SIZE)
         else:
-            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE,GAMMA)
+            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE,self.gamma)
 
         for i in range(num_env):
             self.env_list.append(mvc_env.py_MvcEnv(self.num_max))
@@ -163,14 +177,14 @@ class GraphDQN:
         self.action_select = tf1.sparse_placeholder(tf.float32, name="action_select")
         # [node_cnt, batch_size]
         self.rep_global = tf1.sparse_placeholder(tf.float32, name="rep_global")
-        # [node_cnt, node_cnt]
+        # adjacency matrix, [node_cnt, node_cnt] 
         self.n2nsum_param = tf1.sparse_placeholder(tf.float32, name="n2nsum_param")
-        # [node_cnt, node_cnt]
+        #  laplacian matrix, [node_cnt, node_cnt]
         self.laplacian_param = tf1.sparse_placeholder(tf.float32, name="laplacian_param")
-        # [batch_size, node_cnt]
+        # [batch_size, node_cnt] 
         self.subgsum_param = tf1.sparse_placeholder(tf.float32, name="subgsum_param")
         # [batch_size,1]
-        self.target = tf1.placeholder(tf.float32, [BATCH_SIZE,1], name="target")
+        self.target = tf1.placeholder(tf.float32, [self.batch_size,1], name="target")
         # [batch_size, aux_dim]
         self.aux_input = tf1.placeholder(tf.float32, name="aux_input")
         # [N]
@@ -178,13 +192,19 @@ class GraphDQN:
 
         #[batch_size, 1]
         if self.IsPrioritizedSampling:
-            self.ISWeights = tf1.placeholder(tf.float32, [BATCH_SIZE, 1], name='IS_weights')
+            self.ISWeights = tf1.placeholder(tf.float32, [self.batch_size, 1], name='IS_weights')
 
-
-        # init Q network
-        self.encoder,self.decoder,self.loss,self.trainStep,self.q_pred, self.q_on_all,self.Q_param_list = self.BuildNet() #[loss,trainStep,q_pred, q_on_all, ...]
-        # init Target Q Network
-        self.encoderT,self.decoderT,self.lossT,self.trainStepT,self.q_predT, self.q_on_allT,self.Q_param_listT = self.BuildNet()
+        if self.embeddingMethod=='MoE':
+            # Build the MoE network
+            self.encoder, self.decoder, self.loss, self.trainStep, self.q_pred, self.q_on_all, self.Q_param_list = self.BuildMoENet()
+            # init Target Q Network
+            self.encoderT, self.decoderT,self.lossT,self.trainStepT,self.q_predT, self.q_on_allT,self.Q_param_listT = self.BuildMoENet(is_target = True)
+        else:
+            # init Q network
+            self.encoder,self.decoder,self.loss,self.trainStep,self.q_pred, self.q_on_all,self.Q_param_list = self.BuildNet() #[loss,trainStep,q_pred, q_on_all, ...]
+            # init Target Q Network
+            self.encoderT,self.decoderT,self.lossT,self.trainStepT,self.q_predT, self.q_on_allT,self.Q_param_listT = self.BuildNet()
+        
         #takesnapsnot
         self.copyTargetQNetworkOperation = [a.assign(b) for a,b in zip(self.Q_param_listT,self.Q_param_list)]
 
@@ -204,6 +224,7 @@ class GraphDQN:
         # self.session = tf_debug.LocalCLIDebugWrapperSession(self.session)
         self.session.run(tf1.global_variables_initializer())
         
+
         # w_n2l_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable:0'))
         # print(f"Encoder w_n2l stats - {w_n2l_val}")
         # cross_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable_6:0'))
@@ -240,12 +261,18 @@ class GraphDQN:
         # B: batch_size (number of graphs in a batch)
         y_nodes_size = tf.shape(self.subgsum_param)[0]
 
-        feature_size = 2 # 2 features for node and graph
-
-        # X: [N,feature_size] node feature, initialized with 1
-        node_input = tf.cast(tf.ones((nodes_size,feature_size)),tf.float32)
-        # Y: [B,feature_size] graph feature, initialized with 1
-        y_node_input = tf.cast(tf.ones((y_nodes_size,feature_size)),tf.float32)
+        if self.IsFeatures:
+            # Get feature strategy from options (default: simple_aggregate)
+            feature_strategy = self.options.get('feature_strategy', 'simple_aggregate')
+            # Options: 'simple_aggregate' or 'concat_baseline'
+            feature_size = 4  # Both strategies use 4 features
+            node_input, y_node_input = self.advanced_features(strategy=feature_strategy)
+        else:
+            feature_size = 2  # Simple features: initialized with 1
+            # X: [N,feature_size] node feature, initialized with 1
+            node_input = tf.cast(tf.ones((nodes_size,feature_size)),tf.float32)
+            # Y: [B,feature_size] graph feature, initialized with 1
+            y_node_input = tf.cast(tf.ones((y_nodes_size,feature_size)),tf.float32)
 
         encoder = GraphEncoder(
             embeddingMethod=self.embeddingMethod,
@@ -261,10 +288,10 @@ class GraphDQN:
             initialization_stddev=initialization_stddev
         )
 
-        # w_n2l_val = encoder.w_n2l
-        # print(f"BuildNet: Encoder w_n2l stats -{w_n2l_val}")
-        # cross_val = decoder.cross_product
-        # print(f"BuildNet: Decoder cross_product stats - {cross_val}")
+        w_n2l_val = encoder.w_n2l
+        print(f"BuildNet: Encoder w_n2l stats -{w_n2l_val}")
+        cross_val = decoder.cross_product
+        print(f"BuildNet: Decoder cross_product stats - {cross_val}")
         
         # Encoder: get node and graph embeddings
         cur_message_layer, y_cur_message_layer= encoder.encode(
@@ -311,45 +338,415 @@ class GraphDQN:
         return encoder,decoder,loss, trainStep, q_pred, q_on_all, tf1.trainable_variables()
 
 
-    def gen_graph(self, num_min, num_max):
-        cdef int max_n = num_max
-        cdef int min_n = num_min
-        cdef int cur_n = np.random.randint(max_n - min_n + 1) + min_n
-        if self.g_type == 'ER':
-            g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
-        elif self.g_type == 'PL':
-            g = nx.powerlaw_cluster_graph(n=cur_n, m=4, p=0.05)
-        elif self.g_type == 'SW':
-            g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
-        elif self.g_type == 'BA':
-            g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'],seed=np.random.randint(1,1000))
-        elif self.g_type == 'ego':
+    def BuildMoENet(self,is_target=False):
+        """Build the MoE network architecture - CREATES SEPARATE INSTANCES"""
+        # N: number of nodes (of all graphs in a batch)
+        nodes_size = tf.shape(self.n2nsum_param)[0]
+        # B: batch_size (number of graphs in a batch)
+        y_nodes_size = tf.shape(self.subgsum_param)[0]
+
+        if self.IsFeatures:
+            # Get feature strategy from options (default: simple_aggregate)
+            feature_strategy = self.options.get('feature_strategy', 'simple_aggregate')
+            # Options: 'simple_aggregate' or 'concat_baseline'
+            feature_size = 4  # Both strategies use 4 features
+            node_input, y_node_input = self.advanced_features(strategy=feature_strategy)
+        else:
+            feature_size = 2  # Simple features: initialized with 1
+            # X: [N,feature_size] node feature, initialized with 1
+            node_input = tf.cast(tf.ones((nodes_size,feature_size)),tf.float32)
+            # Y: [B,feature_size] graph feature, initialized with 1
+            y_node_input = tf.cast(tf.ones((y_nodes_size,feature_size)),tf.float32)
+
+        # CRITICAL FIX: Create separate instances with unique scopes
+        # Generate unique scope suffix for each call (main vs target network)
+        if is_target:
+            scope_suffix = f"T"
+        else: scope_suffix = ""
+        
+        with tf1.variable_scope(f"MoEEncoder{scope_suffix}", reuse=False):
+            encoder = MoEGraphEncoder(
+                embedding_size=self.embedding_size,
+                feature_size=feature_size,
+                initialization_stddev=initialization_stddev,
+                gnn_layers=max_bp_iter,
+                moe_config=self.moe_config
+            )
+        
+        # Update num_experts only once (from first encoder)
+        if not hasattr(self, 'num_experts'):
+            self.num_experts = encoder.num_experts
+            print(f"MoE initialized with {self.num_experts} experts")
+        
+        # CRITICAL FIX: Create decoder with unique scope
+        with tf1.variable_scope(f"MoEDecoder{scope_suffix}", reuse=False):
+            decoder = MoEMLPDecoder(
+                embedding_size=self.embedding_size,
+                reg_hidden=self.reg_hidden,
+                aux_dim=aux_dim,
+                initialization_stddev=initialization_stddev
+            )
+
+        # Encoder: get node and graph embeddings with expert weights
+        cur_message_layer, y_cur_message_layer, expert_weights = encoder.encode(
+            node_input,
+            y_node_input,
+            self.n2nsum_param, 
+            self.subgsum_param,
+            self.batch_graph_ids
+        )
+        
+        # Decoder: get Q(s,a) [B, 1]
+        q_pred = decoder.decode_q(
+            cur_message_layer,
+            self.action_select,
+            y_cur_message_layer, 
+            self.aux_input
+        )
+
+        # Decoder: get Q(s,a) for all nodes of all graphs [N, 1]
+        q_on_all = decoder.decode_q_all(
+            cur_message_layer,
+            y_cur_message_layer, 
+            self.aux_input,
+            self.rep_global
+        )
+
+        # Reconstruction loss (same as original)
+        loss_recons = 2 * tf1.trace(tf.matmul(tf.transpose(cur_message_layer), tf1.sparse_tensor_dense_matmul(tf.cast(self.laplacian_param, tf.float32), cur_message_layer)))
+        edge_num = tf1.sparse_reduce_sum(tf.cast(self.n2nsum_param, tf.float32))
+        loss_recons = tf.divide(loss_recons, edge_num)
+        
+        # RL loss
+        if self.IsPrioritizedSampling:
+            self.TD_errors = tf.reduce_sum(tf.abs(self.target - q_pred), axis=1)
+            if self.IsHuberloss:
+                loss_rl = tf.losses.huber_loss(self.ISWeights * self.target, self.ISWeights * q_pred)
+            else:
+                loss_rl = tf.reduce_mean(self.ISWeights * tf1.squared_difference(self.target, q_pred))
+        else:
+            if self.IsHuberloss:
+                loss_rl = tf.losses.huber_loss(self.target, q_pred)
+            else:
+                loss_rl = tf.losses.mean_squared_error(self.target, q_pred)
+        
+        # MoE Load Balancing Loss (TEMPORARILY DISABLED FOR DEBUGGING)
+        # Since we're using uniform expert weights, load balancing loss is unnecessary
+        # and might interfere with training
+        # expert_utilization_mean = tf.reduce_mean(expert_weights, axis=0)  # [num_experts]
+        # target_utilization = 1.0 / tf.cast(self.num_experts, tf.float32)
+        # load_balance_loss = tf.reduce_mean(tf1.squared_difference(expert_utilization_mean, target_utilization))
+        load_balance_loss = 0.0  # Disable load balancing loss
+        
+        # Total loss (without load balancing for now)
+        loss = loss_rl + Alpha * loss_recons  # + self.moe_config['load_balance_loss_weight'] * load_balance_loss
+        
+        trainStep = tf1.train.AdamOptimizer(self.learning_rate).minimize(loss)
+
+        return encoder,decoder,loss, trainStep, q_pred, q_on_all, tf1.trainable_variables()
+
+    def advanced_features(self, strategy='simple_aggregate'):
+        """
+        Compute advanced structural features for nodes and graphs
+        
+        Args:
+            strategy: 'simple_aggregate' or 'concat_baseline'
+                - 'simple_aggregate': Advanced features only, aggregate to graph level
+                - 'concat_baseline': Concatenate baseline + advanced features
+        
+        Returns:
+            node_input: [N, feature_size] node features
+            y_node_input: [B, feature_size] graph-level features
+        """
+        # Get dimensions
+        N = tf.shape(self.n2nsum_param)[0]  # total nodes across batch
+        B = tf.shape(self.subgsum_param)[0]  # batch size
+        
+        # ===== Compute Advanced Node-Level Features =====
+        
+        # First compute degree (needed for multiple features)
+        degree = tf.sparse.reduce_sum(self.n2nsum_param, axis=1)  # [N]
+        degree = tf.expand_dims(degree, axis=1)  # [N, 1]
+        
+        # Graph size for each graph (to normalize features)
+        graph_sizes = tf.sparse.reduce_sum(self.subgsum_param, axis=1)  # [B]
+        graph_sizes = tf.expand_dims(graph_sizes, axis=1)  # [B, 1]
+        
+        # Broadcast graph sizes to each node
+        node_graph_sizes = tf1.sparse_tensor_dense_matmul(
+            tf.sparse.transpose(tf.cast(self.subgsum_param, tf.float32)),
+            graph_sizes
+        )  # [N, 1]
+        
+        # 1. Estimated Clustering Coefficient
+        # Sum of neighbor degrees (used for triangle approximation)
+        neighbor_degrees = tf1.sparse_tensor_dense_matmul(
+            tf.cast(self.n2nsum_param, tf.float32),
+            degree  # [N, 1]
+        )  # [N, 1] - sum of degrees of neighbors
+        
+        # Approximate number of triangles: neighbor_degrees / 2
+        approx_triangles = neighbor_degrees / 2.0  # [N, 1]
+        
+        # Maximum possible triangles for each node: degree * (degree - 1) / 2
+        max_triangles = degree * (degree - 1.0) / 2.0  # [N, 1]
+        
+        # Clustering coefficient: triangles / max_triangles
+        clustering_coef = approx_triangles / (max_triangles + 1e-8)  # [N, 1]
+        clustering_coef = tf.clip_by_value(clustering_coef, 0.0, 1.0)  # [N, 1]
+        
+        # 2. Normalized degree (degree / graph_size)
+        norm_degree = degree / (node_graph_sizes + 1e-8)  # [N, 1]
+        
+        # 3. 2-hop neighbor density
+        twohop_neighbors = neighbor_degrees / (node_graph_sizes * node_graph_sizes + 1e-8)  # [N, 1]
+        
+        # 4. Bias term
+        node_bias = tf.ones([N, 1], dtype=tf.float32)  # [N, 1]
+        
+        # ===== Strategy 1: Simple Aggregate (Advanced features only) =====
+        if strategy == 'simple_aggregate':
+            # Node features: advanced structural features
+            node_input = tf.concat([
+                clustering_coef,     # [N, 1]
+                norm_degree,         # [N, 1]
+                twohop_neighbors,    # [N, 1]
+                node_bias           # [N, 1]
+            ], axis=1)  # [N, 4]
+            
+            # Graph features: aggregate node features (mean pooling)
+            # This ensures y_node_input has same semantic meaning as node_input
+            graph_node_count = tf.expand_dims(tf.sparse.reduce_sum(self.subgsum_param, axis=1), axis=1)  # [B, 1]
+            y_node_input = tf1.sparse_tensor_dense_matmul(
+                tf.cast(self.subgsum_param, tf.float32), 
+                node_input
+            ) / (graph_node_count + 1e-8)  # [B, 4] - mean of node features per graph
+            
+        # ===== Strategy 2: Concatenate with Baseline =====
+        elif strategy == 'concat_baseline':
+            # Baseline features (uniform initialization)
+            node_baseline = tf.ones([N, 2], dtype=tf.float32)  # [N, 2]
+            graph_baseline = tf.ones([B, 2], dtype=tf.float32)  # [B, 2]
+            
+            # Node features: baseline + advanced (keep only 2 most important advanced features)
+            node_input = tf.concat([
+                node_baseline,       # [N, 2] - baseline uniform features
+                norm_degree,         # [N, 1] - most important: connectivity
+                clustering_coef     # [N, 1] - second: local structure
+            ], axis=1)  # [N, 4]
+            
+            # Graph features: baseline + aggregated advanced features
+            graph_node_count = tf.expand_dims(tf.sparse.reduce_sum(self.subgsum_param, axis=1), axis=1)  # [B, 1]
+            graph_norm_degree = tf1.sparse_tensor_dense_matmul(
+                tf.cast(self.subgsum_param, tf.float32), 
+                norm_degree
+            ) / (graph_node_count + 1e-8)  # [B, 1]
+            
+            graph_clustering = tf1.sparse_tensor_dense_matmul(
+                tf.cast(self.subgsum_param, tf.float32), 
+                clustering_coef
+            ) / (graph_node_count + 1e-8)  # [B, 1]
+            
+            y_node_input = tf.concat([
+                graph_baseline,      # [B, 2] - baseline uniform features
+                graph_norm_degree,   # [B, 1] - average degree
+                graph_clustering    # [B, 1] - average clustering
+            ], axis=1)  # [B, 4]
+        
+        elif strategy == 'original':
+            # Concatenate all node features
+            node_input = tf.concat([
+                clustering_coef,     # [N, 1] - estimated clustering coefficient
+                norm_degree,         # [N, 1] - normalized degree
+                twohop_neighbors,    # [N, 1] - 2-hop neighbor density
+                node_bias           # [N, 1] - bias term
+            ], axis=1)  # [N, 4]
+            
+            # ===== Graph-Level Features =====
+            # Extract from aux_input (already computed in C++)
+            # aux_input shape: [B, 4]
+            # aux_input contains: [covered_node_ratio, covered_edge_ratio, twohop_density, 1.0]
+            y_node_input = self.aux_input  # [B, 4]
+
+        else:
+            raise ValueError(f"Unknown strategy: {strategy}")
+        
+        return node_input, y_node_input
+    
+    def gen_graph(self,cur_n):     
+        # Select graph type (for mix, randomly choose)
+        if self.g_type == 'mix':
+            graph_types = ['BA', 'ER', 'PL', 'SW']
+            # Get mix weights from config, default to uniform distribution
+            weights = self.g_params.get('mix_weights', [0.2, 0.2, 0.2, 0.2])
+            selected_type = np.random.choice(graph_types, p=weights)
+        else:
+            selected_type = self.g_type
+        
+        # Generate graph based on selected type
+        seed = np.random.randint(1,1000)
+        if selected_type == 'ER':
+            g = nx.erdos_renyi_graph(n=cur_n, 
+                                    p=self.g_params.get('p',random.choice([0.05,0.15,0.25,0.35])),
+                                    seed=seed)
+        elif selected_type == 'PL':
+            g = nx.powerlaw_cluster_graph(n=cur_n, 
+                                            m=self.g_params.get('m', random.choice([3,4,5,6])), 
+                                            p=self.g_params.get('p', random.choice([0.05,0.15,0.25,0.35])),
+                                            seed=seed)
+        elif selected_type == 'SW':
+            g = nx.connected_watts_strogatz_graph(n=cur_n, 
+                                            k=self.g_params.get('k', random.choice([6,8,10,12,14,16])), 
+                                            p=self.g_params.get('p', random.choice([0.05,0.15,0.25,0.35])),
+                                            seed =seed)
+        elif selected_type == 'BA':
+            g = nx.barabasi_albert_graph(n=cur_n, 
+                                        m=self.g_params.get('m', random.choice([3,4,5,6])), 
+                                        seed=seed)
+        elif selected_type == 'SBM':
+            # Stochastic Block Model with 4 communities
+            n_communities = 4
+            sizes = [cur_n // n_communities] * n_communities
+            # Adjust last community size to match cur_n exactly
+            sizes[-1] += cur_n - sum(sizes)
+            # Intra-community probability higher than inter-community
+            p_in = 0.25
+            p_out = 0.05
+            probs = [[p_in if i == j else p_out for j in range(n_communities)] for i in range(n_communities)]
+            g = nx.stochastic_block_model(sizes, probs, seed=np.random.randint(1,1000))
+        elif selected_type == 'ego':
             print("please implement one ego graph generation")
             sys.exit()
-        # print("g.info:",g.number_of_nodes(),g.number_of_edges())
-        # TODO: graph argumentation
+        else:
+            raise ValueError(f"Unknown graph type: {selected_type}")
+        
+        # Ensure graph is connected (take largest component if needed)
+        # This is important for ER, PL, and SBM graphs which can be disconnected
+        if not nx.is_connected(g):
+            largest_cc = max(nx.connected_components(g), key=len)
+            g = g.subgraph(largest_cc).copy()
+            # Relabel nodes to be consecutive integers starting from 0
+            g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
+        
         return g
+    
+    def augment_graph(self, g):
+        """
+        Apply graph augmentation techniques to add noise/perturbations
+        
+        Args:
+            g: networkx graph
+        
+        Returns:
+            augmented graph
+        """
+        aug_config = self.g_params.get('augmentation', {})
+        g_aug = g.copy()
+        n_nodes = g_aug.number_of_nodes()
+        n_edges = g_aug.number_of_edges()
+        
+        if n_edges == 0:
+            return g_aug
+        
+        # 1. Random edge dropping
+        drop_edge_prob = aug_config.get('drop_edge_prob', 0.05)
+        if drop_edge_prob > 0:
+            edges_to_drop = [e for e in list(g_aug.edges()) if random.random() < drop_edge_prob]
+            g_aug.remove_edges_from(edges_to_drop)
+        
+        # 2. Random edge addition
+        add_edge_prob = aug_config.get('add_edge_prob', 0.03)
+        if add_edge_prob > 0 and n_nodes > 1:
+            max_new_edges = max(1, int(n_edges * add_edge_prob))
+            nodes = list(g_aug.nodes())
+            attempts = 0
+            max_attempts = max_new_edges * 10  # Avoid infinite loop
+            added = 0
+            while added < max_new_edges and attempts < max_attempts:
+                u, v = random.sample(nodes, 2)
+                if not g_aug.has_edge(u, v) and u != v:
+                    g_aug.add_edge(u, v)
+                    added += 1
+                attempts += 1
+        
+        # 3. Random walk-based perturbation (optional, more aggressive)
+        use_random_walk = aug_config.get('use_random_walk', False)
+        if use_random_walk and n_nodes > 10:
+            walk_length = aug_config.get('walk_length', min(20, n_nodes // 2))
+            if len(list(g_aug.nodes())) > 0:
+                start_node = random.choice(list(g_aug.nodes()))
+                walk_nodes = self._random_walk(g_aug, start_node, walk_length)
+                # Keep nodes in walk + their neighbors
+                keep_nodes = set(walk_nodes)
+                for node in walk_nodes:
+                    keep_nodes.update(g_aug.neighbors(node))
+                if len(keep_nodes) >= 5:  # Ensure minimum graph size
+                    g_aug = g_aug.subgraph(keep_nodes).copy()
+        
+        # 4. Ensure graph is still connected (optional but recommended)
+        ensure_connected = aug_config.get('ensure_connected', True)
+        if ensure_connected and n_nodes > 1:
+            if not nx.is_connected(g_aug):
+                # Take largest connected component
+                largest_cc = max(nx.connected_components(g_aug), key=len)
+                g_aug = g_aug.subgraph(largest_cc).copy()
+        
+        # Relabel nodes to be consecutive integers starting from 0
+        g_aug = nx.convert_node_labels_to_integers(g_aug, first_label=0, ordering='default')
+        
+        return g_aug
+    
+    def _random_walk(self, g, start_node, length):
+        """
+        Perform random walk from start_node
+        
+        Args:
+            g: networkx graph
+            start_node: starting node for walk
+            length: number of steps
+        
+        Returns:
+            list of nodes visited in the walk
+        """
+        walk = [start_node]
+        current = start_node
+        for _ in range(length - 1):
+            neighbors = list(g.neighbors(current))
+            if not neighbors:
+                break
+            current = random.choice(neighbors)
+            walk.append(current)
+        return walk
 
     def gen_new_graphs(self, num_min, num_max):
         print('Generating new training graphs...')
         sys.stdout.flush()
         self.ClearTrainGraphs()
-        if self.g_type in ['ER','PL','SW','BA']:
+        
+        # Get augmentation probability (only augment a fraction of graphs)
+        aug_prob = self.g_params.get('augmentation', {}).get('aug_probability', 0.5) if self.IsDisturbG else 0.0
+        
+        if self.g_type in ['ER','PL','SW','BA','mix']:
             for i in tqdm(range(1000), desc="Training graphs"):
-                g = self.gen_graph(num_min, num_max)
+                max_n = self.num_max
+                min_n = self.num_min
+                cur_n = np.random.randint(max_n - min_n + 1) + min_n
+                g = self.gen_graph(cur_n)
+                # Apply augmentation with probability aug_prob
+                if self.IsDisturbG and random.random() < aug_prob:
+                    g = self.augment_graph(g)
                 self.InsertGraph(g, is_test=False)
+                
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f"{self.g_params['train_dir']}/{self.g_params['target_graph']}_ego_train_{self.g_params['dataset_id']}.pkl", 'rb'))
             print(f"Loading training graphs from {self.g_params['train_dir']} (id: {self.g_params['dataset_id']})")
             self.g_params["dataset_id"] += 1
             for i in tqdm(range(1000), desc="Training graphs"):
-                # TODO: check num_min and num_max
-                g = graphs[i]
-                # g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
+                g = graphs[i]            
+                # Apply augmentation with probability aug_prob
+                if self.IsDisturbG and random.random() < aug_prob:
+                    g = self.augment_graph(g)
                 self.InsertGraph(g, is_test=False)
-        elif self.g_type in ['mix']:
-            #TODO
-            pass
 
 
     def ClearTrainGraphs(self):
@@ -376,9 +773,14 @@ class GraphDQN:
         sys.stdout.flush()
         cdef double result_degree = 0.0
         cdef double result_betweenness = 0.0
-        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA']:
+        
+        # NOTE: Validation graphs are NOT augmented to ensure consistent evaluation
+        if self.g_type in ['erdos_renyi','powerlaw','small-world','BA','mix']:
             for i in tqdm(range(n_valid), desc="Validation graphs"):
-                g = self.gen_graph(self.num_min, self.num_max)
+                max_n = self.num_max
+                min_n = self.num_min
+                cur_n = np.random.randint(max_n - min_n + 1) + min_n
+                g = self.gen_graph(cur_n)
                 g_degree = g.copy()
                 g_betweenness = g.copy()
                 val_degree, sol = self.HXA(g_degree, 'HDA')
@@ -386,6 +788,7 @@ class GraphDQN:
                 val_betweenness, sol = self.HXA(g_betweenness, 'HBA')
                 result_betweenness += val_betweenness
                 self.InsertGraph(g, is_test=True)
+                
         elif self.g_type in ['ego']:
             graphs = pickle.load(open(f"{self.g_params['valid_dir']}/{self.g_params['target_graph']}_ego_valid.pkl", 'rb'))
             print("Loading validation graphs from", self.g_params['valid_dir'])
@@ -466,9 +869,9 @@ class GraphDQN:
     def Predict(self,g_list,covered,isSnapSnot):
         cdef int n_graphs = len(g_list)
         cdef int i, j, k, bsize
-        for i in range(0, n_graphs, BATCH_SIZE):
-            bsize = BATCH_SIZE
-            if (i + BATCH_SIZE) > n_graphs:
+        for i in range(0, n_graphs, self.batch_size):
+            bsize = self.batch_size
+            if (i + self.batch_size) > n_graphs:
                 bsize = n_graphs - i
             batch_idxes = np.zeros(bsize)
             for j in range(i, i + bsize):
@@ -533,10 +936,10 @@ class GraphDQN:
             ISWeights: importance sampling weights, shape [BATCH_SIZE]
         
         '''
-        sample = self.nStepReplayMem.Sampling(BATCH_SIZE)
+        sample = self.nStepReplayMem.Sampling(self.batch_size)
         ness = False
         cdef int i
-        for i in range(BATCH_SIZE):
+        for i in range(self.batch_size):
             if (not sample.list_term[i]):
                 ness = True
                 break
@@ -549,11 +952,11 @@ class GraphDQN:
                 list_pred = self.PredictWithSnapshot(sample.g_list, sample.list_s_primes)
         
         # [BATCH_SIZE, 1], TD target for each sample
-        list_target = np.zeros([BATCH_SIZE, 1])
+        list_target = np.zeros([self.batch_size, 1])
 
-        for i in range(BATCH_SIZE):
+        for i in range(self.batch_size):
             q_rhs = 0
-            gamma_n = GAMMA ** N_STEP  # Use GAMMA^n for n-step
+            gamma_n = self.gamma ** N_STEP  # Use GAMMA^n for n-step
             if (not sample.list_term[i]):
                 if self.IsDoubleDQN:
                     q_rhs=gamma_n * list_pred[i]
@@ -583,12 +986,12 @@ class GraphDQN:
         cdef double loss = 0.0
         cdef int n_graphs = len(g_list)
         cdef int i, j, bsize
-        for i in range(0,n_graphs,BATCH_SIZE):
+        for i in range(0,n_graphs,self.batch_size):
             # batch_idxes is an array of indices for the current mini-batch, 
             # e.g., [0, 1, 2, ..., bsize-1] for each sub-batch within the full batch
             # For batch_size 64, the first batch_idxes would be [0, 1, ..., 63]
-            bsize = BATCH_SIZE
-            if (i + BATCH_SIZE) > n_graphs:
+            bsize = self.batch_size
+            if (i + self.batch_size) > n_graphs:
                 bsize = n_graphs - i
             batch_idxes = np.zeros(bsize)
             for j in range(i, i + bsize):
@@ -618,9 +1021,9 @@ class GraphDQN:
         cdef int n_graphs = len(g_list)
         cdef int i, j, bsize
         
-        for i in range(0,n_graphs,BATCH_SIZE):
-            bsize = BATCH_SIZE
-            if (i + BATCH_SIZE) > n_graphs:
+        for i in range(0,n_graphs,self.batch_size):
+            bsize = self.batch_size
+            if (i + self.batch_size) > n_graphs:
                 bsize = n_graphs - i
             batch_idxes = np.zeros(bsize)
             for j in range(i, i + bsize):
@@ -841,7 +1244,7 @@ class GraphDQN:
                     continue
         return sol
 
-    def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20,log_removals=False):
+    def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20):
         #evaluate the robust given the solution and dataset, strategyID:0,count;2:rank;3:multipy
         sys.stdout.flush()
         g = test_graph
@@ -869,10 +1272,7 @@ class GraphDQN:
         print ('number of solution nodes:%d'%len(solution))
         Robustness = self.utils.getRobustness(g_inner, solution)
         MaxCCList = self.utils.MaxWccSzList
-        if log_removals:
-            return Robustness, MaxCCList, solution
-        else:
-            return Robustness, MaxCCList
+        return Robustness, MaxCCList
 
     def GetSol(self, int gid, int step=1):
         g_list = []

@@ -1,0 +1,32 @@
+{
+    "model_config": {
+        "g_type": "BA",
+        "gnn_model": "graphSage",
+        "g_params" : {
+            "nrange": "30_50",
+            "m": 4
+        },
+        "save_model_dir": "./FINDER/models"
+    },
+    "eval_config": {
+        "datasets": ["Crime"],
+        "step_ratio": 0.01,
+        "strategy_id": 0,
+        "save_result_dir": "./FINDER/result/temp",
+        "min_iter": 300,
+        "max_iter": 1200,
+        "iter_step": 300,
+        "synthetic_g_type": "BA",
+        "synthetic_g_params": {
+            "nranges": ["30_50", "50_100","100_200","200_300","300_400","400_500"],
+            "m_values": [1,2,3,4,5,6]
+        },
+        "per_graphs": 100
+    },
+
+
+
+    "data_config": {
+        "dataset_dir": "../../dataset"
+    }
+} 

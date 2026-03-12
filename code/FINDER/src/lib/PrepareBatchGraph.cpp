@@ -50,10 +50,10 @@ int PrepareBatchGraph::GetStatusInfo(std::shared_ptr<Graph> g, int num, const in
     counter = 0;
 
     twohop_number = 0;
-    threehop_number = 0;
+    threehop_number = 0; //not implement
     std::set<int> node_twohop_set;
 
-    int n = 0;
+    int n = 0; //avaliable action count
  	std::map<int,int> node_twohop_counter;
 
     for (auto& p : g->edge_list)
@@ -128,9 +128,8 @@ void PrepareBatchGraph::SetupGraphInput(std::vector<int> idxes,
 
             temp_feat.push_back((double)counter / (double)g->edge_list.size());
 
-         temp_feat.push_back((double)twohop_number / ((double)g->num_nodes * (double)g->num_nodes));
-
-          temp_feat.push_back(1.0);
+        temp_feat.push_back((double)twohop_number / ((double)g->num_nodes * (double)g->num_nodes));
+        temp_feat.push_back(1.0);
 
         node_cnt += avail_act_cnt[i];
         aux_feat.push_back(temp_feat);

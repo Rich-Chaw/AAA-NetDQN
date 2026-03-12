@@ -10,10 +10,10 @@ cd code
 
 CUDA_VISIBLE_DEVICES=gpu_id 
 
-python -u "./FINDER_ND/setup.py" build_ext -i
-python -u "./FINDER_ND/train.py"
-python -u "./FINDER_ND/testSynthetic.py"
+python -u "./FINDER/setup.py" build_ext -i
+python -u "./FINDER/train.py"
+python -u "./FINDER/testSynthetic.py"
 
-## n_train_size doesn't matter
-python -u "./FINDER_ND/testReal.py"
+
+python -u "./testReal.py"
 

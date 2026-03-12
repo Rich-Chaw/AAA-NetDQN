@@ -94,7 +94,6 @@ class GraphDQN:
         self.inputs = dict()
         self.reg_hidden = REG_HIDDEN
         self.utils = utils.py_Utils()
-        self.save_config = model_config.get('save_config',False)
 
         ############----------------------------- paths ------------------- ###################################
         # self.train_dir = f"../../dataset/synthetic/GSDM"
@@ -103,43 +102,32 @@ class GraphDQN:
         # self.dataset_id = 24    
         # save_model_dir: directory to save the models
         save_model_dir =  model_config["save_model_dir"]
-        if self.g_type == 'ego' or self.g_type == 'mix':
+        if self.g_type == 'ego':
             self.save_model_dir = f"{save_model_dir}/{self.embeddingMethod}_{self.g_type}_nrange_{self.g_params['nrange']}"
         else: self.save_model_dir = f"{save_model_dir}/{self.embeddingMethod}_{self.g_type}_nrange_{self.g_params['nrange']}_m_{self.g_params['m']}"
-        if model_config.get('IsSOTA',False):
-            self.save_model_dir += '_SOTA'   # original SOTA in FINDER paper
-        
+        if not os.path.exists(self.save_model_dir):
+            os.makedirs(self.save_model_dir)
+        # save model config
+        config = {}
+        config["model_config"] = model_config
+        config_path = os.path.join(self.save_model_dir,'config.json')
+        with open(config_path,'w',encoding='utf-8') as f:
+            json.dump(config, f,ensure_ascii=False,indent=4)
+            print(f"save config in {config_path}")
+        # VCFile: file to store the validation results
+        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}.csv")
+
+
+
         ############----------------------------- variants of DQN(start) ------------------- ###################################
         self.IsHuberloss = False
-        
         self.IsDoubleDQN = False
-        if self.IsDoubleDQN:
-            self.save_model_dir += "_DDQN"
-        
         self.IsPrioritizedSampling = False
-        if self.IsPrioritizedSampling:
-             self.save_model_dir += "_Prioritized"
-        
         self.IsDuelingDQN = False
         self.IsMultiStepDQN = True     ##(if IsNStepDQN=False, N_STEP==1)
         self.IsDistributionalDQN = False
         self.IsNoisyNetDQN = False
         self.Rainbow = False
-
-        if not os.path.exists(self.save_model_dir):
-            os.makedirs(self.save_model_dir)
-
-        # save model config
-        if self.save_config:
-            config = {}
-            config["model_config"] = model_config
-            config_path = os.path.join(self.save_model_dir,'config.json')
-            with open(config_path,'w',encoding='utf-8') as f:
-                json.dump(config, f,ensure_ascii=False,indent=4)
-                print(f"save config in {config_path}")
-
-        # VCFile: file to store the validation results
-        self.VCFile = os.path.join(self.save_model_dir, f"ModelVC_{self.embeddingMethod}.csv")
 
         ############----------------------------- variants of DQN(end) ------------------- ###################################
         #Simulator
@@ -151,7 +139,7 @@ class GraphDQN:
         if self.IsPrioritizedSampling:
             self.nStepReplayMem = nstep_replay_mem_prioritized.py_Memory(epsilon,alpha,beta,beta_increment_per_sampling,TD_err_upper,MEMORY_SIZE)
         else:
-            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE,GAMMA)
+            self.nStepReplayMem = nstep_replay_mem.py_NStepReplayMem(MEMORY_SIZE)
 
         for i in range(num_env):
             self.env_list.append(mvc_env.py_MvcEnv(self.num_max))
@@ -204,26 +192,6 @@ class GraphDQN:
         # self.session = tf_debug.LocalCLIDebugWrapperSession(self.session)
         self.session.run(tf1.global_variables_initializer())
         
-        # w_n2l_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable:0'))
-        # print(f"Encoder w_n2l stats - {w_n2l_val}")
-        # cross_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable_6:0'))
-        # print(f"Decoder cross_product stats - {cross_val}")
-        # w_n2l_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable_7:0'))
-        # print(f"EncoderT w_n2l stats -{w_n2l_val}")
-        # cross_val = self.session.run(tf1.get_default_graph().get_tensor_by_name('Variable_13:0'))
-        # print(f"DecoderT cross_product stats -{cross_val}")
-
-        # print("after BuildNet")
-        # w_n2l_val = self.session.run(self.encoder.w_n2l)
-        # print(f"Encoder w_n2l stats - {w_n2l_val}")
-        # cross_val = self.session.run(self.decoder.cross_product)
-        # print(f"Decoder cross_product stats - {cross_val}")
-        # w_n2l_val = self.session.run(self.encoderT.w_n2l)
-        # print(f"EncoderT w_n2l stats -{w_n2l_val}")
-        # cross_val = self.session.run(self.decoderT.cross_product)
-        # print(f"DecoderT cross_product stats -{cross_val}")
-
-
         # Print GPU information (cleaner version)
         gpus = tf1.config.list_physical_devices('GPU')
         if gpus:
@@ -261,11 +229,6 @@ class GraphDQN:
             initialization_stddev=initialization_stddev
         )
 
-        # w_n2l_val = encoder.w_n2l
-        # print(f"BuildNet: Encoder w_n2l stats -{w_n2l_val}")
-        # cross_val = decoder.cross_product
-        # print(f"BuildNet: Decoder cross_product stats - {cross_val}")
-        
         # Encoder: get node and graph embeddings
         cur_message_layer, y_cur_message_layer= encoder.encode(
             node_input,
@@ -322,12 +285,10 @@ class GraphDQN:
         elif self.g_type == 'SW':
             g = nx.connected_watts_strogatz_graph(n=cur_n, k=8, p=0.1)
         elif self.g_type == 'BA':
-            g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'],seed=np.random.randint(1,1000))
+            g = nx.barabasi_albert_graph(n=cur_n, m=self.g_params['m'])
         elif self.g_type == 'ego':
             print("please implement one ego graph generation")
             sys.exit()
-        # print("g.info:",g.number_of_nodes(),g.number_of_edges())
-        # TODO: graph argumentation
         return g
 
     def gen_new_graphs(self, num_min, num_max):
@@ -347,9 +308,6 @@ class GraphDQN:
                 g = graphs[i]
                 # g = nx.convert_node_labels_to_integers(g, first_label=0, ordering='default')
                 self.InsertGraph(g, is_test=False)
-        elif self.g_type in ['mix']:
-            #TODO
-            pass
 
 
     def ClearTrainGraphs(self):
@@ -449,7 +407,6 @@ class GraphDQN:
         self.inputs['subgsum_param'] = prepareBatchGraph.subgsum_param
         self.inputs['aux_input'] = prepareBatchGraph.aux_feat
         self.inputs['batch_graph_ids'] = prepareBatchGraph.batch_graph_ids
-        # print("self.inputs = ",self.inputs)
 
 
     def SetupPredAll(self, idxes, g_list, covered):
@@ -508,11 +465,11 @@ class GraphDQN:
         return pred
 
     def PredictWithCurrentQNet(self,g_list,covered):
-        result = self.Predict(g_list,covered,isSnapSnot=False)
+        result = self.Predict(g_list,covered,False)
         return result
 
     def PredictWithSnapshot(self,g_list,covered):
-        result = self.Predict(g_list,covered,isSnapSnot=True)
+        result = self.Predict(g_list,covered,True)
         return result
     #pass
     def TakeSnapShot(self):
@@ -553,13 +510,12 @@ class GraphDQN:
 
         for i in range(BATCH_SIZE):
             q_rhs = 0
-            gamma_n = GAMMA ** N_STEP  # Use GAMMA^n for n-step
             if (not sample.list_term[i]):
                 if self.IsDoubleDQN:
-                    q_rhs=gamma_n * list_pred[i]
+                    q_rhs=GAMMA * list_pred[i]
                 else:
-                    q_rhs=gamma_n * self.Max(list_pred[i])
-            q_rhs += sample.list_rt[i] # TD target =  R_t + gamma^N_STEP * max(Q_pred)
+                    q_rhs=GAMMA * self.Max(list_pred[i])
+            q_rhs += sample.list_rt[i] # TD target =  R_t + GAMMA * max(Q_pred)
             list_target[i] = q_rhs
         
         if self.IsPrioritizedSampling:
@@ -841,7 +797,7 @@ class GraphDQN:
                     continue
         return sol
 
-    def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20,log_removals=False):
+    def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20):
         #evaluate the robust given the solution and dataset, strategyID:0,count;2:rank;3:multipy
         sys.stdout.flush()
         g = test_graph
@@ -869,10 +825,7 @@ class GraphDQN:
         print ('number of solution nodes:%d'%len(solution))
         Robustness = self.utils.getRobustness(g_inner, solution)
         MaxCCList = self.utils.MaxWccSzList
-        if log_removals:
-            return Robustness, MaxCCList, solution
-        else:
-            return Robustness, MaxCCList
+        return Robustness, MaxCCList
 
     def GetSol(self, int gid, int step=1):
         g_list = []

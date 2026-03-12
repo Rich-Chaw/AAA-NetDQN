@@ -172,32 +172,32 @@ int MvcEnv::randomAction()
     return avail_list[idx];
 }
 
-////degree
-//int MvcEnv::randomAction()
-//{
-//    assert(graph);
-//    avail_list.clear();
-//
-//    int maxID = -1;
-//    int maxDegree = 0;
-//    for (int i = 0; i < graph->num_nodes; ++i)
-//    {
-//        int degree = 0;
-//        if (covered_set.count(i) == 0)
-//        {
-//            for (auto neigh : graph->adj_list[i])
-//                if (covered_set.count(neigh) == 0)
-//                {
-//                    degree++;
-//                }
-//        }
-//        if(degree>maxDegree){
-//            maxDegree = degree;
-//            maxID = i;
-//        }
-//    }
-//    return maxID;
-//}
+//degree
+int MvcEnv::degreeAction()
+{
+   assert(graph);
+   avail_list.clear();
+
+   int maxID = -1;
+   int maxDegree = 0;
+   for (int i = 0; i < graph->num_nodes; ++i)
+   {
+       int degree = 0;
+       if (covered_set.count(i) == 0)
+       {
+           for (auto neigh : graph->adj_list[i])
+               if (covered_set.count(neigh) == 0)
+               {
+                   degree++;
+               }
+       }
+       if(degree>maxDegree){
+           maxDegree = degree;
+           maxID = i;
+       }
+   }
+   return maxID;
+}
 
 
  //betweenness

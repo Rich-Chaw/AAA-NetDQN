@@ -20,7 +20,7 @@ import logging
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
-from GraphDQN import GraphDQN
+from AdvanceGraphDQN import AdvanceGraphDQN
 print(sys.path)
 
 
@@ -72,14 +72,90 @@ def main():
     gpu_available = check_gpu_setup()
     config = {}
     #-------------------------------train config---------------------------------------------------
+    
+    # Example 1: Standard BA graph training
+    # model_config = {
+    #     'g_type': 'BA',
+    #     'g_params': {
+    #         'nrange': '50_70',
+    #         'm': 6
+    #     },
+    #     'gnn_model': 'graphSage',
+    #     'save_model_dir': './FINDER_advance/models',
+    #     'options':{
+    #         'IsDoubleDQN': False,
+    #         'IsFeatures': False,
+    #         'IsPrioritizedSampling': False,
+    #         'IsDisturbG': False  # No augmentation
+    #     }
+    # }
+    
+    # # Example 2: Mixed graph types training
     model_config = {
-        'g_type': 'BA',
-        'g_params': {'nrange': '70_90',
-                     'm': 6},
-        'gnn_model': 'graphSage',
-        'save_model_dir': './FINDER/models',
+        'g_type': 'mix',
+        'g_params': {
+            'nrange': '50_70',
+            'mix_weights': [0.4, 0.1, 0.3, 0.2]  # [BA, ER, PL, SW] probabilities
+        },
+        'gnn_model': 'MoE',
+        'save_model_dir': './FINDER_advance/models',
+        'options':{
+            'IsDoubleDQN': False,
+            'IsFeatures': False,
+            'IsPrioritizedSampling': False,
+            'IsDisturbG': False
+        },
         'save_config':True
     }
+    
+    # Example 3: BA graphs with augmentation
+    # model_config = {
+    #     'g_type': 'BA',
+    #     'g_params': {
+    #         'nrange': '50_70',
+    #         'm': 6,
+    #         'augmentation': {
+    #             'drop_edge_prob': 0.05,      # 5% edges randomly dropped
+    #             'add_edge_prob': 0.03,       # 3% new edges randomly added
+    #             'use_random_walk': False,    # Don't use random walk (too aggressive)
+    #             'ensure_connected': True,    # Keep graph connected
+    #             'aug_probability': 0.5       # Only augment 50% of training graphs
+    #         }
+    #     },
+    #     'gnn_model': 'graphSage',
+    #     'save_model_dir': './FINDER_advance/models',
+    #     'options':{
+    #         'IsDoubleDQN': False,
+    #         'IsFeatures': True,
+    #         'IsPrioritizedSampling': False,
+    #         'IsDisturbG': True  # Enable augmentation
+    #     }
+    # }
+    
+    # Example 4: Mixed graphs with augmentation (most robust training)
+    # model_config = {
+    #     'g_type': 'mix',
+    #     'g_params': {
+    #         'nrange': '50_70',
+    #         'm': 6,
+    #         'mix_weights': [0.3, 0.2, 0.2, 0.3],  # [BA, ER, PL, SW]
+    #         'augmentation': {
+    #             'drop_edge_prob': 0.05,
+    #             'add_edge_prob': 0.03,
+    #             'use_random_walk': False,
+    #             'ensure_connected': True,
+    #             'aug_probability': 0.5
+    #         }
+    #     },
+    #     'gnn_model': 'graphSage',
+    #     'save_model_dir': './FINDER_advance/models',
+    #     'options':{
+    #         'IsDoubleDQN': False,
+    #         'IsFeatures': True,
+    #         'IsPrioritizedSampling': False,
+    #         'IsDisturbG': True
+    #     }
+    # }
 
     # model_config = {
     #     'g_type': 'ego',
@@ -94,7 +170,7 @@ def main():
     # }
     
     #----------------------------train-----------------------------------------
-    print("\n=== Starting GraphDQN Training ===")
+    print("\n=== Starting AdvanceGraphDQN Training ===")
     
     # Set random seeds for reproducibility
     import random
@@ -106,13 +182,11 @@ def main():
     random.seed(seed)
     np.random.seed(seed)
     tf.random.set_seed(seed)
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-    
     print(f"Random seeds set to {seed}")
     
     
     try:
-        dqn = GraphDQN(
+        dqn = AdvanceGraphDQN(
             **model_config
         )
         dqn.Train()

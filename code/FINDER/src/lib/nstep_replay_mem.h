@@ -21,7 +21,7 @@ public:
 class NStepReplayMem
 {
 public:
-      NStepReplayMem(int memory_size);
+      NStepReplayMem(int memory_size,double _gamma);
 
      void Add(std::shared_ptr<Graph> g,
                     std::vector<int> s_t,
@@ -42,6 +42,7 @@ public:
      int current, count, memory_size;
      std::default_random_engine generator;
      std::uniform_int_distribution<int>* distribution;
+     double gamma;
 };
 
 #endif

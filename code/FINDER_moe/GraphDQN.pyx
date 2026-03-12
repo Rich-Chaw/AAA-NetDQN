@@ -777,43 +777,6 @@ class GraphDQN:
                     continue
         return sol
 
-    def GetSolution_CurrentEnv(self, int step=1):
-        # use current Env
-        g_list = []
-        g_list.append(self.test_env.graph)
-        sol = []
-        start = time.time()
-        cdef int iter = 0
-        cdef int new_action
-        sum_sort_time = 0
-        while (not self.test_env.isTerminal()):
-            if iter <= (self.test_env.graph.num_nodes//step + 1):
-                print ('Iteration:%d'%iter)
-            if iter == (self.test_env.graph.num_nodes//step + 2):
-                print("numCovered:%d , numEdges:%d"%(self.test_env.numCoveredEdges,self.test_env.graph.num_edges))
-                print("isNoNodes:",self.test_env.isNoNodes())
-                np.savetxt("edge_list.txt",self.test_env.graph.edge_list,fmt="%d")
-            if iter >= (self.test_env.graph.num_nodes//step + 2000):
-                print ('Iteration:%d'%iter)
-                print("numCovered:%d , numEdges:%d"%(self.test_env.numCoveredEdges,self.test_env.graph.num_edges))
-                print("isNoNodes:",self.test_env.isNoNodes())
-                return []
-            iter += 1
-            list_pred = self.PredictWithCurrentQNet(g_list, [self.test_env.action_list])
-            start_time = time.time()
-            batchSol = np.argsort(-list_pred[0])[:step]
-            end_time = time.time()
-            sum_sort_time += (end_time-start_time)
-            if iter >= (self.test_env.graph.num_nodes//step + 1):
-                print ('batchSol:',batchSol)
-            for new_action in batchSol:
-                if not self.test_env.isTerminal():
-                    self.test_env.stepWithoutReward(new_action)
-                    sol.append(new_action) 
-                else:
-                    continue
-        return sol
-
     def EvaluateSol(self, test_graph, sol_file, strategyID=0, reInsertStep=20):
         #evaluate the robust given the solution and dataset, strategyID:0,count;2:rank;3:multipy
         sys.stdout.flush()
@@ -843,59 +806,6 @@ class GraphDQN:
         Robustness = self.utils.getRobustness(g_inner, solution)
         MaxCCList = self.utils.MaxWccSzList
         return Robustness, MaxCCList
-
-    def EvaluateRealData_random(self, data_test, save_dir, randomRatio,stepRatio=0.0025):
-        # random remove 1%/5%/10%(randomRatio) nodes before test model
-        sys.stdout.flush()
-
-        cdef double solution_time = 0.0
-        test_name = data_test.split('/')[-1]
-        save_dir_local = save_dir+'/StepRatio_%.4f'%stepRatio
-        if not os.path.exists(save_dir_local):#make dir
-            os.mkdir(save_dir_local)
-        result_file = '%s/%s' %(save_dir_local, test_name)
-
-        g = nx.read_edgelist(data_test)
-        # g_inner = self.GenNetwork(g)
-        
-        print ('testing')
-        sys.stdout.flush()
-        print ('number of nodes:%d'%(nx.number_of_nodes(g)))
-        print ('number of edges:%d'%(nx.number_of_edges(g)))
-        if stepRatio > 0:
-            step = np.max([int(stepRatio*nx.number_of_nodes(g)),1]) #step size
-        else:
-            step = 1
-        ## random delete g nodes
-        self.InsertGraph(g, is_test=True)
-        self.test_env.s0(self.TestSet.Get(0))
-        g_inner = self.test_env.graph
-        randomStep = np.max([int(randomRatio*nx.number_of_nodes(g)),0])
-        print("-------deleting %d nodes randomly-------"%(randomStep))
-        for s in range(randomStep):
-            a_t = self.test_env.randomAction()
-            # print("delete node: ",a_t)
-            self.test_env.stepDelete(a_t)
-        print ('number of nodes(deleted):%d'%(self.test_env.graph.num_nodes))
-        print ('number of edges(deleted):%d'%(self.test_env.graph.num_edges))
-        
-        g_inner = self.test_env.graph
-        ## get sol after random remove
-        t1 = time.time()
-        sol = self.GetSolution_CurrentEnv(step)
-        if sol==[]: 
-            print("dataset and r:",data_test,randomRatio)
-            sys.exit(-1)
-            return 0,None,sol,-1
-        t2 = time.time()
-        print ('number of sol nodes:%d'%len(sol))
-        nodes = list(range(g_inner.num_nodes))
-        solution = sol + list(set(nodes)^set(sol))
-        solution_time = (t2 - t1)
-        Robustness = self.utils.getRobustness(g_inner, solution)
-        MaxCCList = self.utils.MaxWccSzList
-        self.ClearTestGraphs()
-        return Robustness,MaxCCList,solution, solution_time
 
     def GetSol(self, int gid, int step=1):
         g_list = []

@@ -4,8 +4,6 @@ import sys,os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from unittest import result
-sys.path.append(os.path.dirname(__file__) + os.sep + '../')
-from GraphDQN import GraphDQN
 import numpy as np
 from tqdm import tqdm
 import time
@@ -15,16 +13,11 @@ import pickle as cp
 import json
 import argparse
 
-from testUtils import load_config,create_model,detailed_result_dir,load_real_graph,load_real_csv,save_real_results
-
-
-
-def load_sol(iter,config):
+def load_sol(iter,config,save_result_dir):
     """load solution files for a given iteration"""
     eval_config = config['eval_config']
     model_config = config['model_config']
     datasets = eval_config['datasets']
-    save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
     sol_files = []
     
     for dataset in datasets:
@@ -151,8 +144,10 @@ def print_evaluation_plan(needed_iters, needed_datasets_per_iter, datasets):
     print("="*60)
 
 
-def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False):
+def eval_one_iter_partial(dqn,iter_num, config, datasets_to_evaluate, save_result_dir,save_sol=False):
     """Evaluate a single iteration checkpoint on specific datasets only"""
+    
+    from testUtils import load_real_graph,detailed_result_dir
     print(f"\nEvaluating iteration {iter_num}...")
     
     model_config = config['model_config']
@@ -160,7 +155,8 @@ def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False
     data_config = config['data_config']
 
     # Create model for this iteration
-    dqn = create_model(model_config, iter_num)
+    # dqn = create_moe_model(model_config, iter_num)
+    dqn.LoadModel_iter(iter_num)
     
     step_ratio = eval_config['step_ratio']
     strategy_id = eval_config['strategy_id']
@@ -186,10 +182,10 @@ def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False
         
         # Get solution, and save in temp_result_file
         if save_sol == False:
-            temp_sol_file = f"temp_{dataset}_{iter_num}.txt"
+            temp_sol_file = f"temp_{dataset}_{iter_num}_sol.txt"
         else:
-            save_result_dir = detailed_result_dir(model_config,eval_config,mode='real')
-            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter_num}.txt"
+            temp_sol_file = f"{save_result_dir}/{dataset}_iter_{iter_num}_sol.txt"
+            MaxCCList_file = f"{save_result_dir}/{dataset}_iter_{iter_num}_max_cc_list.txt"
 
         try:
             sol, sol_time = dqn.EvaluateRealData(g_test, temp_sol_file, step_ratio)
@@ -198,13 +194,16 @@ def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False
             score, MaxCCList = dqn.EvaluateSol(g_test, temp_sol_file, strategy_id, reInsertStep=0.001)
             eval_time = time.time() - t1
             total_time = sol_time + eval_time
-            
-            newly_evaluated_results[dataset] = {'score': score, 'time': total_time}
+            newly_evaluated_results[dataset] = {'score': score,'time': total_time}
             print(f"      Score: {score:.6f}, Total time: {total_time:.2f}s")
             
             # Clean up temp file
             if os.path.exists(temp_sol_file) and save_sol == False:
                 os.remove(temp_sol_file)
+            else:
+                with open(MaxCCList_file, 'w') as f_out:
+                    for j in range(len(MaxCCList)):
+                        f_out.write('%.8f\n' % MaxCCList[j])
                 
         except Exception as e:
             print(f"      Error evaluating {dataset}: {e}")
@@ -212,9 +211,11 @@ def eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False
     
     return newly_evaluated_results
 
-def eval_all_iters(config):
+def eval_all_iters(dqn,config,save_result_dir):
     """Evaluate all checkpoints from min_iter to max_iter, skipping already evaluated iterations"""
     
+    from testUtils import load_real_csv,save_real_results
+
     eval_config = config['eval_config']
     model_config = config['model_config']
 
@@ -228,7 +229,7 @@ def eval_all_iters(config):
     print(f"Target iterations: {len(target_iters)} iterations from {target_iters[0]} to {target_iters[-1]} (step: {iter_step})")
     
     # Load existing results (new format)
-    existing_results = load_real_csv(model_config,eval_config)
+    existing_results = load_real_csv(model_config,eval_config,save_result_dir)
     
     # Determine what needs to be evaluated
     needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, datasets)
@@ -257,7 +258,7 @@ def eval_all_iters(config):
             
             # Call eval_one_iter_partial to get results for this iteration and its needed datasets
             # This function returns {dataset_name: {'score': s, 'time': t}}
-            iter_new_results = eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=False)
+            iter_new_results = eval_one_iter_partial(dqn,iter_num, config, datasets_to_evaluate,save_result_dir, save_sol=False)
             
             # Add iter_num to each dataset's result for easier merging
             for dataset_name in iter_new_results:
@@ -276,55 +277,80 @@ def eval_all_iters(config):
     # Merge new results with existing results
     all_results = merge_results(existing_results, new_results_list, datasets)
     # save results
-    save_real_results(all_results, model_config, eval_config)
+    save_real_results(all_results, model_config, eval_config,save_result_dir)
     
     return all_results
 
 
 def main():
-    # Load configuration
+    # parse args
+    parser = argparse.ArgumentParser(description='Evaluate ONE model on real datasets')
+    parser.add_argument("--model_path",type=str, default="./FINDER/models/graphSage_BA_nrange_70_90_m_5",help="Path to model directory")
+    parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
+    parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
+    parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
+    parser.add_argument("--eval_all_iters", action="store_true")
+    parser.add_argument("--eval_iter", type=int,default=-1,help="-1 means eval best_iter")
+    parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt,not update csv")
+    args = parser.parse_args()
+
+    # -----------------------------------------LOAD modules----------------------------------------------
+    FINDER_type = args.model_path.split("/")[1]
+    # sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+    if "moe" in FINDER_type:
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'{FINDER_type}/')
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'FINDER/')
+        from GraphDQN import GraphDQN
+        from MoEGraphDQN import MoEGraphDQN
+    elif "advance" in FINDER_type:
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'{FINDER_type}/')
+        from AdvanceGraphDQN import AdvanceGraphDQN
+        DQN_cls = AdvanceGraphDQN
+    else:
+        sys.path.append(os.path.dirname(__file__) + os.sep + f'{FINDER_type}/')
+        from GraphDQN import GraphDQN
+        DQN_cls = GraphDQN
+    from testUtils import load_config,create_model,create_moe_model,detailed_result_dir,load_real_graph,load_real_csv,save_real_results
+
+    # -------------------------------------LOAD configuration---------------------------------------------
     try:
         config = load_config()
         print("✓ Configuration loaded successfully")
     except Exception as e:
         print(f"✗ Error loading configuration: {e}")
         return
-    
- 
-    # parse args
-    parser = argparse.ArgumentParser(description='Evaluate ONE model on real datasets')
-    parser.add_argument("--model_path", type=str, help="Path to model directory (e.g., ./models/BA_nrange_30_50_m_3)")
-    parser.add_argument("--min_iter", type=int, default=0, help="Minimum iteration to evaluate")
-    parser.add_argument("--max_iter", type=int, default=6000, help="Maximum iteration to evaluate")
-    parser.add_argument("--iter_step", type=int, default=300, help="Iteration step size")
-    parser.add_argument("--eval_all_iters", action="store_true")
-    parser.add_argument("--eval_iter", type=int)
-    parser.add_argument("--save_sol_only", action="store_true", help="save sol to <dataset>_iter.txt,not update csv")
-    args = parser.parse_args()
 
+    # Update model config if model_path is provided
+    model_config = config['model_config']
+    model_path_config_file = os.path.join(args.model_path,"config.json")
+    if os.path.exists(model_path_config_file):
+        # Parse model path to extract parameters
+        with open(model_path_config_file, 'r') as f:
+            model_config.update(json.load(f)["model_config"])
+    
     # Update config with command line arguments
     eval_config = config['eval_config']
     eval_config.update({
         'min_iter': args.min_iter,
         'max_iter': args.max_iter,
         'iter_step': args.iter_step,
-        "datasets": ["Digg"]
+        "datasets": ['Crime','HI-II-14','Digg','Enron','Gnutella31','Epinions','Facebook'],
+        "save_result_dir": f"./{FINDER_type}/result"
     })
-    
 
-    # Update model config if model_path is provided
-    model_config = config['model_config']
-    if args.model_path:
-        # Parse model path to extract parameters
-        path_parts = args.model_path.split('/')[-1].split('_')
-        if len(path_parts) >= 6:
-            model_config['g_type'] = path_parts[0]
-            model_config['g_params']['nrange'] = path_parts[2]+'_'+path_parts[3]
-            model_config['g_params']['m'] = int(path_parts[5])
-            print(f"✓ Updated model config: {model_config}")
-    
+    # ['Crime','HI-II-14','Digg','Enron','Gnutella31','Epinions','Facebook','Youtube','Flickr']
+
+    config["model_config"] = model_config
+    config["eval_config"] = eval_config
+    save_result_dir = detailed_result_dir(args.model_path,eval_config,mode='real')
+
+    # -------------------------------------------------Eval -----------------------------------------------------
     print(f"\n{'-'*10}Real Dataset Evaluation{'.'*10}")
-    print(f"Target model: {model_config['g_type']}_nrange_{model_config['g_params']['nrange']}_m_{model_config['g_params']['m']}")
+    print(f"Target model: {args.model_path}")
+
+
+    # create model
+    dqn = create_model(model_config,DQN_cls)
 
     # eval_all_iters
     if args.eval_all_iters:
@@ -332,7 +358,7 @@ def main():
         
         try:
             from testUtils import plot_val_eval_scores
-            all_results = eval_all_iters(config)
+            all_results = eval_all_iters(dqn,config)
             # plot_val_eval_scores(config) # This function will need to be updated to handle new result format
             return
         except ImportError:
@@ -343,10 +369,9 @@ def main():
         # eval one iter
         if args.eval_iter < 0:
             # find best model iter using Dqn.findModel
-            dqn = create_model(config['model_config'])
             print("eval_iter = None, find best iter by dqn.findModel")
             best_ckpt_file = dqn.findModel()
-            dqn.LoadModel(best_ckpt_file)
+            # dqn.LoadModel(best_ckpt_file)
             best_iter = int(best_ckpt_file.split('.ckpt')[0].split('_')[-1])
             args.eval_iter = best_iter
         print("\neval_all_iter is False, evaluate iteration %d"%args.eval_iter)
@@ -355,22 +380,22 @@ def main():
         all_datasets = eval_config['datasets']
         
         if args.save_sol_only:
-            # When save_sol, do not save results to prevent overwrite of CSVs, just solutions
+            # When save_sol, DO NOT check records in CSV, DO NOT save results in CSVs, just solutions
             for iter_num in target_iters:
                 # Determine which datasets still need solution files
-                existing_sols = load_sol(iter_num, config)
+                existing_sols = load_sol(iter_num, config,save_result_dir)
                 evaluated_datasets_for_sols = [os.path.basename(s).split(f'_iter_{iter_num}.txt')[0].split('_')[0] for s in existing_sols]
                 needed_datasets_for_sols = [dataset for dataset in all_datasets if dataset not in evaluated_datasets_for_sols]
                 
                 if needed_datasets_for_sols:
                     print(f"Evaluating iteration {iter_num} to save solutions for datasets: {needed_datasets_for_sols}")
-                    eval_one_iter_partial(iter_num, config, needed_datasets_for_sols, save_sol=True)
+                    eval_one_iter_partial(dqn,iter_num, config, needed_datasets_for_sols,save_result_dir, save_sol=True)
                 else:
                     print(f"All solution files for iteration {iter_num} already exist, skipping.")
             
         else:
             # Normal evaluation for a specified iteration, including saving results
-            existing_results = load_real_csv(model_config,eval_config)
+            existing_results = load_real_csv(model_config,eval_config,save_result_dir)
             needed_iters, needed_datasets_per_iter = get_evaluation_status(existing_results, target_iters, all_datasets)
             
             if not needed_iters:
@@ -381,7 +406,7 @@ def main():
                     datasets_to_evaluate = needed_datasets_per_iter.get(iter_num, all_datasets)
                     
                     # Perform evaluation
-                    iter_new_results = eval_one_iter_partial(iter_num, config, datasets_to_evaluate, save_sol=True)
+                    iter_new_results = eval_one_iter_partial(dqn,iter_num, config, datasets_to_evaluate,save_result_dir, save_sol=True)
                     
                     # Add iter_num to each dataset's result
                     for dataset_name in iter_new_results:
@@ -391,7 +416,7 @@ def main():
 
                 # Merge and save results
                 all_results = merge_results(existing_results, new_results_list, all_datasets)
-                save_real_results(all_results, model_config, eval_config)
+                save_real_results(all_results, model_config, eval_config,save_result_dir)
 
 
 if __name__=="__main__":

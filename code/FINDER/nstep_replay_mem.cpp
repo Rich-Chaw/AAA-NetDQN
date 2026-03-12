@@ -829,7 +829,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "FINDER_ND\\nstep_replay_mem.pyx",
+  "FINDER\\nstep_replay_mem.pyx",
   "stringsource",
 };
 
@@ -1363,6 +1363,7 @@ static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_array[] = "array";
 static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_edges[] = "edges";
+static const char __pyx_k_gamma[] = "_gamma";
 static const char __pyx_k_graph[] = "graph";
 static const char __pyx_k_nodes[] = "nodes";
 static const char __pyx_k_nstep[] = "nstep";
@@ -1410,6 +1411,7 @@ static PyObject *__pyx_n_s_covered_set;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_edge_list;
 static PyObject *__pyx_n_s_edges;
+static PyObject *__pyx_n_s_gamma;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_n_s_graph;
 static PyObject *__pyx_n_s_import;
@@ -1452,7 +1454,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_7list_rt___get__(
 static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_9list_term___get__(struct __pyx_obj_16nstep_replay_mem_py_ReplaySample *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_16nstep_replay_mem_py_ReplaySample *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_16nstep_replay_mem_py_ReplaySample *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, int __pyx_v_memory_size); /* proto */
+static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, int __pyx_v_memory_size, double __pyx_v__gamma); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_2Add(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, PyObject *__pyx_v_mvcenv, int __pyx_v_nstep); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_4Sampling(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, int __pyx_v_batch_size); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6graphs___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
@@ -1464,6 +1466,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_9terminals___ge
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_7current___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_5count___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_11memory_size___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_5gamma___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYTHON_UNUSED struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, PyObject *__pyx_v_g); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_8__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_10__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
@@ -2377,7 +2380,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_4__setstate_cytho
 /* "nstep_replay_mem.pyx":59
  *     cdef shared_ptr[ReplaySample] inner_ReplaySample
  *     #__cinit____init__
- *     def __cinit__(self,int memory_size):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self,int memory_size,double _gamma=1.0):             # <<<<<<<<<<<<<<
  *         '''Graph
  * 
  */
@@ -2386,16 +2389,19 @@ static PyObject *__pyx_pf_16nstep_replay_mem_15py_ReplaySample_4__setstate_cytho
 static int __pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static int __pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_memory_size;
+  double __pyx_v__gamma;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_memory_size,0};
-    PyObject* values[1] = {0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_memory_size,&__pyx_n_s_gamma,0};
+    PyObject* values[2] = {0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         CYTHON_FALLTHROUGH;
         case  0: break;
@@ -2406,33 +2412,48 @@ static int __pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_1__cinit__(PyObject *
         case  0:
         if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_memory_size)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_gamma);
+          if (value) { values[1] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(0, 59, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
     __pyx_v_memory_size = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_memory_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    if (values[1]) {
+      __pyx_v__gamma = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v__gamma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    } else {
+      __pyx_v__gamma = ((double)1.0);
+    }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 59, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 59, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("nstep_replay_mem.py_NStepReplayMem.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(((struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *)__pyx_v_self), __pyx_v_memory_size);
+  __pyx_r = __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(((struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *)__pyx_v_self), __pyx_v_memory_size, __pyx_v__gamma);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, int __pyx_v_memory_size) {
+static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self, int __pyx_v_memory_size, double __pyx_v__gamma) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   NStepReplayMem *__pyx_t_1;
@@ -2441,12 +2462,12 @@ static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __py
   /* "nstep_replay_mem.pyx":65
  *         python'''
  *         #print('')
- *         self.inner_NStepReplayMem = shared_ptr[NStepReplayMem](new NStepReplayMem(memory_size))             # <<<<<<<<<<<<<<
+ *         self.inner_NStepReplayMem = shared_ptr[NStepReplayMem](new NStepReplayMem(memory_size,_gamma))             # <<<<<<<<<<<<<<
  *     # def __dealloc__(self):
  *     #     if self.inner_NStepReplayMem != NULL:
  */
   try {
-    __pyx_t_1 = new NStepReplayMem(__pyx_v_memory_size);
+    __pyx_t_1 = new NStepReplayMem(__pyx_v_memory_size, __pyx_v__gamma);
   } catch(...) {
     __Pyx_CppExn2PyErr();
     __PYX_ERR(0, 65, __pyx_L1_error)
@@ -2456,7 +2477,7 @@ static int __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem___cinit__(struct __py
   /* "nstep_replay_mem.pyx":59
  *     cdef shared_ptr[ReplaySample] inner_ReplaySample
  *     #__cinit____init__
- *     def __cinit__(self,int memory_size):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self,int memory_size,double _gamma=1.0):             # <<<<<<<<<<<<<<
  *         '''Graph
  * 
  */
@@ -3463,7 +3484,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_5count___get__(
  *     @property
  *     def memory_size(self):             # <<<<<<<<<<<<<<
  *         return deref(self.inner_NStepReplayMem).memory_size
- *     cdef G2P(self,Graph graph1):
+ *     @property
  */
 
 /* Python wrapper */
@@ -3489,8 +3510,8 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_11memory_size__
  *     @property
  *     def memory_size(self):
  *         return deref(self.inner_NStepReplayMem).memory_size             # <<<<<<<<<<<<<<
- *     cdef G2P(self,Graph graph1):
- *         num_nodes = graph1.num_nodes     #Graph
+ *     @property
+ *     def gamma(self):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyInt_From_int((*__pyx_v_self->inner_NStepReplayMem).memory_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
@@ -3504,7 +3525,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_11memory_size__
  *     @property
  *     def memory_size(self):             # <<<<<<<<<<<<<<
  *         return deref(self.inner_NStepReplayMem).memory_size
- *     cdef G2P(self,Graph graph1):
+ *     @property
  */
 
   /* function exit code */
@@ -3518,9 +3539,69 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_11memory_size__
   return __pyx_r;
 }
 
-/* "nstep_replay_mem.pyx":139
- *     def memory_size(self):
+/* "nstep_replay_mem.pyx":140
  *         return deref(self.inner_NStepReplayMem).memory_size
+ *     @property
+ *     def gamma(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_NStepReplayMem).gamma
+ *     cdef G2P(self,Graph graph1):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_5gamma_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_5gamma_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_5gamma___get__(((struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_5gamma___get__(struct __pyx_obj_16nstep_replay_mem_py_NStepReplayMem *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__get__", 0);
+
+  /* "nstep_replay_mem.pyx":141
+ *     @property
+ *     def gamma(self):
+ *         return deref(self.inner_NStepReplayMem).gamma             # <<<<<<<<<<<<<<
+ *     cdef G2P(self,Graph graph1):
+ *         num_nodes = graph1.num_nodes     #Graph
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyFloat_FromDouble((*__pyx_v_self->inner_NStepReplayMem).gamma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "nstep_replay_mem.pyx":140
+ *         return deref(self.inner_NStepReplayMem).memory_size
+ *     @property
+ *     def gamma(self):             # <<<<<<<<<<<<<<
+ *         return deref(self.inner_NStepReplayMem).gamma
+ *     cdef G2P(self,Graph graph1):
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("nstep_replay_mem.py_NStepReplayMem.gamma.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "nstep_replay_mem.pyx":142
+ *     def gamma(self):
+ *         return deref(self.inner_NStepReplayMem).gamma
  *     cdef G2P(self,Graph graph1):             # <<<<<<<<<<<<<<
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph
@@ -3547,8 +3628,8 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   PyObject *__pyx_t_10 = NULL;
   __Pyx_RefNannySetupContext("G2P", 0);
 
-  /* "nstep_replay_mem.pyx":140
- *         return deref(self.inner_NStepReplayMem).memory_size
+  /* "nstep_replay_mem.pyx":143
+ *         return deref(self.inner_NStepReplayMem).gamma
  *     cdef G2P(self,Graph graph1):
  *         num_nodes = graph1.num_nodes     #Graph             # <<<<<<<<<<<<<<
  *         num_edges = graph1.num_edges    #Graph
@@ -3557,7 +3638,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_t_1 = __pyx_v_graph1.num_nodes;
   __pyx_v_num_nodes = __pyx_t_1;
 
-  /* "nstep_replay_mem.pyx":141
+  /* "nstep_replay_mem.pyx":144
  *     cdef G2P(self,Graph graph1):
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph             # <<<<<<<<<<<<<<
@@ -3567,7 +3648,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_t_1 = __pyx_v_graph1.num_edges;
   __pyx_v_num_edges = __pyx_t_1;
 
-  /* "nstep_replay_mem.pyx":142
+  /* "nstep_replay_mem.pyx":145
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph
  *         edge_list = graph1.edge_list             # <<<<<<<<<<<<<<
@@ -3577,40 +3658,40 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_t_2 = __pyx_v_graph1.edge_list;
   __pyx_v_edge_list = __pyx_t_2;
 
-  /* "nstep_replay_mem.pyx":143
+  /* "nstep_replay_mem.pyx":146
  *         num_edges = graph1.num_edges    #Graph
  *         edge_list = graph1.edge_list
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)             # <<<<<<<<<<<<<<
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3618,40 +3699,40 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_v_cint_edges_from = __pyx_t_7;
   __pyx_t_7 = 0;
 
-  /* "nstep_replay_mem.pyx":144
+  /* "nstep_replay_mem.pyx":147
  *         edge_list = graph1.edge_list
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)             # <<<<<<<<<<<<<<
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_7);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_7);
   __pyx_t_7 = 0;
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -3659,7 +3740,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_v_cint_edges_to = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "nstep_replay_mem.pyx":145
+  /* "nstep_replay_mem.pyx":148
  *         cint_edges_from = np.zeros([num_edges],dtype=np.int)
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):             # <<<<<<<<<<<<<<
@@ -3671,32 +3752,32 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "nstep_replay_mem.pyx":146
+    /* "nstep_replay_mem.pyx":149
  *         cint_edges_to = np.zeros([num_edges],dtype=np.int)
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first             # <<<<<<<<<<<<<<
  *             cint_edges_to[i] =edge_list[i].second
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  */
-    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).first); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).first); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 149, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_from, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 146, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_from, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 149, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-    /* "nstep_replay_mem.pyx":147
+    /* "nstep_replay_mem.pyx":150
  *         for i in range(num_edges):
  *             cint_edges_from[i]=edge_list[i].first
  *             cint_edges_to[i] =edge_list[i].second             # <<<<<<<<<<<<<<
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  * 
  */
-    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).second); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int((__pyx_v_edge_list[__pyx_v_i]).second); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_to, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 147, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_cint_edges_to, __pyx_v_i, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
 
-  /* "nstep_replay_mem.pyx":148
+  /* "nstep_replay_mem.pyx":151
  *             cint_edges_from[i]=edge_list[i].first
  *             cint_edges_to[i] =edge_list[i].second
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)             # <<<<<<<<<<<<<<
@@ -3704,14 +3785,14 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
  *     def GenNetwork(self, g):    #networkx2four
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_nodes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_nodes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_edges); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = NULL;
   __pyx_t_1 = 0;
@@ -3728,7 +3809,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_t_3, __pyx_t_5, __pyx_v_cint_edges_from, __pyx_v_cint_edges_to};
-    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3738,7 +3819,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_t_3, __pyx_t_5, __pyx_v_cint_edges_from, __pyx_v_cint_edges_to};
-    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_1, 4+__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3746,7 +3827,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   } else
   #endif
   {
-    __pyx_t_10 = PyTuple_New(4+__pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(4+__pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 151, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -3763,7 +3844,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
     PyTuple_SET_ITEM(__pyx_t_10, 3+__pyx_t_1, __pyx_v_cint_edges_to);
     __pyx_t_3 = 0;
     __pyx_t_5 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
@@ -3772,9 +3853,9 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "nstep_replay_mem.pyx":139
- *     def memory_size(self):
- *         return deref(self.inner_NStepReplayMem).memory_size
+  /* "nstep_replay_mem.pyx":142
+ *     def gamma(self):
+ *         return deref(self.inner_NStepReplayMem).gamma
  *     cdef G2P(self,Graph graph1):             # <<<<<<<<<<<<<<
  *         num_nodes = graph1.num_nodes     #Graph
  *         num_edges = graph1.num_edges    #Graph
@@ -3798,7 +3879,7 @@ static PyObject *__pyx_f_16nstep_replay_mem_17py_NStepReplayMem_G2P(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "nstep_replay_mem.pyx":150
+/* "nstep_replay_mem.pyx":153
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  * 
  *     def GenNetwork(self, g):    #networkx2four             # <<<<<<<<<<<<<<
@@ -3839,14 +3920,14 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   PyObject *__pyx_t_10 = NULL;
   __Pyx_RefNannySetupContext("GenNetwork", 0);
 
-  /* "nstep_replay_mem.pyx":151
+  /* "nstep_replay_mem.pyx":154
  * 
  *     def GenNetwork(self, g):    #networkx2four
  *         edges = g.edges()             # <<<<<<<<<<<<<<
  *         if len(edges) > 0:
  *             a, b = zip(*edges)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_g, __pyx_n_s_edges); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_g, __pyx_n_s_edges); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3860,33 +3941,33 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_edges = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nstep_replay_mem.pyx":152
+  /* "nstep_replay_mem.pyx":155
  *     def GenNetwork(self, g):    #networkx2four
  *         edges = g.edges()
  *         if len(edges) > 0:             # <<<<<<<<<<<<<<
  *             a, b = zip(*edges)
  *             A = np.array(a)
  */
-  __pyx_t_4 = PyObject_Length(__pyx_v_edges); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 152, __pyx_L1_error)
+  __pyx_t_4 = PyObject_Length(__pyx_v_edges); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 155, __pyx_L1_error)
   __pyx_t_5 = ((__pyx_t_4 > 0) != 0);
   if (__pyx_t_5) {
 
-    /* "nstep_replay_mem.pyx":153
+    /* "nstep_replay_mem.pyx":156
  *         edges = g.edges()
  *         if len(edges) > 0:
  *             a, b = zip(*edges)             # <<<<<<<<<<<<<<
  *             A = np.array(a)
  *             B = np.array(b)
  */
-    __pyx_t_1 = __Pyx_PySequence_Tuple(__pyx_v_edges); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PySequence_Tuple(__pyx_v_edges); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if ((likely(PyTuple_CheckExact(__pyx_t_2))) || (PyList_CheckExact(__pyx_t_2))) {
@@ -3895,7 +3976,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 153, __pyx_L1_error)
+        __PYX_ERR(0, 156, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -3908,15 +3989,15 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
       __Pyx_INCREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_t_3);
       #else
-      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
+      __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       #endif
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_6 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 153, __pyx_L1_error)
+      __pyx_t_6 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_7 = Py_TYPE(__pyx_t_6)->tp_iternext;
@@ -3924,7 +4005,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
       __Pyx_GOTREF(__pyx_t_1);
       index = 1; __pyx_t_3 = __pyx_t_7(__pyx_t_6); if (unlikely(!__pyx_t_3)) goto __pyx_L4_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_3);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_6), 2) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_6), 2) < 0) __PYX_ERR(0, 156, __pyx_L1_error)
       __pyx_t_7 = NULL;
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       goto __pyx_L5_unpacking_done;
@@ -3932,7 +4013,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __pyx_t_7 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 153, __pyx_L1_error)
+      __PYX_ERR(0, 156, __pyx_L1_error)
       __pyx_L5_unpacking_done:;
     }
     __pyx_v_a = __pyx_t_1;
@@ -3940,16 +4021,16 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     __pyx_v_b = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "nstep_replay_mem.pyx":154
+    /* "nstep_replay_mem.pyx":157
  *         if len(edges) > 0:
  *             a, b = zip(*edges)
  *             A = np.array(a)             # <<<<<<<<<<<<<<
  *             B = np.array(b)
  *         else:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -3964,22 +4045,22 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     }
     __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_v_a) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_a);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_A = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "nstep_replay_mem.pyx":155
+    /* "nstep_replay_mem.pyx":158
  *             a, b = zip(*edges)
  *             A = np.array(a)
  *             B = np.array(b)             # <<<<<<<<<<<<<<
  *         else:
  *             A = np.array([0])
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = NULL;
@@ -3994,13 +4075,13 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     }
     __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_v_b) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_b);
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_B = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "nstep_replay_mem.pyx":152
+    /* "nstep_replay_mem.pyx":155
  *     def GenNetwork(self, g):    #networkx2four
  *         edges = g.edges()
  *         if len(edges) > 0:             # <<<<<<<<<<<<<<
@@ -4010,7 +4091,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     goto __pyx_L3;
   }
 
-  /* "nstep_replay_mem.pyx":157
+  /* "nstep_replay_mem.pyx":160
  *             B = np.array(b)
  *         else:
  *             A = np.array([0])             # <<<<<<<<<<<<<<
@@ -4018,12 +4099,12 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
  *         return graph.py_Graph(len(g.nodes()), len(edges), A, B)
  */
   /*else*/ {
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 160, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
@@ -4041,24 +4122,24 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     __pyx_t_2 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_6, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 160, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_A = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "nstep_replay_mem.pyx":158
+    /* "nstep_replay_mem.pyx":161
  *         else:
  *             A = np.array([0])
  *             B = np.array([0])             # <<<<<<<<<<<<<<
  *         return graph.py_Graph(len(g.nodes()), len(edges), A, B)
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
@@ -4076,7 +4157,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     __pyx_t_2 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_6, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_B = __pyx_t_2;
@@ -4084,18 +4165,18 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   }
   __pyx_L3:;
 
-  /* "nstep_replay_mem.pyx":159
+  /* "nstep_replay_mem.pyx":162
  *             A = np.array([0])
  *             B = np.array([0])
  *         return graph.py_Graph(len(g.nodes()), len(edges), A, B)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_graph); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_py_Graph); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_g, __pyx_n_s_nodes); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_g, __pyx_n_s_nodes); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_8 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
@@ -4109,15 +4190,15 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   }
   __pyx_t_3 = (__pyx_t_8) ? __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_8) : __Pyx_PyObject_CallNoArg(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_4 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_4 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyObject_Length(__pyx_v_edges); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 159, __pyx_L1_error)
-  __pyx_t_6 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_4 = PyObject_Length(__pyx_v_edges); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 162, __pyx_L1_error)
+  __pyx_t_6 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_8 = NULL;
   __pyx_t_9 = 0;
@@ -4134,7 +4215,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[5] = {__pyx_t_8, __pyx_t_3, __pyx_t_6, __pyx_v_A, __pyx_v_B};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4144,7 +4225,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[5] = {__pyx_t_8, __pyx_t_3, __pyx_t_6, __pyx_v_A, __pyx_v_B};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4152,7 +4233,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   } else
   #endif
   {
-    __pyx_t_10 = PyTuple_New(4+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(4+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 162, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     if (__pyx_t_8) {
       __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -4169,7 +4250,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
     PyTuple_SET_ITEM(__pyx_t_10, 3+__pyx_t_9, __pyx_v_B);
     __pyx_t_3 = 0;
     __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
@@ -4178,7 +4259,7 @@ static PyObject *__pyx_pf_16nstep_replay_mem_17py_NStepReplayMem_6GenNetwork(CYT
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "nstep_replay_mem.pyx":150
+  /* "nstep_replay_mem.pyx":153
  *         return graph.py_Graph(num_nodes,num_edges,cint_edges_from,cint_edges_to)
  * 
  *     def GenNetwork(self, g):    #networkx2four             # <<<<<<<<<<<<<<
@@ -5425,6 +5506,10 @@ static PyObject *__pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_memory_siz
   return __pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_11memory_size_1__get__(o);
 }
 
+static PyObject *__pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_gamma(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_5gamma_1__get__(o);
+}
+
 static PyMethodDef __pyx_methods_16nstep_replay_mem_py_NStepReplayMem[] = {
   {"Add", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_3Add, METH_VARARGS|METH_KEYWORDS, 0},
   {"Sampling", (PyCFunction)__pyx_pw_16nstep_replay_mem_17py_NStepReplayMem_5Sampling, METH_O, 0},
@@ -5444,6 +5529,7 @@ static struct PyGetSetDef __pyx_getsets_16nstep_replay_mem_py_NStepReplayMem[] =
   {(char *)"current", __pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_current, 0, (char *)0, 0},
   {(char *)"count", __pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_count, 0, (char *)0, 0},
   {(char *)"memory_size", __pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_memory_size, 0, (char *)0, 0},
+  {(char *)"gamma", __pyx_getprop_16nstep_replay_mem_17py_NStepReplayMem_gamma, 0, (char *)0, 0},
   {0, 0, 0, 0, 0}
 };
 
@@ -5566,6 +5652,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_edge_list, __pyx_k_edge_list, sizeof(__pyx_k_edge_list), 0, 0, 1, 1},
   {&__pyx_n_s_edges, __pyx_k_edges, sizeof(__pyx_k_edges), 0, 0, 1, 1},
+  {&__pyx_n_s_gamma, __pyx_k_gamma, sizeof(__pyx_k_gamma), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_n_s_graph, __pyx_k_graph, sizeof(__pyx_k_graph), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -5604,7 +5691,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 47, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 156, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;

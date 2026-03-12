@@ -17,9 +17,10 @@
     list_rt.resize(batch_size);
     list_term.resize(batch_size);
  }
- NStepReplayMem::NStepReplayMem(int _memory_size)
+ NStepReplayMem::NStepReplayMem(int _memory_size,double _gamma)
 {
     memory_size = _memory_size;
+    gamma = _gamma;
     graphs.resize(memory_size);
     actions.resize(memory_size);
     rewards.resize(memory_size);
@@ -56,10 +57,20 @@ void NStepReplayMem::Add(std::shared_ptr<MvcEnv> env,int n_step)
     int num_steps = env->state_seq.size();
     assert(num_steps);
 
+    // compute discounted cumulative sums: sum_rewards[i] = r_i + gamma * r_{i+1} + ...gamma^T * r_{T}
     env->sum_rewards[num_steps - 1] = env->reward_seq[num_steps - 1];
     for (int i = num_steps - 1; i >= 0; --i)
         if (i < num_steps - 1)
-            env->sum_rewards[i] = env->sum_rewards[i + 1] + env->reward_seq[i];
+            env->sum_rewards[i] = gamma*env->sum_rewards[i + 1] + env->reward_seq[i];
+
+    // compute gamma^{n_step} - need to handle cases where T-i > n_step
+    int max_power = max(n_step, num_steps);
+    std::vector <double> gamma_pow(max_power + 1);
+    double gamma_n = 1;
+    for(int i = 0; i <= max_power; i++){
+        gamma_pow[i] = gamma_n;
+        gamma_n *= gamma;
+    }
 
     for (int i = 0; i < num_steps; ++i)
     {
@@ -72,7 +83,7 @@ void NStepReplayMem::Add(std::shared_ptr<MvcEnv> env,int n_step)
             s_prime = (env->action_list);
             term_t = true;
         } else {
-            cur_r = env->sum_rewards[i] - env->sum_rewards[i + n_step];
+            cur_r = env->sum_rewards[i] - gamma_pow[n_step] *env->sum_rewards[i + n_step];
             s_prime = (env->state_seq[i + n_step]);
         }
         Add(env->graph, env->state_seq[i], env->act_seq[i], cur_r, s_prime, term_t);

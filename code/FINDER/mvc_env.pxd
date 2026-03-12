@@ -13,6 +13,7 @@ cdef extern from "./src/lib/mvc_env.h":
         void stepWithoutReward(int a)except+
         void stepDelete(int a)except+
         int randomAction()except+
+        int degreeAction()except+
         int betweenAction()except+
         bool isTerminal()except+
         bool isNoNodes()except+

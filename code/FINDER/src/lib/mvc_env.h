@@ -26,7 +26,7 @@ public:
     std::vector<double> Betweenness(std::vector< std::vector <int> > adj_list);
 
     int randomAction();
-
+    int degreeAction();
     int betweenAction();
 
     bool isTerminal();
